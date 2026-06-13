@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
         categoria: { select: { nombre: true, slug: true } },
         marca: { select: { nombre: true } },
       },
-      orderBy: [{ destacado: "desc" }, { createdAt: "desc" }],
+      orderBy: [{ orden: "asc" }, { destacado: "desc" }, { createdAt: "desc" }],
       skip,
       take: limit,
     }),
