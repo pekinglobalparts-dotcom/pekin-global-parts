@@ -1,7 +1,12 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { FileText, Users, Package, ShoppingCart, Receipt, AlertCircle } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
+import {
+  FileText, Users, Package, ShoppingCart, Receipt,
+  AlertCircle, TrendingUp, DollarSign, Clock,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { AdminCharts } from "@/components/admin/AdminCharts";
 
 async function getStats() {
   const [
@@ -11,6 +16,9 @@ async function getStats() {
     cotizacionesPendientes,
     pedidosActivos,
     facturasPendientes,
+    solicitudesRecientes,
+    totalFacturado,
+    totalPendienteCobro,
   ] = await Promise.all([
     prisma.socio.count({ where: { status: "ACTIVO" } }),
     prisma.solicitud.count({ where: { status: "PENDIENTE" } }),
@@ -20,79 +28,173 @@ async function getStats() {
       where: { status: { in: ["PENDIENTE", "CONFIRMADO", "EN_PROCESO"] } },
     }),
     prisma.factura.count({ where: { status: "PENDIENTE" } }),
+    prisma.solicitud.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 6,
+    }),
+    prisma.factura.aggregate({
+      _sum: { total: true },
+      where: { status: { in: ["PENDIENTE", "PAGADA"] } },
+    }),
+    prisma.factura.aggregate({
+      _sum: { total: true },
+      where: { status: "PENDIENTE" },
+    }),
   ]);
 
-  const solicitudesRecientes = await prisma.solicitud.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 5,
-  });
-
   return {
-    totalSocios,
-    solicitudesPendientes,
-    totalProductos,
-    cotizacionesPendientes,
-    pedidosActivos,
-    facturasPendientes,
+    totalSocios, solicitudesPendientes, totalProductos,
+    cotizacionesPendientes, pedidosActivos, facturasPendientes,
     solicitudesRecientes,
+    totalFacturado: Number(totalFacturado._sum.total || 0),
+    totalPendienteCobro: Number(totalPendienteCobro._sum.total || 0),
   };
 }
-
-const statCards = (s: Awaited<ReturnType<typeof getStats>>) => [
-  { label: "Socios activos", value: s.totalSocios, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-  { label: "Solicitudes pendientes", value: s.solicitudesPendientes, icon: AlertCircle, color: "text-amber-600", bg: "bg-amber-50" },
-  { label: "Productos activos", value: s.totalProductos, icon: Package, color: "text-green-600", bg: "bg-green-50" },
-  { label: "Cotizaciones pendientes", value: s.cotizacionesPendientes, icon: FileText, color: "text-purple-600", bg: "bg-purple-50" },
-  { label: "Pedidos activos", value: s.pedidosActivos, icon: ShoppingCart, color: "text-orange-600", bg: "bg-orange-50" },
-  { label: "Facturas pendientes", value: s.facturasPendientes, icon: Receipt, color: "text-red-600", bg: "bg-red-50" },
-];
 
 export default async function AdminDashboard() {
   const session = await auth();
   const stats = await getStats();
 
+  const hora = new Date().getHours();
+  const saludo = hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
+
   return (
-    <div className="p-8">
+    <div className="p-6 lg:p-8 max-w-7xl">
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-black text-slate-900">
-          Bienvenido, {session?.user.name?.split(" ")[0]}
+        <p className="text-slate-400 text-sm">{saludo}</p>
+        <h1 className="text-2xl font-black text-slate-900 mt-0.5">
+          {session?.user.name?.split(" ")[0]}
         </h1>
-        <p className="text-slate-500 mt-1">Panel de administración · Pekin Global Parts</p>
+        <p className="text-slate-400 text-sm mt-1">
+          Resumen general de Pekin Global Parts
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-        {statCards(stats).map((card) => (
-          <Card key={card.label}>
-            <CardContent className="flex items-center gap-4 p-6">
-              <div className={`${card.bg} rounded-xl p-3`}>
-                <card.icon className={`h-6 w-6 ${card.color}`} />
-              </div>
-              <div>
-                <div className="text-2xl font-black text-slate-900">{card.value}</div>
-                <div className="text-sm text-slate-500">{card.label}</div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Metric cards - fila 1 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        {[
+          {
+            label: "Socios activos",
+            value: stats.totalSocios,
+            icon: Users,
+            color: "text-blue-600",
+            bg: "bg-blue-50",
+            border: "border-blue-100",
+            trend: null,
+          },
+          {
+            label: "Solicitudes pendientes",
+            value: stats.solicitudesPendientes,
+            icon: AlertCircle,
+            color: "text-amber-600",
+            bg: "bg-amber-50",
+            border: "border-amber-100",
+            href: "/admin/solicitudes",
+            urgent: stats.solicitudesPendientes > 0,
+          },
+          {
+            label: "Cotizaciones",
+            value: stats.cotizacionesPendientes,
+            icon: FileText,
+            color: "text-purple-600",
+            bg: "bg-purple-50",
+            border: "border-purple-100",
+            href: "/admin/cotizaciones",
+          },
+          {
+            label: "Pedidos activos",
+            value: stats.pedidosActivos,
+            icon: ShoppingCart,
+            color: "text-orange-600",
+            bg: "bg-orange-50",
+            border: "border-orange-100",
+            href: "/admin/pedidos",
+          },
+        ].map((card) => (
+          <a key={card.label} href={(card as { href?: string }).href || "#"}>
+            <Card className={`border ${card.border} hover:shadow-md transition-all ${(card as { urgent?: boolean }).urgent ? "ring-2 ring-amber-400" : ""}`}>
+              <CardContent className="p-5">
+                <div className={`${card.bg} w-10 h-10 rounded-xl flex items-center justify-center mb-3`}>
+                  <card.icon className={`h-5 w-5 ${card.color}`} />
+                </div>
+                <p className="text-3xl font-black text-slate-900">{card.value}</p>
+                <p className="text-xs text-slate-500 mt-1">{card.label}</p>
+              </CardContent>
+            </Card>
+          </a>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      {/* Financial row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+        <a href="/admin/facturas">
+          <Card className="border border-green-100 hover:shadow-md transition-all">
+            <CardContent className="p-5">
+              <div className="bg-green-50 w-10 h-10 rounded-xl flex items-center justify-center mb-3">
+                <DollarSign className="h-5 w-5 text-green-600" />
+              </div>
+              <p className="text-2xl font-black text-slate-900">{formatCurrency(stats.totalFacturado)}</p>
+              <p className="text-xs text-slate-500 mt-1">Total facturado</p>
+            </CardContent>
+          </Card>
+        </a>
+        <a href="/admin/facturas?status=PENDIENTE">
+          <Card className={`border hover:shadow-md transition-all ${stats.totalPendienteCobro > 0 ? "border-red-100" : "border-slate-100"}`}>
+            <CardContent className="p-5">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${stats.totalPendienteCobro > 0 ? "bg-red-50" : "bg-slate-50"}`}>
+                <Clock className={`h-5 w-5 ${stats.totalPendienteCobro > 0 ? "text-red-600" : "text-slate-400"}`} />
+              </div>
+              <p className="text-2xl font-black text-slate-900">{formatCurrency(stats.totalPendienteCobro)}</p>
+              <p className="text-xs text-slate-500 mt-1">Pendiente de cobro</p>
+            </CardContent>
+          </Card>
+        </a>
+        <Card className="border border-slate-100">
+          <CardContent className="p-5">
+            <div className="bg-slate-50 w-10 h-10 rounded-xl flex items-center justify-center mb-3">
+              <Package className="h-5 w-5 text-slate-500" />
+            </div>
+            <p className="text-2xl font-black text-slate-900">{stats.totalProductos}</p>
+            <p className="text-xs text-slate-500 mt-1">Productos en catálogo</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts + recent */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Charts */}
+        <div className="lg:col-span-2">
+          <AdminCharts />
+        </div>
+
+        {/* Recent solicitudes */}
         <Card>
-          <div className="p-6 border-b border-slate-100">
-            <h2 className="font-bold text-slate-900">Solicitudes recientes</h2>
+          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+            <h2 className="font-bold text-slate-900 text-sm">Últimas solicitudes</h2>
+            <a href="/admin/solicitudes" className="text-xs text-red-600 hover:text-red-700 font-medium">
+              Ver todas →
+            </a>
           </div>
           <div className="divide-y divide-slate-50">
             {stats.solicitudesRecientes.length === 0 ? (
-              <p className="p-6 text-slate-400 text-sm">Sin solicitudes recientes</p>
+              <p className="p-5 text-slate-400 text-sm text-center">Sin solicitudes</p>
             ) : (
               stats.solicitudesRecientes.map((s) => (
-                <div key={s.id} className="p-4 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-slate-900 text-sm">{s.razonSocial}</p>
-                    <p className="text-xs text-slate-400">{s.ruc} · {s.sector}</p>
+                <a
+                  key={s.id}
+                  href="/admin/solicitudes"
+                  className="flex items-start gap-3 p-4 hover:bg-slate-50 transition-colors"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-blue-800 font-bold text-xs shrink-0 mt-0.5">
+                    {s.razonSocial[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-slate-900 text-xs truncate">{s.razonSocial}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{s.sector.replace(/_/g, " ")}</p>
                   </div>
                   <span
-                    className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${
                       s.status === "PENDIENTE"
                         ? "bg-amber-100 text-amber-700"
                         : s.status === "APROBADA"
@@ -104,32 +206,9 @@ export default async function AdminDashboard() {
                   >
                     {s.status}
                   </span>
-                </div>
+                </a>
               ))
             )}
-          </div>
-        </Card>
-
-        <Card>
-          <div className="p-6 border-b border-slate-100">
-            <h2 className="font-bold text-slate-900">Acciones rápidas</h2>
-          </div>
-          <div className="p-6 grid grid-cols-2 gap-3">
-            {[
-              { href: "/admin/solicitudes", label: "Revisar solicitudes", icon: FileText },
-              { href: "/admin/socios", label: "Gestionar socios", icon: Users },
-              { href: "/admin/productos", label: "Agregar producto", icon: Package },
-              { href: "/admin/cotizaciones", label: "Cotizaciones", icon: ShoppingCart },
-            ].map((action) => (
-              <a
-                key={action.href}
-                href={action.href}
-                className="flex flex-col items-center gap-2 p-4 border border-slate-200 rounded-xl hover:border-blue-900 hover:bg-blue-50 transition-colors text-center"
-              >
-                <action.icon className="h-6 w-6 text-blue-900" />
-                <span className="text-xs font-medium text-slate-700">{action.label}</span>
-              </a>
-            ))}
           </div>
         </Card>
       </div>
