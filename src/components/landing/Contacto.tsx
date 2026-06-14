@@ -3,7 +3,7 @@
 import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react";
 
 export function Contacto() {
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51987654321";
+  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
 
   return (
     <section id="contacto" className="py-24 bg-white">
@@ -22,7 +22,7 @@ export function Contacto() {
             {[
               { icon: MapPin, title: "Dirección", lines: ["Lima, Perú"] },
               { icon: Phone, title: "Teléfono", lines: ["+51 987 654 321"] },
-              { icon: Mail, title: "Correo", lines: ["ventas@pekin.com.pe", "soporte@pekin.com.pe"] },
+              { icon: Mail, title: "Correo", lines: ["pekinglobalparts@gmail.com", "pekinglobalparts@gmail.com"] },
               { icon: Clock, title: "Horario de atención", lines: ["Lunes a Viernes: 8:00 am - 6:00 pm", "Sábado: 9:00 am - 1:00 pm"] },
             ].map((item) => (
               <div key={item.title} className="flex gap-4">

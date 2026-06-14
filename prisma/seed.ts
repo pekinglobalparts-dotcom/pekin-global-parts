@@ -6,18 +6,18 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const existing = await prisma.administrador.findUnique({ where: { email: "admin@pekin.com.pe" } });
+  const existing = await prisma.administrador.findUnique({ where: { email: "pekinglobalparts@gmail.com" } });
   if (!existing) {
     await prisma.administrador.create({
       data: {
         nombre: "Admin",
         apellido: "Pekin",
-        email: "admin@pekin.com.pe",
+        email: "pekinglobalparts@gmail.com",
         passwordHash: await bcrypt.hash("PekinAdmin2025!", 12),
         role: "SUPER_ADMIN",
       },
     });
-    console.log("✓ Admin creado: admin@pekin.com.pe / PekinAdmin2025!");
+    console.log("✓ Admin creado: pekinglobalparts@gmail.com / PekinAdmin2025!");
   } else {
     console.log("✓ Admin ya existe");
   }

@@ -10,7 +10,7 @@ interface WhatsAppButtonProps {
 }
 
 export function WhatsAppButton({ message, context }: WhatsAppButtonProps) {
-  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51987654321";
+  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
   const [open, setOpen] = useState(false);
 
   const defaultMsg = message ||

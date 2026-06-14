@@ -38,7 +38,7 @@ function ProductCard({
   onCotizar: (p: Producto) => void;
   onVerDetalle: (p: Producto) => void;
 }) {
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51987654321";
+  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
   const msg = encodeURIComponent(
     `Hola, me interesa solicitar cotización:\n• Producto: ${producto.nombre}\n• Código: ${producto.codigo}\n• Cantidad: 1`
   );
@@ -163,7 +163,7 @@ function ProductDetailModal({
   onClose: () => void;
   onCotizar: (p: Producto) => void;
 }) {
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51987654321";
+  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
   const msg = encodeURIComponent(
     `Hola, me interesa:\n• ${producto.nombre}\n• Código: ${producto.codigo}`
   );

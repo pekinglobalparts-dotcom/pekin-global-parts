@@ -1,8 +1,8 @@
 import { Resend } from "resend";
 
-const FROM = process.env.EMAIL_FROM || "Pekin Global Parts <noreply@pekin.com.pe>";
+const FROM = process.env.EMAIL_FROM || "Pekin Global Parts <pekinglobalparts@gmail.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51987654321";
+const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY);
@@ -61,7 +61,7 @@ function layout(title: string, body: string) {
         <p style="color:#93c5fd;font-size:12px;margin:0 0 8px;">
           <a href="https://wa.me/${WHATSAPP}" style="color:#4ade80;text-decoration:none;">WhatsApp: +${WHATSAPP}</a>
           &nbsp;·&nbsp;
-          <a href="mailto:ventas@pekin.com.pe" style="color:#93c5fd;text-decoration:none;">ventas@pekin.com.pe</a>
+          <a href="mailto:pekinglobalparts@gmail.com" style="color:#93c5fd;text-decoration:none;">pekinglobalparts@gmail.com</a>
         </p>
         <p style="color:#475569;font-size:11px;margin:0;">Pekin Global Parts S.A.C. · Lima, Perú</p>
       </td></tr>

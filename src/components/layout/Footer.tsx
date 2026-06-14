@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MapPin, Phone, Mail, MessageCircle } from "lucide-react";
 
 export function Footer() {
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51987654321";
+  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
 
   return (
     <footer className="bg-slate-900 text-slate-300">
@@ -73,10 +73,10 @@ export function Footer() {
               <li className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-red-400 shrink-0" />
                 <a
-                  href="mailto:ventas@pekin.com.pe"
+                  href="mailto:pekinglobalparts@gmail.com"
                   className="hover:text-white transition-colors"
                 >
-                  ventas@pekin.com.pe
+                  pekinglobalparts@gmail.com
                 </a>
               </li>
             </ul>

@@ -40,7 +40,7 @@ function CotizacionCard({ cotizacion, onUpdate }: { cotizacion: Cotizacion; onUp
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState<"ACEPTAR" | "RECHAZAR" | null>(null);
   const cfg = statusConfig[cotizacion.status] || statusConfig.PENDIENTE;
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51987654321";
+  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
 
   const handleAction = async (action: "ACEPTAR" | "RECHAZAR") => {
     setLoading(action);

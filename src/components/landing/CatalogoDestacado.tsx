@@ -21,7 +21,7 @@ interface Producto {
 }
 
 function ProductCard({ producto }: { producto: Producto }) {
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51987654321";
+  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
   const msg = encodeURIComponent(
     `Hola, me interesa cotizar:\n• Producto: ${producto.nombre}\n• Código: ${producto.codigo}\n• Cantidad: 1\n\n¿Podría indicarme disponibilidad y precio?`
   );

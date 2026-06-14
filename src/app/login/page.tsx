@@ -143,7 +143,7 @@ function LoginForm() {
               </label>
               <input
                 type="email"
-                placeholder={role === "socio" ? "empresa@correo.com" : "admin@pekin.com.pe"}
+                placeholder={role === "socio" ? "empresa@correo.com" : "pekinglobalparts@gmail.com"}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 {...register("email")}
               />
