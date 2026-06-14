@@ -81,15 +81,12 @@ export async function PATCH(
     return updated;
   });
 
-  try {
-    await sendCotizacionRespondida(
-      cotizacion.socio.emailCorporativo,
-      cotizacion.socio.razonSocial,
-      cotizacion.numero
-    );
-  } catch (e) {
-    console.error("Email error:", e);
-  }
+  sendCotizacionRespondida(
+    cotizacion.socio.emailCorporativo,
+    cotizacion.socio.razonSocial,
+    cotizacion.numero,
+    Number(cotizacion.total)
+  ).catch(console.error);
 
   return NextResponse.json(cotizacion);
 }
