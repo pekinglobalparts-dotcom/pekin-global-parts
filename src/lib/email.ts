@@ -1,11 +1,15 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.EMAIL_FROM || "Pekin Global Parts <noreply@pekin.com.pe>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51987654321";
 
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY);
+}
+
 async function sendEmail(to: string | string[], subject: string, html: string) {
+  const resend = getResend();
   const { data, error } = await resend.emails.send({
     from: FROM,
     to: Array.isArray(to) ? to : [to],
