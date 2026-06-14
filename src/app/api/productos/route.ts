@@ -23,19 +23,24 @@ export async function GET(req: NextRequest) {
     ];
   }
 
-  const [productos, total] = await Promise.all([
-    prisma.producto.findMany({
-      where,
-      include: {
-        categoria: { select: { nombre: true, slug: true } },
-        marca: { select: { nombre: true } },
-      },
-      orderBy: [{ orden: "asc" }, { destacado: "desc" }, { createdAt: "desc" }],
-      skip,
-      take: limit,
-    }),
-    prisma.producto.count({ where }),
-  ]);
+  try {
+    const [productos, total] = await Promise.all([
+      prisma.producto.findMany({
+        where,
+        include: {
+          categoria: { select: { nombre: true, slug: true } },
+          marca: { select: { nombre: true } },
+        },
+        orderBy: [{ orden: "asc" }, { destacado: "desc" }, { createdAt: "desc" }],
+        skip,
+        take: limit,
+      }),
+      prisma.producto.count({ where }),
+    ]);
 
-  return NextResponse.json({ productos, total, page, limit });
+    return NextResponse.json({ productos, total, page, limit });
+  } catch (error) {
+    console.error("[/api/productos] Error:", error);
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+  }
 }

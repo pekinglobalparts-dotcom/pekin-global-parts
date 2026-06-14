@@ -10,6 +10,8 @@ import { AfiliacionSection } from "@/components/landing/AfiliacionSection";
 import { FAQ } from "@/components/landing/FAQ";
 import { Contacto } from "@/components/landing/Contacto";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
+import { AnimatedBrands } from "@/components/landing/AnimatedBrands";
+import { VehicleShowcase } from "@/components/landing/VehicleShowcase";
 
 export default function HomePage() {
   return (
@@ -17,7 +19,9 @@ export default function HomePage() {
       <Navbar />
       <main>
         <Hero />
+        <AnimatedBrands />
         <Nosotros />
+        <VehicleShowcase />
         <Beneficios />
         <CatalogoDestacado />
         <Sectores />
