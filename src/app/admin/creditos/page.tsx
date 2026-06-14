@@ -20,7 +20,7 @@ interface Movimiento {
   id: string;
   tipo: string;
   monto: number;
-  concepto: string;
+  descripcion: string;
   createdAt: string;
   socio: { razonSocial: string };
 }
@@ -198,7 +198,7 @@ export default function AdminCreditosPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-slate-900">{m.socio.razonSocial}</p>
-                    <p className="text-xs text-slate-400">{m.concepto} · {formatDate(m.createdAt)}</p>
+                    <p className="text-xs text-slate-400">{m.descripcion} · {formatDate(m.createdAt)}</p>
                   </div>
                   <span className={`text-sm font-bold shrink-0 ${
                     m.tipo === "CARGO" ? "text-red-600" : m.tipo === "ABONO" ? "text-green-700" : "text-slate-600"

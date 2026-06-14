@@ -14,7 +14,7 @@ interface Factura {
   total: number;
   subtotal: number;
   igv: number;
-  vencimiento: string | null;
+  fechaVencimiento: string | null;
   createdAt: string;
   socio: { razonSocial: string; ruc: string; emailCorporativo: string };
   pedido: { numero: string } | null;
@@ -141,7 +141,7 @@ export default function AdminFacturasPage() {
                     </div>
                     <p className="text-xs text-slate-500 truncate">
                       {factura.socio.razonSocial}
-                      {factura.vencimiento && ` · Vence: ${formatDate(factura.vencimiento)}`}
+                      {factura.fechaVencimiento && ` · Vence: ${formatDate(factura.fechaVencimiento)}`}
                       {factura.pedido && ` · Pedido: ${factura.pedido.numero}`}
                     </p>
                   </div>
@@ -191,11 +191,11 @@ export default function AdminFacturasPage() {
                             <span className="text-slate-500">Emitida</span>
                             <span className="text-slate-700">{formatDate(factura.createdAt)}</span>
                           </div>
-                          {factura.vencimiento && (
+                          {factura.fechaVencimiento && (
                             <div className="flex justify-between">
                               <span className="text-slate-500">Vencimiento</span>
                               <span className={`font-semibold ${factura.status === "VENCIDA" ? "text-red-600" : "text-slate-700"}`}>
-                                {formatDate(factura.vencimiento)}
+                                {formatDate(factura.fechaVencimiento)}
                               </span>
                             </div>
                           )}

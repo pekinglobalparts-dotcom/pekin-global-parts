@@ -10,25 +10,26 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
-  const page = parseInt(searchParams.get("page") || "1");
-  const limit = 20;
-  const skip = (page - 1) * limit;
-
   const where = status ? { status: status as never } : {};
 
-  const [facturas, total] = await Promise.all([
+  const [facturas, pendienteAgg] = await Promise.all([
     prisma.factura.findMany({
       where,
       include: {
-        socio: { select: { razonSocial: true, ruc: true } },
+        socio: { select: { razonSocial: true, ruc: true, emailCorporativo: true } },
         pedido: { select: { numero: true } },
       },
       orderBy: { createdAt: "desc" },
-      skip,
-      take: limit,
+      take: 50,
     }),
-    prisma.factura.count({ where }),
+    prisma.factura.aggregate({
+      _sum: { total: true },
+      where: { status: "PENDIENTE" },
+    }),
   ]);
 
-  return NextResponse.json({ facturas, total });
+  return NextResponse.json({
+    facturas,
+    totalPendiente: Number(pendienteAgg._sum.total || 0),
+  });
 }

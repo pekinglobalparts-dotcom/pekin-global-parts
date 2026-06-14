@@ -2,21 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 import {
   LayoutDashboard, ShoppingCart, Receipt, CreditCard,
-  Package, Bell, LogOut, FileText,
+  Package, Bell, LogOut, FileText, UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const links = [
-  { href: "/socio", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/socio/catalogo", label: "Catálogo", icon: Package },
-  { href: "/socio/cotizaciones", label: "Cotizaciones", icon: FileText },
-  { href: "/socio/pedidos", label: "Pedidos", icon: ShoppingCart },
-  { href: "/socio/facturas", label: "Facturas", icon: Receipt },
-  { href: "/socio/credito", label: "Línea de crédito", icon: CreditCard },
-];
 
 interface SocioSidebarProps {
   user: { name?: string | null; email?: string | null };
@@ -24,17 +16,43 @@ interface SocioSidebarProps {
 
 export function SocioSidebar({ user }: SocioSidebarProps) {
   const pathname = usePathname();
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    fetch("/api/socio/notificaciones")
+      .then(r => r.json())
+      .then(d => setUnread(d.unreadCount || 0))
+      .catch(() => {});
+  }, [pathname]);
+
+  const links = [
+    { href: "/socio", label: "Dashboard", icon: LayoutDashboard, exact: true },
+    { href: "/socio/catalogo", label: "Catálogo", icon: Package },
+    { href: "/socio/cotizaciones", label: "Cotizaciones", icon: FileText },
+    { href: "/socio/pedidos", label: "Pedidos", icon: ShoppingCart },
+    { href: "/socio/facturas", label: "Facturas", icon: Receipt },
+    { href: "/socio/credito", label: "Línea de crédito", icon: CreditCard },
+    { href: "/socio/notificaciones", label: "Notificaciones", icon: Bell, badge: unread },
+    { href: "/socio/perfil", label: "Mi perfil", icon: UserCircle },
+  ];
 
   return (
-    <aside className="w-64 bg-blue-950 flex flex-col h-full">
+    <aside className="w-64 bg-[#0f1f3d] flex flex-col h-full shrink-0">
       <div className="p-6 border-b border-white/10">
-        <span className="text-xl font-black text-white">PEKIN</span>
-        <span className="text-xs text-red-400 block tracking-widest font-semibold">
-          PORTAL SOCIOS
-        </span>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+            <span className="text-white text-xs font-black">PK</span>
+          </div>
+          <div>
+            <span className="text-sm font-black text-white">PEKIN</span>
+            <span className="text-[10px] text-red-400 block tracking-widest font-semibold leading-none">
+              PORTAL SOCIOS
+            </span>
+          </div>
+        </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 p-4 space-y-0.5 overflow-y-auto">
         {links.map((link) => {
           const active = link.exact
             ? pathname === link.href
@@ -46,21 +64,26 @@ export function SocioSidebar({ user }: SocioSidebarProps) {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                 active
-                  ? "bg-white/15 text-white"
+                  ? "bg-red-600 text-white"
                   : "text-blue-200 hover:bg-white/5 hover:text-white"
               )}
             >
               <link.icon className="h-4 w-4 shrink-0" />
-              {link.label}
+              <span className="flex-1">{link.label}</span>
+              {link.badge ? (
+                <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none">
+                  {link.badge > 99 ? "99+" : link.badge}
+                </span>
+              ) : null}
             </Link>
           );
         })}
       </nav>
 
       <div className="p-4 border-t border-white/10">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white text-sm font-bold">
-            {user.name?.[0] || "S"}
+        <div className="flex items-center gap-3 mb-3 px-1">
+          <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
+            {user.name?.[0]?.toUpperCase() || "S"}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white truncate">{user.name}</p>
