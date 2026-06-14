@@ -1,52 +1,94 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ChevronRight, Shield, Truck, Award } from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { useRef, useEffect, useState } from "react";
+import { ChevronRight, Shield, Truck, Award, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+function useCounter(target: number, duration = 1800, inView = false) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!inView) return;
+    let start = 0;
+    const step = target / (duration / 16);
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= target) { setValue(target); clearInterval(timer); }
+      else setValue(Math.floor(start));
+    }, 16);
+    return () => clearInterval(timer);
+  }, [inView, target, duration]);
+  return value;
+}
+
 const stats = [
-  { label: "Años de experiencia", value: "15+" },
-  { label: "Empresas socias", value: "500+" },
-  { label: "Referencias en stock", value: "10K+" },
-  { label: "Cobertura nacional", value: "100%" },
+  { label: "Años de experiencia", value: 15, suffix: "+" },
+  { label: "Empresas socias activas", value: 500, suffix: "+" },
+  { label: "Referencias en stock", value: 10000, suffix: "+", prefix: "" },
+  { label: "Satisfacción del cliente", value: 98, suffix: "%" },
 ];
 
-export function Hero() {
+function StatCard({ stat, inView }: { stat: typeof stats[0]; inView: boolean }) {
+  const count = useCounter(stat.value, 1600, inView);
+  const display = stat.value >= 1000
+    ? (count >= 1000 ? `${Math.floor(count / 1000)}K` : count.toString())
+    : count.toString();
+
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-slate-900">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors"
+    >
+      <div className="text-4xl font-black text-white mb-1">
+        {display}{stat.suffix}
+      </div>
+      <div className="text-sm text-slate-400">{stat.label}</div>
+    </motion.div>
+  );
+}
+
+export function Hero() {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
+
+  const brands = ["Toyota", "Nissan", "Hyundai", "Kia", "Mitsubishi", "Ford", "Chevrolet", "VW"];
+  const categories = ["Frenos", "Suspensión", "Motor", "Transmisión", "Eléctrico", "Carrocería", "Filtros", "Correas"];
+
+  return (
+    <section ref={ref} className="relative min-h-screen flex items-center overflow-hidden bg-slate-900">
       {/* Animated background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-950 via-slate-900 to-slate-900" />
-        {/* Grid pattern */}
         <div
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-[0.06]"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
+              "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+            backgroundSize: "64px 64px",
           }}
         />
-        {/* Glow effects */}
         <motion.div
-          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.15, 1], opacity: [0.25, 0.45, 0.25] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-3xl pointer-events-none"
         />
         <motion.div
-          animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-red-600/20 rounded-full blur-3xl"
+          animate={{ scale: [1.1, 1, 1.1], opacity: [0.15, 0.35, 0.15] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-red-600/20 rounded-full blur-3xl pointer-events-none"
         />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 lg:py-0">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Text content */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 lg:py-0 w-full">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+
+          {/* Text */}
           <div>
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.5 }}
               className="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-4 py-1.5 mb-8"
             >
               <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -56,10 +98,10 @@ export function Hero() {
             </motion.div>
 
             <motion.h1
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-5xl lg:text-7xl font-black text-white leading-none mb-6"
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-5xl lg:text-7xl font-black text-white leading-none mb-6 tracking-tight"
             >
               TU ALIADO{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
@@ -69,9 +111,9 @@ export function Hero() {
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
               className="text-lg text-slate-400 leading-relaxed mb-10 max-w-lg"
             >
               Importamos las mejores autopartes del mundo para mantener sus flotas
@@ -79,9 +121,9 @@ export function Hero() {
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
               className="flex flex-wrap gap-4"
             >
               <a href="#afiliacion">
@@ -100,66 +142,78 @@ export function Hero() {
               </a>
             </motion.div>
 
-            {/* Trust badges */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="mt-12 flex items-center gap-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-12 flex items-center gap-6 flex-wrap"
             >
               {[
                 { icon: Shield, text: "Garantía certificada" },
                 { icon: Truck, text: "Entrega nacional" },
                 { icon: Award, text: "Calidad premium" },
+                { icon: Zap, text: "Crédito inmediato" },
               ].map(({ icon: Icon, text }) => (
-                <div
-                  key={text}
-                  className="flex items-center gap-2 text-slate-400 text-sm"
-                >
-                  <Icon className="h-4 w-4 text-red-400" />
+                <div key={text} className="flex items-center gap-2 text-slate-400 text-sm">
+                  <Icon className="h-4 w-4 text-red-400 shrink-0" />
                   {text}
                 </div>
               ))}
             </motion.div>
           </div>
 
-          {/* Stats */}
+          {/* Right panel */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="grid grid-cols-2 gap-4"
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="space-y-4"
           >
-            {stats.map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 + i * 0.1 }}
-                className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors"
-              >
-                <div className="text-4xl font-black text-white mb-2">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-slate-400">{stat.label}</div>
-              </motion.div>
-            ))}
+            {/* Stats grid */}
+            <div className="grid grid-cols-2 gap-3">
+              {stats.map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ delay: 0.4 + i * 0.1 }}
+                >
+                  <StatCard stat={stat} inView={inView} />
+                </motion.div>
+              ))}
+            </div>
 
-            {/* Car illustration placeholder */}
+            {/* Brands strip */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, y: 16 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.8 }}
-              className="col-span-2 bg-gradient-to-br from-blue-900/30 to-slate-800/50 border border-white/10 rounded-2xl p-8 flex items-center justify-center"
+              className="bg-white/5 border border-white/10 rounded-2xl p-5"
             >
-              <div className="text-center">
-                <div className="text-6xl mb-3">🚗</div>
-                <p className="text-slate-400 text-sm">
-                  +10,000 referencias disponibles
-                </p>
-                <p className="text-slate-500 text-xs mt-1">
-                  Toyota · Nissan · Hyundai · Kia · Ford
-                </p>
+              <p className="text-xs text-slate-500 uppercase tracking-widest mb-3 font-semibold">Marcas disponibles</p>
+              <div className="flex flex-wrap gap-2">
+                {brands.map(b => (
+                  <span key={b} className="bg-white/10 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-white/20 transition-colors">
+                    {b}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Categories strip */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.9 }}
+              className="bg-gradient-to-r from-red-900/30 to-blue-900/30 border border-white/10 rounded-2xl p-5"
+            >
+              <p className="text-xs text-slate-500 uppercase tracking-widest mb-3 font-semibold">Categorías principales</p>
+              <div className="flex flex-wrap gap-2">
+                {categories.map(c => (
+                  <span key={c} className="bg-white/5 border border-white/10 text-slate-300 text-xs font-medium px-3 py-1.5 rounded-lg">
+                    {c}
+                  </span>
+                ))}
               </div>
             </motion.div>
           </motion.div>
@@ -170,7 +224,7 @@ export function Hero() {
       <motion.div
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 2, repeat: Infinity }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
       >
         <span className="text-xs text-slate-500">Descubre más</span>
         <div className="w-px h-8 bg-gradient-to-b from-slate-500 to-transparent" />
