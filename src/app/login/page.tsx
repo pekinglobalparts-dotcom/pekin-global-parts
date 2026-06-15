@@ -40,7 +40,7 @@ function LoginForm() {
     });
 
     if (res?.error) {
-      setError("Credenciales incorrectas. Verifique su email y contraseña.");
+      setError(role === "socio" ? "Credenciales incorrectas. Verifique su RUC y contraseña." : "Credenciales incorrectas. Verifique su email y contraseña.");
       return;
     }
 
@@ -139,11 +139,11 @@ function LoginForm() {
 
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                Correo electrónico
+                {role === "socio" ? "RUC" : "Correo electrónico"}
               </label>
               <input
-                type="email"
-                placeholder={role === "socio" ? "empresa@correo.com" : "pekinglobalparts@gmail.com"}
+                type="text"
+                placeholder={role === "socio" ? "20xxxxxxxxx" : "pekinglobalparts@gmail.com"}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 {...register("email")}
               />

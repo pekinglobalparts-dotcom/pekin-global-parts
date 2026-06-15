@@ -27,7 +27,7 @@ export const solicitudSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: z.string().email("Email inválido"),
+  email: z.string().min(1, "Campo requerido"),
   password: z.string().min(1, "Contraseña requerida"),
   role: z.enum(["admin", "socio"]),
 });

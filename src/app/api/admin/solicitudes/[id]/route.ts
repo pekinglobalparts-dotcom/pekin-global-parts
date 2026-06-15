@@ -156,7 +156,7 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json({ message: "Solicitud aprobada", socioId: socio.id });
+    return NextResponse.json({ message: "Solicitud aprobada", socioId: socio.id, password });
   }
 
   return NextResponse.json({ error: "Acción inválida" }, { status: 400 });

@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().min(1),
   password: z.string().min(1),
   role: z.enum(["admin", "socio"]),
 });
@@ -47,8 +47,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         if (role === "socio") {
-          const socio = await prisma.socio.findUnique({
-            where: { emailCorporativo: email },
+          const socio = await prisma.socio.findFirst({
+            where: {
+              OR: [{ ruc: email }, { emailCorporativo: email }],
+            },
           });
           if (!socio || socio.status !== "ACTIVO") return null;
           const valid = await bcrypt.compare(password, socio.passwordHash);

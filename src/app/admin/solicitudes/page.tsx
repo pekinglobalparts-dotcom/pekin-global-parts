@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Check, X, Eye, Clock } from "lucide-react";
+import { Check, X, Eye, Clock, Copy } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,7 @@ export default function SolicitudesPage() {
   const [lineaCredito, setLineaCredito] = useState("10000");
   const [motivo, setMotivo] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [credenciales, setCredenciales] = useState<{ ruc: string; password: string; empresa: string } | null>(null);
 
   const fetchSolicitudes = useCallback(async () => {
     setLoading(true);
@@ -51,7 +52,7 @@ export default function SolicitudesPage() {
   const handleAccion = async (accion: "aprobar" | "rechazar" | "en_revision") => {
     if (!selected) return;
     setProcessing(true);
-    await fetch(`/api/admin/solicitudes/${selected.id}`, {
+    const res = await fetch(`/api/admin/solicitudes/${selected.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -60,6 +61,10 @@ export default function SolicitudesPage() {
         lineaCredito: accion === "aprobar" ? Number(lineaCredito) : undefined,
       }),
     });
+    const data = await res.json();
+    if (accion === "aprobar" && res.ok && data.password) {
+      setCredenciales({ ruc: selected.ruc, password: data.password, empresa: selected.razonSocial });
+    }
     setSelected(null);
     setMotivo("");
     fetchSolicitudes();
@@ -133,6 +138,66 @@ export default function SolicitudesPage() {
           </table>
         )}
       </div>
+
+      {/* Credentials modal */}
+      {credenciales && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl">
+            <div className="text-center mb-6">
+              <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Check className="h-7 w-7 text-green-600" />
+              </div>
+              <h2 className="text-xl font-black text-slate-900">Solicitud aprobada</h2>
+              <p className="text-slate-500 text-sm mt-1">Comparte estas credenciales con <strong>{credenciales.empresa}</strong> por WhatsApp</p>
+            </div>
+
+            <div className="bg-slate-50 rounded-xl p-5 space-y-4 mb-6">
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Usuario (RUC)</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-mono text-lg font-bold text-slate-900">{credenciales.ruc}</p>
+                  <button onClick={() => navigator.clipboard.writeText(credenciales.ruc)} className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors">
+                    <Copy className="h-4 w-4 text-slate-400" />
+                  </button>
+                </div>
+              </div>
+              <div className="border-t border-slate-200" />
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Contraseña temporal</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-mono text-lg font-bold text-slate-900">{credenciales.password}</p>
+                  <button onClick={() => navigator.clipboard.writeText(credenciales.password)} className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors">
+                    <Copy className="h-4 w-4 text-slate-400" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 rounded-xl p-4 mb-6">
+              <p className="text-xs text-blue-800 leading-relaxed">
+                <strong>Mensaje sugerido para WhatsApp:</strong><br />
+                Hola, su solicitud de afiliación a Pekin Global Parts fue aprobada. Sus credenciales de acceso son:<br />
+                Usuario: {credenciales.ruc}<br />
+                Contraseña: {credenciales.password}<br />
+                Ingrese a: {typeof window !== "undefined" ? window.location.origin : ""}/login y cambie su contraseña desde Mi Perfil.
+              </p>
+              <button
+                onClick={() => navigator.clipboard.writeText(`Hola, su solicitud de afiliación a Pekin Global Parts fue aprobada. Sus credenciales de acceso son:\nUsuario: ${credenciales.ruc}\nContraseña: ${credenciales.password}\nIngrese a: ${typeof window !== "undefined" ? window.location.origin : ""}/login y cambie su contraseña desde Mi Perfil.`)}
+                className="mt-3 text-xs font-semibold text-blue-700 hover:text-blue-900 flex items-center gap-1"
+              >
+                <Copy className="h-3 w-3" /> Copiar mensaje completo
+              </button>
+            </div>
+
+            <button
+              onClick={() => setCredenciales(null)}
+              className="w-full bg-[#0f1f3d] text-white py-3 rounded-xl font-semibold text-sm hover:bg-blue-900 transition-colors"
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Detail modal */}
       {selected && (
