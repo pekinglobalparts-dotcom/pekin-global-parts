@@ -64,11 +64,11 @@ export function Footer() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-3">
                 <MapPin className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
-                <span>Lima, Perú</span>
+                <span>Jr. Cerro Azul 2147, El Agustino, Lima</span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-red-400 shrink-0" />
-                <span>+51 987 654 321</span>
+                <span>+51 953 096 242</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-red-400 shrink-0" />

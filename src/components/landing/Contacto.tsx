@@ -20,9 +20,9 @@ export function Contacto() {
         <div className="grid lg:grid-cols-2 gap-12 items-start">
           <div className="space-y-6">
             {[
-              { icon: MapPin, title: "Dirección", lines: ["Lima, Perú"] },
-              { icon: Phone, title: "Teléfono", lines: ["+51 987 654 321"] },
-              { icon: Mail, title: "Correo", lines: ["pekinglobalparts@gmail.com", "pekinglobalparts@gmail.com"] },
+              { icon: MapPin, title: "Dirección", lines: ["Jr. Cerro Azul 2147, El Agustino, Lima"] },
+              { icon: Phone, title: "Teléfono / WhatsApp", lines: ["+51 953 096 242"] },
+              { icon: Mail, title: "Correo", lines: ["pekinglobalparts@gmail.com"] },
               { icon: Clock, title: "Horario de atención", lines: ["Lunes a Viernes: 8:00 am - 6:00 pm", "Sábado: 9:00 am - 1:00 pm"] },
             ].map((item) => (
               <div key={item.title} className="flex gap-4">
