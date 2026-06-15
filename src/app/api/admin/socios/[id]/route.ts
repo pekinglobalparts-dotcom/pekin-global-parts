@@ -94,3 +94,34 @@ export async function PATCH(
 
   return NextResponse.json(socio);
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth();
+  if (!session || session.user.role !== "admin") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const socio = await prisma.socio.findUnique({ where: { id } });
+  if (!socio) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+
+  // Delete related records first
+  await prisma.notificacion.deleteMany({ where: { socioId: id } });
+  await prisma.movimientoCredito.deleteMany({ where: { socioId: id } });
+  await prisma.socio.delete({ where: { id } });
+
+  await prisma.auditLog.create({
+    data: {
+      administradorId: session.user.id,
+      accion: "ELIMINAR_SOCIO",
+      entidad: "Socio",
+      entidadId: id,
+      datosDespues: JSON.parse(JSON.stringify({ razonSocial: socio.razonSocial, ruc: socio.ruc })),
+    },
+  });
+
+  return NextResponse.json({ message: "Socio eliminado" });
+}
