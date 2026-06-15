@@ -83,13 +83,19 @@ export function Navbar() {
                   key={link.href}
                   onClick={() => handleNavClick(link.href)}
                   className={cn(
-                    "px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                    "relative px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200",
                     isActive
-                      ? scrolled ? "text-blue-900 bg-blue-50" : "text-white bg-white/10"
-                      : scrolled ? "text-slate-600 hover:text-blue-900 hover:bg-slate-50" : "text-white/80 hover:text-white hover:bg-white/10"
+                      ? scrolled ? "text-red-600" : "text-white"
+                      : scrolled ? "text-slate-600 hover:text-red-600" : "text-white/80 hover:text-white"
                   )}
                 >
                   {link.label}
+                  {isActive && (
+                    <motion.div
+                      layoutId="nav-underline"
+                      className={cn("absolute bottom-0 left-3 right-3 h-0.5 rounded-full", scrolled ? "bg-red-600" : "bg-white")}
+                    />
+                  )}
                 </button>
               );
             })}

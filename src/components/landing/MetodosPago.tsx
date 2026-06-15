@@ -10,7 +10,10 @@ const metodos = [
     title: "Transferencia bancaria",
     content: (
       <div className="space-y-2 text-sm text-slate-600">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/2/29/Banco_de_Cr%C3%A9dito_BCP_logo.svg" alt="BCP" className="h-7 object-contain mb-1" />
+        <div className="inline-flex items-center gap-1.5 bg-blue-600 text-white font-black text-sm px-3 py-1.5 rounded-lg mb-2 w-fit">
+          <span>BCP</span>
+          <span className="text-blue-200 font-normal text-xs">Banco de Crédito</span>
+        </div>
         <p><span className="font-semibold text-slate-800">Cuenta Soles:</span> 1916917997055</p>
         <p><span className="font-semibold text-slate-800">CCI:</span> 00219100691799705558</p>
         <p><span className="font-semibold text-slate-800">A nombre de:</span> Pekin Global Parts SAC</p>
@@ -23,11 +26,15 @@ const metodos = [
     content: (
       <div className="space-y-3 text-sm text-slate-600">
         <p>Aceptamos todas las tarjetas de débito y crédito.</p>
-        <div className="flex flex-wrap items-center gap-3 pt-1">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-7 object-contain" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-8 object-contain" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/American_Express_logo_%282018%29.svg" alt="American Express" className="h-8 object-contain" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Diners_Club_Logo3.svg" alt="Diners Club" className="h-6 object-contain" />
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          {[
+            { name: "VISA", bg: "bg-blue-700", text: "text-white", style: "font-black italic text-lg tracking-tight" },
+            { name: "MC", bg: "bg-white border border-slate-200", text: "text-slate-800", style: "font-black text-sm" },
+            { name: "AMEX", bg: "bg-blue-500", text: "text-white", style: "font-bold text-xs tracking-wider" },
+            { name: "DINERS", bg: "bg-slate-700", text: "text-white", style: "font-bold text-xs tracking-wider" },
+          ].map(b => (
+            <span key={b.name} className={`${b.bg} ${b.text} ${b.style} px-3 py-1.5 rounded-lg`}>{b.name}</span>
+          ))}
         </div>
       </div>
     ),
