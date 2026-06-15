@@ -4,7 +4,7 @@ const FROM = process.env.EMAIL_FROM || "Pekin Global Parts <pekinglobalparts@gma
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
 
-function getResend() {
+export function getResend() {
   return new Resend(process.env.RESEND_API_KEY);
 }
 

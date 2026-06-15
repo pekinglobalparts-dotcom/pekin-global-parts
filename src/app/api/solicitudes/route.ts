@@ -44,6 +44,30 @@ export async function POST(req: NextRequest) {
       console.error("Email error (non-critical):", emailError);
     }
 
+    // Notificar al admin
+    const adminEmail = process.env.ADMIN_EMAIL || "pekinglobalparts@gmail.com";
+    try {
+      const { getResend } = await import("@/lib/email");
+      const resend = getResend();
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || "Pekin Global Parts <onboarding@resend.dev>",
+        to: [adminEmail],
+        subject: `Nueva solicitud de afiliación — ${data.razonSocial}`,
+        html: `<p><strong>Nueva solicitud recibida:</strong></p>
+        <ul>
+          <li><strong>Empresa:</strong> ${data.razonSocial}</li>
+          <li><strong>RUC:</strong> ${data.ruc}</li>
+          <li><strong>Sector:</strong> ${data.sector}</li>
+          <li><strong>Contacto:</strong> ${data.representanteLegal} (${data.cargo})</li>
+          <li><strong>Email:</strong> ${data.emailCorporativo}</li>
+          <li><strong>Teléfono:</strong> ${data.telefono}</li>
+        </ul>
+        <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/admin/solicitudes">Ver en el panel →</a></p>`,
+      });
+    } catch (adminEmailError) {
+      console.error("Admin email error:", adminEmailError);
+    }
+
     return NextResponse.json(
       { message: "Solicitud enviada correctamente", id: solicitud.id },
       { status: 201 }
