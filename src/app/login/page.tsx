@@ -80,7 +80,7 @@ function LoginForm() {
         </div>
 
         <div className="relative text-slate-500 text-sm">
-          © {new Date().getFullYear()} Pekin Global Parts S.A.
+          © {new Date().getFullYear()} Pekin Global Parts S.A.C.
         </div>
       </div>
 

@@ -105,7 +105,7 @@ export function Footer() {
 
       <div className="border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} Pekin Global Parts S.A. Todos los derechos reservados.</p>
+          <p>© {new Date().getFullYear()} Pekin Global Parts S.A.C. Todos los derechos reservados.</p>
           <p>RUC: 20612880396 | Lima, Perú</p>
         </div>
       </div>

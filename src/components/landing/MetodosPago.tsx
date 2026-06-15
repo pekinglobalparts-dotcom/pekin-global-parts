@@ -9,10 +9,11 @@ const metodos = [
     icon: Building2,
     title: "Transferencia bancaria",
     content: (
-      <div className="space-y-1.5 text-sm text-slate-600">
-        <p><span className="font-semibold text-slate-800">BCP Soles:</span> 1916917997055</p>
+      <div className="space-y-2 text-sm text-slate-600">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/29/Banco_de_Cr%C3%A9dito_BCP_logo.svg" alt="BCP" className="h-7 object-contain mb-1" />
+        <p><span className="font-semibold text-slate-800">Cuenta Soles:</span> 1916917997055</p>
         <p><span className="font-semibold text-slate-800">CCI:</span> 00219100691799705558</p>
-        <p><span className="font-semibold text-slate-800">A nombre de:</span> PEKIN S&A</p>
+        <p><span className="font-semibold text-slate-800">A nombre de:</span> Pekin Global Parts SAC</p>
       </div>
     ),
   },
