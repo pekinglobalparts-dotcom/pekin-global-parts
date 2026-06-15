@@ -20,17 +20,13 @@ const metodos = [
     icon: CreditCard,
     title: "Pago con tarjeta",
     content: (
-      <div className="space-y-2 text-sm text-slate-600">
+      <div className="space-y-3 text-sm text-slate-600">
         <p>Aceptamos todas las tarjetas de débito y crédito.</p>
-        <div className="flex flex-wrap gap-2 pt-1">
-          {["VISA", "Mastercard", "Amex", "Diners"].map((brand) => (
-            <span
-              key={brand}
-              className="bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg"
-            >
-              {brand}
-            </span>
-          ))}
+        <div className="flex flex-wrap items-center gap-3 pt-1">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png" alt="Visa" className="h-7 object-contain" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-8 object-contain" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/American_Express_logo_%282018%29.svg" alt="American Express" className="h-8 object-contain" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Diners_Club_Logo3.svg" alt="Diners Club" className="h-6 object-contain" />
         </div>
       </div>
     ),
