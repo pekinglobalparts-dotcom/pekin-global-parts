@@ -1,24 +1,8 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
+import { useRef } from "react";
 import { Globe, Award, Users, TrendingUp } from "lucide-react";
-
-function useCounter(target: number, inView: boolean, duration = 1600) {
-  const [value, setValue] = useState(0);
-  useEffect(() => {
-    if (!inView) return;
-    let cur = 0;
-    const step = target / (duration / 16);
-    const t = setInterval(() => {
-      cur += step;
-      if (cur >= target) { setValue(target); clearInterval(t); }
-      else setValue(Math.floor(cur));
-    }, 16);
-    return () => clearInterval(t);
-  }, [inView, target, duration]);
-  return value;
-}
 
 const pillars = [
   { icon: Globe, title: "Importación global", desc: "Traemos las mejores autopartes de Asia, Europa y América directamente a Perú con certificación de calidad." },
@@ -28,15 +12,14 @@ const pillars = [
 ];
 
 const kpis = [
-  { value: 500, suffix: "+", label: "Empresas socias" },
-  { value: 98, suffix: "%", label: "Satisfacción" },
-  { value: 24, suffix: "h", label: "Entrega Lima" },
+  { display: "Socios activos", label: "Empresas socias" },
+  { display: "Alta satisfacción", label: "Satisfacción" },
+  { display: "24h Lima", label: "Entrega Lima" },
 ];
 
 export function Nosotros() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
-  const counters = kpis.map(k => useCounter(k.value, inView)); // eslint-disable-line react-hooks/rules-of-hooks
 
   return (
     <section id="nosotros" ref={ref} className="py-24 bg-white">
@@ -51,16 +34,16 @@ export function Nosotros() {
               Sobre nosotros
             </span>
             <h2 className="text-4xl lg:text-5xl font-black text-slate-900 mt-3 mb-6 leading-tight">
-              Más de 15 años{" "}
-              <span className="text-blue-900">impulsando empresas</span>
+              Tu aliado{" "}
+              <span className="text-blue-900">en movimiento</span>
             </h2>
             <p className="text-slate-600 text-lg leading-relaxed mb-6">
-              Somos una empresa peruana especializada en la importación y distribución
+              Desde 2024, somos una empresa peruana especializada en la importación y distribución
               de autopartes de alta calidad. Trabajamos exclusivamente con empresas,
               ofreciendo un servicio B2B personalizado y eficiente.
             </p>
             <p className="text-slate-600 leading-relaxed mb-8">
-              Nuestro catálogo cuenta con más de 10,000 referencias para las
+              Nuestro catálogo en constante crecimiento incluye piezas para las
               principales marcas del mercado peruano. Desde frenos hasta sistemas
               eléctricos, somos su socio estratégico para mantener sus vehículos
               operativos.
@@ -69,8 +52,8 @@ export function Nosotros() {
             <div className="flex items-center gap-8">
               {kpis.map((k, i) => (
                 <div key={k.label}>
-                  <div className="text-3xl font-black text-blue-900">
-                    {counters[i]}{k.suffix}
+                  <div className="text-2xl font-black text-blue-900">
+                    {k.display}
                   </div>
                   <div className="text-sm text-slate-500">{k.label}</div>
                 </div>

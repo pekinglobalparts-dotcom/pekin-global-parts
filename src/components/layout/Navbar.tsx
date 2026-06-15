@@ -65,7 +65,7 @@ export function Navbar() {
             </div>
             <div className="flex flex-col leading-tight">
               <span className={cn("text-base font-black tracking-tight transition-colors", scrolled ? "text-blue-900" : "text-white")}>
-                PEKIN
+                PEKÍN S&A
               </span>
               <span className={cn("text-[9px] font-bold tracking-[0.2em] transition-colors leading-none", scrolled ? "text-red-600" : "text-red-400")}>
                 GLOBAL PARTS

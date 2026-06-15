@@ -1,83 +1,66 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
 
 const faqs = [
   {
-    q: "¿Pueden comprar personas naturales?",
-    a: "No. Pekin Global Parts es una plataforma exclusivamente B2B. Solo atendemos a empresas legalmente constituidas con RUC activo.",
+    q: "¿Solo atendemos a empresas?",
+    a: "Sí. Somos una plataforma B2B exclusiva. Solo atendemos a empresas con RUC activo.",
   },
   {
-    q: "¿Cuánto demora la evaluación de mi solicitud?",
-    a: "El proceso de evaluación toma entre 2 y 5 días hábiles. Le notificaremos por correo electrónico el resultado.",
+    q: "¿Cuánto demora la evaluación?",
+    a: "Entre 2 y 5 días hábiles. Le notificamos por correo el resultado.",
   },
   {
     q: "¿Cómo funciona la línea de crédito?",
-    a: "Asignamos una línea de crédito inicial según el perfil de su empresa. Esta puede incrementarse según su historial de compras con nosotros.",
+    a: "Asignamos una línea inicial según el perfil de su empresa, que crece con su historial.",
   },
   {
     q: "¿Tienen cobertura fuera de Lima?",
-    a: "Sí. Realizamos envíos a todo el Perú a través de nuestra red de transportistas. Los tiempos varían según la zona geográfica.",
+    a: "Sí. Enviamos a todo el Perú. Los tiempos varían según la zona geográfica.",
   },
   {
-    q: "¿Qué marcas de vehículos cubren?",
-    a: "Contamos con piezas para Toyota, Nissan, Hyundai, Kia, Mitsubishi, Ford, Chevrolet, Volkswagen, entre otras marcas presentes en el mercado peruano.",
+    q: "¿Qué marcas cubren?",
+    a: "Toyota, Nissan, Hyundai, Kia, Mitsubishi, Ford, Chevrolet, VW y más.",
   },
   {
-    q: "¿Puedo solicitar cotizaciones antes de ser aprobado?",
-    a: "Las cotizaciones formales requieren cuenta activa. Sin embargo, puede consultar precios referenciales por WhatsApp.",
+    q: "¿Puedo consultar precios antes de afiliarme?",
+    a: "Sí, puede consultar precios referenciales por WhatsApp antes de crear su cuenta.",
   },
 ];
 
 export function FAQ() {
-  const [open, setOpen] = useState<number | null>(null);
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="faq" className="py-24 bg-slate-50">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+    <section id="faq" ref={ref} className="py-16 bg-slate-50">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-10">
           <span className="text-red-600 font-semibold text-sm tracking-wider uppercase">
             FAQ
           </span>
-          <h2 className="text-4xl font-black text-slate-900 mt-3">
+          <h2 className="text-3xl font-black text-slate-900 mt-2">
             Preguntas frecuentes
           </h2>
         </div>
 
-        <div className="space-y-3">
+        <div className="grid md:grid-cols-2 gap-3">
           {faqs.map((faq, i) => (
-            <div
+            <motion.div
               key={i}
-              className="bg-white rounded-xl border border-slate-200 overflow-hidden"
+              initial={{ opacity: 0, y: 16 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: i * 0.07 }}
+              className="bg-white rounded-xl border border-slate-200 p-5"
             >
-              <button
-                className="w-full flex items-center justify-between p-6 text-left"
-                onClick={() => setOpen(open === i ? null : i)}
-              >
-                <span className="font-semibold text-slate-900 pr-4">{faq.q}</span>
-                <ChevronDown
-                  className={`h-5 w-5 text-slate-400 shrink-0 transition-transform ${
-                    open === i ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              <AnimatePresence>
-                {open === i && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="px-6 pb-6 text-slate-500 leading-relaxed border-t border-slate-100 pt-4">
-                      {faq.a}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+              <h3 className="font-semibold text-slate-900 text-sm mb-1.5 flex items-start gap-2">
+                <span className="text-red-600 shrink-0 mt-0.5">Q.</span>
+                {faq.q}
+              </h3>
+              <p className="text-slate-500 text-sm leading-relaxed pl-5">{faq.a}</p>
+            </motion.div>
           ))}
         </div>
       </div>

@@ -1,47 +1,26 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
+import { useRef } from "react";
 import { ChevronRight, Shield, Truck, Award, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-function useCounter(target: number, duration = 1800, inView = false) {
-  const [value, setValue] = useState(0);
-  useEffect(() => {
-    if (!inView) return;
-    let start = 0;
-    const step = target / (duration / 16);
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= target) { setValue(target); clearInterval(timer); }
-      else setValue(Math.floor(start));
-    }, 16);
-    return () => clearInterval(timer);
-  }, [inView, target, duration]);
-  return value;
-}
-
 const stats = [
-  { label: "Años de experiencia", value: 15, suffix: "+" },
-  { label: "Empresas socias activas", value: 500, suffix: "+" },
-  { label: "Referencias en stock", value: 10000, suffix: "+", prefix: "" },
-  { label: "Satisfacción del cliente", value: 98, suffix: "%" },
+  { label: "Empresas socias", display: "Socios afiliados" },
+  { label: "Fundación", display: "Desde 2024" },
+  { label: "Referencias", display: "+10K referencias" },
+  { label: "Satisfacción", display: "Alta satisfacción" },
 ];
 
 function StatCard({ stat, inView }: { stat: typeof stats[0]; inView: boolean }) {
-  const count = useCounter(stat.value, 1600, inView);
-  const display = stat.value >= 1000
-    ? (count >= 1000 ? `${Math.floor(count / 1000)}K` : count.toString())
-    : count.toString();
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors"
     >
-      <div className="text-4xl font-black text-white mb-1">
-        {display}{stat.suffix}
+      <div className="text-2xl font-black text-white mb-1">
+        {stat.display}
       </div>
       <div className="text-sm text-slate-400">{stat.label}</div>
     </motion.div>

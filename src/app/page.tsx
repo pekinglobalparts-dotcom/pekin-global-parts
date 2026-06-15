@@ -8,6 +8,7 @@ import { ProcesoAfiliacion } from "@/components/landing/ProcesoAfiliacion";
 import { CatalogoDestacado } from "@/components/landing/CatalogoDestacado";
 import { AfiliacionSection } from "@/components/landing/AfiliacionSection";
 import { FAQ } from "@/components/landing/FAQ";
+import { MetodosPago } from "@/components/landing/MetodosPago";
 import { Contacto } from "@/components/landing/Contacto";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { AnimatedBrands } from "@/components/landing/AnimatedBrands";
@@ -24,6 +25,7 @@ export default function HomePage() {
         <VehicleShowcase />
         <Beneficios />
         <CatalogoDestacado />
+        <MetodosPago />
         <Sectores />
         <ProcesoAfiliacion />
         <AfiliacionSection />
