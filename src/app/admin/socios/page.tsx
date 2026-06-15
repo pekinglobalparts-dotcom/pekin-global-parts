@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Search, X, CreditCard, Mail, Phone, Building2, Edit2, Check } from "lucide-react";
+import { Users, Search, X, CreditCard, Mail, Phone, Building2, Edit2, Check, Trash2 } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -78,6 +78,15 @@ export default function AdminSociosPage() {
     setSocios(prev => prev.map(s => s.id === selected.id ? { ...s, lineaCredito: newVal } : s));
     setSelected(s => s ? { ...s, lineaCredito: newVal } : null);
     setEditingCredito(false);
+    setSaving(false);
+  };
+
+  const deleteSocio = async (id: string) => {
+    if (!confirm("¿Seguro que deseas eliminar este socio? Esta acción no se puede deshacer.")) return;
+    setSaving(true);
+    await fetch(`/api/admin/socios/${id}`, { method: "DELETE" });
+    setSocios(prev => prev.filter(s => s.id !== id));
+    setSelected(null);
     setSaving(false);
   };
 
@@ -330,6 +339,18 @@ export default function AdminSociosPage() {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Delete */}
+                <div className="pt-2 border-t border-slate-100">
+                  <button
+                    onClick={() => deleteSocio(selected.id)}
+                    disabled={saving}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Eliminar socio
+                  </button>
                 </div>
               </div>
             </motion.div>
