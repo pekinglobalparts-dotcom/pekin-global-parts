@@ -17,6 +17,8 @@ interface Socio {
   status: string;
   lineaCredito: number;
   creditoUtilizado: number;
+  tipoPago: string;
+  plazoCredito: number;
   createdAt: string;
   _count: { pedidos: number; cotizaciones: number };
 }
@@ -142,7 +144,7 @@ export default function AdminSociosPage() {
                 <tr>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Empresa</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Sector</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Crédito disponible</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Modalidad / Crédito</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Actividad</th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Estado</th>
                   <th className="px-5 py-3" />
@@ -157,8 +159,14 @@ export default function AdminSociosPage() {
                     </td>
                     <td className="px-5 py-4 text-xs text-slate-500">{socio.sector.replace(/_/g, " ")}</td>
                     <td className="px-5 py-4">
-                      <div className="text-sm font-bold text-blue-900">{formatCurrency(creditoDisponible(socio))}</div>
-                      <div className="text-xs text-slate-400">de {formatCurrency(socio.lineaCredito)}</div>
+                      {socio.tipoPago === "CONTADO" ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-green-100 text-green-700 text-xs font-bold">Al contado</span>
+                      ) : (
+                        <>
+                          <div className="text-sm font-bold text-blue-900">{formatCurrency(creditoDisponible(socio))}</div>
+                          <div className="text-xs text-slate-400">{socio.plazoCredito}d · de {formatCurrency(socio.lineaCredito)}</div>
+                        </>
+                      )}
                     </td>
                     <td className="px-5 py-4">
                       <div className="text-xs text-slate-600">
@@ -237,65 +245,73 @@ export default function AdminSociosPage() {
                   </div>
                 </div>
 
-                {/* Credit */}
-                <div className="bg-gradient-to-r from-[#0f1f3d] to-blue-900 rounded-2xl p-5 text-white">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-blue-200 text-sm">Línea de crédito</p>
-                    <button
-                      onClick={() => setEditingCredito(!editingCredito)}
-                      className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                      <Edit2 className="h-3.5 w-3.5 text-blue-200" />
-                    </button>
+                {/* Credit / Contado */}
+                {selected.tipoPago === "CONTADO" ? (
+                  <div className="bg-gradient-to-r from-green-700 to-green-600 rounded-2xl p-5 text-white">
+                    <p className="text-green-100 text-xs font-semibold uppercase tracking-wide mb-2">Cuenta al contado</p>
+                    <p className="text-sm font-medium text-white">Pago por transferencia o link antes del despacho</p>
+                    <p className="text-green-100 text-xs mt-1">No se gestiona línea de crédito</p>
                   </div>
-
-                  {editingCredito ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-blue-200 text-sm">S/</span>
-                      <input
-                        type="number"
-                        value={nuevaLinea}
-                        onChange={e => setNuevaLinea(e.target.value)}
-                        className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
-                      />
+                ) : (
+                  <div className="bg-gradient-to-r from-[#0f1f3d] to-blue-900 rounded-2xl p-5 text-white">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-blue-200 text-sm">Línea de crédito · {selected.plazoCredito} días</p>
                       <button
-                        onClick={updateCredito}
-                        disabled={saving}
-                        className="p-1.5 bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
+                        onClick={() => setEditingCredito(!editingCredito)}
+                        className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
                       >
-                        <Check className="h-3.5 w-3.5 text-white" />
-                      </button>
-                      <button
-                        onClick={() => setEditingCredito(false)}
-                        className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
-                      >
-                        <X className="h-3.5 w-3.5 text-white" />
+                        <Edit2 className="h-3.5 w-3.5 text-blue-200" />
                       </button>
                     </div>
-                  ) : (
-                    <p className="text-3xl font-black">{formatCurrency(creditoDisponible(selected))}</p>
-                  )}
 
-                  <div className="mt-3">
-                    <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                      <div
-                        className="h-2 bg-white rounded-full"
-                        style={{
-                          width: `${Math.min(
-                            Number(selected.lineaCredito) > 0
-                              ? (Number(selected.creditoUtilizado) / Number(selected.lineaCredito)) * 100
-                              : 0,
-                            100
-                          )}%`,
-                        }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-xs text-blue-200 mt-1.5">
-                      <span>Utilizado: {formatCurrency(selected.creditoUtilizado)}</span>
-                      <span>Línea: {formatCurrency(selected.lineaCredito)}</span>
+                    {editingCredito ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-blue-200 text-sm">S/</span>
+                        <input
+                          type="number"
+                          value={nuevaLinea}
+                          onChange={e => setNuevaLinea(e.target.value)}
+                          className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
+                        />
+                        <button
+                          onClick={updateCredito}
+                          disabled={saving}
+                          className="p-1.5 bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
+                        >
+                          <Check className="h-3.5 w-3.5 text-white" />
+                        </button>
+                        <button
+                          onClick={() => setEditingCredito(false)}
+                          className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                        >
+                          <X className="h-3.5 w-3.5 text-white" />
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-3xl font-black">{formatCurrency(creditoDisponible(selected))}</p>
+                    )}
+
+                    <div className="mt-3">
+                      <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                        <div
+                          className="h-2 bg-white rounded-full"
+                          style={{
+                            width: `${Math.min(
+                              Number(selected.lineaCredito) > 0
+                                ? (Number(selected.creditoUtilizado) / Number(selected.lineaCredito)) * 100
+                                : 0,
+                              100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs text-blue-200 mt-1.5">
+                        <span>Utilizado: {formatCurrency(selected.creditoUtilizado)}</span>
+                        <span>Línea: {formatCurrency(selected.lineaCredito)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Activity */}
                 <div>

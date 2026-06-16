@@ -23,7 +23,7 @@ const tipoConfig: Record<string, { label: string; color: string; icon: typeof Ar
 };
 
 export default function CreditoPage() {
-  const [data, setData] = useState<{ socio: { lineaCredito: number; creditoUtilizado: number } | null; movimientos: Movimiento[] }>({
+  const [data, setData] = useState<{ socio: { lineaCredito: number; creditoUtilizado: number; tipoPago?: string; plazoCredito?: number } | null; movimientos: Movimiento[] }>({
     socio: null, movimientos: [],
   });
   const [loading, setLoading] = useState(true);
@@ -35,16 +35,35 @@ export default function CreditoPage() {
       .catch(() => setLoading(false));
   }, []);
 
+  const tipoPago = data.socio?.tipoPago ?? "CREDITO";
+  const plazoCredito = data.socio?.plazoCredito ?? 30;
   const lineaCredito = Number(data.socio?.lineaCredito || 0);
   const creditoUtilizado = Number(data.socio?.creditoUtilizado || 0);
   const creditoDisponible = lineaCredito - creditoUtilizado;
   const usagePercent = lineaCredito > 0 ? (creditoUtilizado / lineaCredito) * 100 : 0;
 
+  if (!loading && tipoPago === "CONTADO") {
+    return (
+      <div className="p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-black text-slate-900">Modalidad de pago</h1>
+        </div>
+        <div className="bg-gradient-to-r from-green-700 to-green-600 rounded-2xl p-8 text-white max-w-lg">
+          <p className="text-green-100 text-sm font-semibold uppercase tracking-wide mb-2">Cuenta al contado</p>
+          <p className="text-xl font-bold mt-1">Pago por transferencia o link antes del despacho</p>
+          <p className="text-green-100 text-sm mt-3 leading-relaxed">
+            Sus pedidos se confirman al verificar el pago. Contáctenos por WhatsApp para coordinar la transferencia o el envío del link de pago.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-black text-slate-900">Línea de crédito</h1>
-        <p className="text-slate-500 text-sm mt-0.5">Estado y movimientos de su crédito corporativo</p>
+        <p className="text-slate-500 text-sm mt-0.5">Estado y movimientos · Plazo {plazoCredito} días</p>
       </div>
 
       {/* Credit summary */}

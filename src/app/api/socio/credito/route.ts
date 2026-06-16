@@ -20,5 +20,10 @@ export async function GET(req: NextRequest) {
     }),
   ]);
 
-  return NextResponse.json({ socio, movimientos });
+  const socioWithExtra = socio ? {
+    ...socio,
+    tipoPago: (socio as unknown as { tipoPago?: string }).tipoPago ?? "CREDITO",
+    plazoCredito: (socio as unknown as { plazoCredito?: number }).plazoCredito ?? 30,
+  } : null;
+  return NextResponse.json({ socio: socioWithExtra, movimientos });
 }

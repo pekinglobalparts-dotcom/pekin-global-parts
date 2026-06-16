@@ -42,5 +42,6 @@ export async function GET(req: NextRequest) {
     prisma.socio.count({ where }),
   ]);
 
-  return NextResponse.json({ socios, total, page, limit });
+  const sociosWithExtra = (socios as unknown as Array<typeof socios[0] & { tipoPago?: string; plazoCredito?: number }>);
+  return NextResponse.json({ socios: sociosWithExtra, total, page, limit });
 }

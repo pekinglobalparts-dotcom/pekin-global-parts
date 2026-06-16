@@ -109,9 +109,7 @@ export async function PATCH(
           representanteLegal: solicitud.representanteLegal,
           cargo: solicitud.cargo,
           passwordHash,
-          tipoPago,
-          plazoCredito,
-          lineaCredito: tipoPago === "CREDITO" ? lineaCredito : 0,
+          ...(({ tipoPago, plazoCredito, lineaCredito: tipoPago === "CREDITO" ? lineaCredito : 0 }) as unknown as object),
         },
       });
 
