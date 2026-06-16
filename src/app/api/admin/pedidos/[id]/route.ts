@@ -27,6 +27,8 @@ export async function PATCH(
     return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
   }
 
+  const pedidoAnterior = await prisma.pedido.findUnique({ where: { id }, select: { status: true } });
+
   const pedido = await prisma.pedido.update({
     where: { id },
     data: parsed.data,
@@ -109,26 +111,32 @@ export async function PATCH(
       sendFacturaEmitida(email, razonSocial, factura.numero, Number(pedido.total), vencimientoStr).catch(console.error);
     }
 
-    // Descontar crédito utilizado
-    const socio = await prisma.socio.findUnique({ where: { id: pedido.socioId }, select: { lineaCredito: true, creditoUtilizado: true } });
-    if (socio) {
-      const saldoAntes = Number(socio.lineaCredito) - Number(socio.creditoUtilizado);
-      const saldoDespues = saldoAntes - Number(pedido.total);
-      await prisma.socio.update({
+    // Descontar crédito utilizado — solo si es primera vez que llega a ENTREGADO
+    if (pedidoAnterior?.status !== "ENTREGADO") {
+      const socio = await prisma.socio.findUnique({
         where: { id: pedido.socioId },
-        data: { creditoUtilizado: { increment: pedido.total } },
+        select: { lineaCredito: true, creditoUtilizado: true, tipoPago: true } as Record<string, unknown>,
       });
-      await prisma.movimientoCredito.create({
-        data: {
-          socioId: pedido.socioId,
-          tipo: "CREDITO_UTILIZADO",
-          monto: pedido.total,
-          saldoAntes,
-          saldoDespues,
-          descripcion: `Pedido ${pedido.numero} entregado`,
-          referenciaId: pedido.id,
-        },
-      });
+      const tipoPago = (socio as unknown as { tipoPago?: string })?.tipoPago ?? "CREDITO";
+      if (socio && tipoPago === "CREDITO") {
+        const saldoAntes = Number(socio.lineaCredito) - Number(socio.creditoUtilizado);
+        const saldoDespues = saldoAntes - Number(pedido.total);
+        await prisma.socio.update({
+          where: { id: pedido.socioId },
+          data: { creditoUtilizado: { increment: pedido.total } },
+        });
+        await prisma.movimientoCredito.create({
+          data: {
+            socioId: pedido.socioId,
+            tipo: "CREDITO_UTILIZADO",
+            monto: pedido.total,
+            saldoAntes,
+            saldoDespues,
+            descripcion: `Pedido ${pedido.numero} entregado`,
+            referenciaId: pedido.id,
+          },
+        });
+      }
     }
   }
 
