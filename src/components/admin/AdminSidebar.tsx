@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react";
 import {
   LayoutDashboard, FileText, Users, Package,
   ShoppingCart, Receipt, CreditCard, LogOut,
-  ChevronRight, Settings, BarChart3,
+  ChevronRight, Settings, BarChart3, Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +19,7 @@ const links = [
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
   { href: "/admin/facturas", label: "Facturas", icon: Receipt },
   { href: "/admin/creditos", label: "Créditos", icon: CreditCard },
+  { href: "/admin/datos", label: "Gestión de datos", icon: Database },
 ];
 
 interface AdminSidebarProps {
