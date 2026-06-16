@@ -6,7 +6,7 @@ export function Contacto() {
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
 
   return (
-    <section id="contacto" className="py-24 bg-white">
+    <section id="contacto" className="py-14 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <span className="text-red-600 font-semibold text-sm tracking-wider uppercase">

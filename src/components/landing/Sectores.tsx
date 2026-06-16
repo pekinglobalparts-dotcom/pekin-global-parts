@@ -60,12 +60,12 @@ export function Sectores() {
   const inView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section id="sectores" ref={ref} className="py-24 bg-white">
+    <section id="sectores" ref={ref} className="py-14 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          className="text-center mb-16"
+          className="text-center mb-10"
         >
           <span className="text-red-600 font-semibold text-sm tracking-wider uppercase">
             Sectores que atendemos

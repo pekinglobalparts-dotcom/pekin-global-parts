@@ -64,7 +64,7 @@ export function MetodosPago() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="metodos-pago" ref={ref} className="py-20 bg-slate-50">
+    <section id="metodos-pago" ref={ref} className="py-14 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <span className="text-red-600 font-semibold text-sm tracking-wider uppercase">

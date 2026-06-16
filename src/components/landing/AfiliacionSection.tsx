@@ -2,7 +2,7 @@ import { SolicitudForm } from "./SolicitudForm";
 
 export function AfiliacionSection() {
   return (
-    <section id="afiliacion" className="py-24 bg-white">
+    <section id="afiliacion" className="py-14 bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <span className="text-red-600 font-semibold text-sm tracking-wider uppercase">

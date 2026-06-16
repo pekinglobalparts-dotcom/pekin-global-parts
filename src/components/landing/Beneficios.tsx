@@ -24,12 +24,12 @@ export function Beneficios() {
   const inView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section id="beneficios" ref={ref} className="py-24 bg-slate-900">
+    <section id="beneficios" ref={ref} className="py-14 bg-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          className="text-center mb-16"
+          className="text-center mb-10"
         >
           <span className="text-red-400 font-semibold text-sm tracking-wider uppercase">
             Por qué elegirnos
