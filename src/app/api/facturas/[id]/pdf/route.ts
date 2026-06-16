@@ -14,7 +14,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   // Only admin or the owner socio can download
-  if (session.user.role !== "admin" && (session.user as { socioId?: string }).socioId !== factura.socioId) {
+  if (session.user.role !== "admin" && session.user.id !== factura.socioId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
