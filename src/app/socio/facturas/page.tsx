@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Receipt, Download, AlertCircle, CheckCircle, Clock } from "lucide-react";
+import { Receipt, Download, AlertCircle, CheckCircle, Clock, MessageCircle } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 interface Factura {
   id: string;
   numero: string;
+  numeroReal?: string;
   status: string;
   total: number;
   subtotal: number;
@@ -86,8 +87,10 @@ export default function FacturasPage() {
                   <cfg.icon className="h-5 w-5 text-slate-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="font-bold text-slate-900 text-sm">{factura.numero}</span>
+                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                    <span className="font-bold text-slate-900 text-sm">
+                      {factura.numeroReal || factura.numero}
+                    </span>
                     <Badge variant={cfg.variant}>{cfg.label}</Badge>
                   </div>
                   <p className="text-xs text-slate-400">
@@ -99,18 +102,20 @@ export default function FacturasPage() {
                 </div>
                 <div className="text-right shrink-0">
                   <p className="font-black text-blue-900">{formatCurrency(factura.total)}</p>
-                  <p className="text-xs text-slate-400">inc. IGV</p>
+                  <p className="text-xs text-slate-400">Inc. IGV</p>
                 </div>
                 {factura.pdfUrl && (
-                  <a
-                    href={factura.pdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                    title="Descargar PDF"
-                  >
-                    <Download className="h-4 w-4 text-slate-500" />
-                  </a>
+                  <div className="flex flex-col gap-1 shrink-0">
+                    <a href={factura.pdfUrl} target="_blank" rel="noopener noreferrer"
+                      className="p-2 hover:bg-blue-50 rounded-lg transition-colors" title="Descargar PDF">
+                      <Download className="h-4 w-4 text-blue-600" />
+                    </a>
+                    <a href={`https://wa.me/?text=${encodeURIComponent(`Factura ${factura.numeroReal || factura.numero} por S/ ${Number(factura.total).toFixed(2)} Inc. IGV - Pekin Global Parts`)}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="p-2 hover:bg-green-50 rounded-lg transition-colors" title="Compartir por WhatsApp">
+                      <MessageCircle className="h-4 w-4 text-green-600" />
+                    </a>
+                  </div>
                 )}
               </motion.div>
             );

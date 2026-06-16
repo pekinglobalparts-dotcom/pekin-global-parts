@@ -283,6 +283,7 @@ model Factura {
   igv              Decimal       @db.Decimal(12, 2)
   total            Decimal       @db.Decimal(12, 2)
   pdfUrl           String?
+  numeroReal       String?
   pagadoAt         DateTime?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt

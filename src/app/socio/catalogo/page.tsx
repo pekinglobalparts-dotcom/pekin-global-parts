@@ -128,6 +128,7 @@ function ProductCard({
         <div className="flex items-center justify-between pt-3 border-t border-slate-100">
           <div>
             <p className="text-xl font-black text-blue-900">{formatCurrency(producto.precio)}</p>
+                    <p className="text-xs text-slate-400">Inc. IGV</p>
             <p className="text-xs text-slate-400">por {producto.unidad}</p>
           </div>
           <div className="flex gap-2">
@@ -241,6 +242,7 @@ function ProductDetailModal({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-3xl font-black text-blue-900">{formatCurrency(producto.precio)}</p>
+              <p className="text-xs text-slate-400">Inc. IGV</p>
               <p className="text-xs text-slate-400">Precio por {producto.unidad}</p>
             </div>
             <div className="flex gap-3">

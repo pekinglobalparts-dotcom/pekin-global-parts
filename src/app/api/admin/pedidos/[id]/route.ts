@@ -108,6 +108,28 @@ export async function PATCH(
       const vencimientoStr = vencimiento.toLocaleDateString("es-PE");
       sendFacturaEmitida(email, razonSocial, factura.numero, Number(pedido.total), vencimientoStr).catch(console.error);
     }
+
+    // Descontar crédito utilizado
+    const socio = await prisma.socio.findUnique({ where: { id: pedido.socioId }, select: { lineaCredito: true, creditoUtilizado: true } });
+    if (socio) {
+      const saldoAntes = Number(socio.lineaCredito) - Number(socio.creditoUtilizado);
+      const saldoDespues = saldoAntes - Number(pedido.total);
+      await prisma.socio.update({
+        where: { id: pedido.socioId },
+        data: { creditoUtilizado: { increment: pedido.total } },
+      });
+      await prisma.movimientoCredito.create({
+        data: {
+          socioId: pedido.socioId,
+          tipo: "CREDITO_UTILIZADO",
+          monto: pedido.total,
+          saldoAntes,
+          saldoDespues,
+          descripcion: `Pedido ${pedido.numero} entregado`,
+          referenciaId: pedido.id,
+        },
+      });
+    }
   }
 
   return NextResponse.json(pedido);

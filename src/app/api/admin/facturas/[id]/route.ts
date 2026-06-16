@@ -8,12 +8,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params;
   const body = await req.json();
-  const { status } = body;
+  const { status, pdfUrl, numeroReal } = body;
 
-  const factura = await prisma.factura.update({
-    where: { id },
-    data: { status },
-  });
+  const data: Record<string, unknown> = {};
+  if (status) data.status = status;
+  if (pdfUrl !== undefined) data.pdfUrl = pdfUrl;
+  if (numeroReal !== undefined) data.numeroReal = numeroReal;
 
+  const factura = await prisma.factura.update({ where: { id }, data });
   return NextResponse.json({ factura });
 }
