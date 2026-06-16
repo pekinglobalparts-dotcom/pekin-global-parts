@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const cat = await prisma.categoria.upsert({
       where: { nombre },
       update: {},
-      create: { nombre, activo: true },
+      create: { nombre, slug: nombre.toLowerCase().replace(/\s+/g, "-").replace(/[áéíóú]/g, c => ({ á:"a",é:"e",í:"i",ó:"o",ú:"u" }[c]??c)), activo: true },
     });
     categoriaMap[nombre] = cat.id;
   }
