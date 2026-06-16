@@ -1,160 +1,79 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
-import { useRef, useState, useEffect } from "react";
-import { MessageCircle, Package } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
+import { ChevronRight } from "lucide-react";
 
-interface Producto {
-  id: string;
-  codigo: string;
-  nombre: string;
-  precio: number;
-  stock: number;
-  imagenUrl: string | null;
-  categoria: { nombre: string };
-  marca: { nombre: string };
-  modelosCompatibles: string[];
-}
-
-function ProductCard({ producto }: { producto: Producto }) {
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
-  const msg = encodeURIComponent(
-    `Hola, me interesa cotizar:\n• Producto: ${producto.nombre}\n• Código: ${producto.codigo}\n• Cantidad: 1\n\n¿Podría indicarme disponibilidad y precio?`
-  );
-
-  return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all group"
-    >
-      <div className="aspect-square bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center relative">
-        {producto.imagenUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={producto.imagenUrl}
-            alt={producto.nombre}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <Package className="h-16 w-16 text-slate-300" />
-        )}
-        <div className="absolute top-3 left-3">
-          <Badge variant={producto.stock > 0 ? "success" : "destructive"}>
-            {producto.stock > 0 ? "En stock" : "Sin stock"}
-          </Badge>
-        </div>
-      </div>
-      <div className="p-5">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-slate-400 font-mono">{producto.codigo}</span>
-          <span className="text-xs text-slate-500">{producto.marca.nombre}</span>
-        </div>
-        <h3 className="font-bold text-slate-900 text-sm leading-tight mb-2 line-clamp-2">
-          {producto.nombre}
-        </h3>
-        <p className="text-xs text-slate-400 mb-4">
-          {producto.modelosCompatibles.slice(0, 2).join(" · ")}
-          {producto.modelosCompatibles.length > 2 && " +más"}
-        </p>
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-lg font-black text-blue-900">
-              {formatCurrency(producto.precio)}
-            </span>
-            <span className="text-xs text-slate-400 ml-1">/ und</span>
-          </div>
-          <a
-            href={`https://wa.me/${whatsapp}?text=${msg}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button size="sm" variant="secondary">
-              <MessageCircle className="h-3.5 w-3.5" />
-              Cotizar
-            </Button>
-          </a>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+const categorias = [
+  { nombre: "Frenos", icon: "🛞", color: "from-red-600 to-red-800", desc: "Discos · Pastillas · Bombines" },
+  { nombre: "Filtros", icon: "🔧", color: "from-amber-500 to-amber-700", desc: "Aceite · Aire · Combustible" },
+  { nombre: "Suspensión", icon: "⚙️", color: "from-blue-600 to-blue-800", desc: "Amortiguadores · Resortes" },
+  { nombre: "Motor", icon: "🔩", color: "from-slate-600 to-slate-800", desc: "Pistones · Juntas · Válvulas" },
+  { nombre: "Transmisión", icon: "⚡", color: "from-purple-600 to-purple-800", desc: "Embrague · Caja · Diferencial" },
+  { nombre: "Eléctrico", icon: "🔌", color: "from-yellow-500 to-yellow-700", desc: "Alternadores · Baterías · Sensores" },
+  { nombre: "Correas", icon: "🔗", color: "from-green-600 to-green-800", desc: "Distribución · Accesorios" },
+  { nombre: "Dirección", icon: "🎯", color: "from-cyan-600 to-cyan-800", desc: "Cremallera · Bombas · Rótulas" },
+  { nombre: "Refrigeración", icon: "💧", color: "from-teal-600 to-teal-800", desc: "Radiadores · Termostatos" },
+  { nombre: "Carrocería", icon: "🚘", color: "from-orange-600 to-orange-800", desc: "Espejos · Lunas · Faros" },
+];
 
 export function CatalogoDestacado() {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-100px" });
-  const [productos, setProductos] = useState<Producto[]>([]);
-
-  useEffect(() => {
-    fetch("/api/productos?destacado=true&limit=6")
-      .then((r) => r.json())
-      .then((data) => setProductos(data.productos || []))
-      .catch(console.error);
-  }, []);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="catalogo" ref={ref} className="py-24 bg-slate-50">
+    <section id="catalogo" ref={ref} className="py-14 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          className="text-center mb-16"
+          className="text-center mb-10"
         >
           <span className="text-red-600 font-semibold text-sm tracking-wider uppercase">
-            Catálogo destacado
+            Catálogo de repuestos
           </span>
-          <h2 className="text-4xl lg:text-5xl font-black text-slate-900 mt-3">
-            Piezas más <span className="text-blue-900">solicitadas</span>
+          <h2 className="text-3xl lg:text-4xl font-black text-slate-900 mt-2">
+            Busque por <span className="text-blue-900">categoría</span>
           </h2>
-          <p className="text-slate-500 mt-4 max-w-lg mx-auto">
-            Solo empresas registradas acceden al catálogo completo con precios
-            preferentes. Solicite su cotización directamente.
+          <p className="text-slate-500 mt-2 max-w-lg mx-auto text-sm">
+            Repuestos originales y alternativos para todas las marcas. Precios preferenciales para empresas afiliadas.
           </p>
         </motion.div>
 
-        {productos.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {productos.map((producto, i) => (
-              <motion.div
-                key={producto.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: i * 0.1 }}
-              >
-                <ProductCard producto={producto} />
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-2xl border border-slate-200 overflow-hidden animate-pulse"
-              >
-                <div className="aspect-square bg-slate-100" />
-                <div className="p-5 space-y-3">
-                  <div className="h-3 bg-slate-100 rounded w-1/3" />
-                  <div className="h-4 bg-slate-100 rounded w-3/4" />
-                  <div className="h-3 bg-slate-100 rounded w-1/2" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {categorias.map((cat, i) => (
+            <motion.div
+              key={cat.nombre}
+              initial={{ opacity: 0, y: 24 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: i * 0.07 }}
+              className="group cursor-pointer"
+              onClick={() => document.getElementById("afiliacion")?.scrollIntoView({ behavior: "smooth" })}
+            >
+              <div className="flex flex-col items-center text-center">
+                {/* Circle */}
+                <div className={`w-24 h-24 rounded-full bg-gradient-to-br ${cat.color} flex items-center justify-center mb-3 shadow-md group-hover:scale-110 group-hover:shadow-xl transition-all duration-300`}>
+                  <span className="text-4xl">{cat.icon}</span>
                 </div>
+                <h3 className="font-bold text-slate-900 text-sm">{cat.nombre}</h3>
+                <p className="text-xs text-slate-400 mt-0.5 leading-tight">{cat.desc}</p>
               </div>
-            ))}
-          </div>
-        )}
+            </motion.div>
+          ))}
+        </div>
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.5 }}
-          className="text-center mt-12"
+          transition={{ delay: 0.8 }}
+          className="text-center mt-10"
         >
-          <a href="#afiliacion">
-            <Button size="lg">Ver catálogo completo (requiere cuenta)</Button>
-          </a>
+          <div className="inline-flex items-center gap-3 bg-blue-900 text-white px-6 py-3 rounded-xl text-sm font-semibold">
+            <span>Catálogo completo disponible para socios afiliados</span>
+            <a href="#afiliacion" className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors">
+              Solicitar acceso <ChevronRight className="h-3 w-3" />
+            </a>
+          </div>
         </motion.div>
       </div>
     </section>
