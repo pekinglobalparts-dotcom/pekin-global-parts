@@ -106,7 +106,7 @@ export default function FacturasPage() {
                 </div>
                 {factura.pdfUrl && (
                   <div className="flex flex-col gap-1 shrink-0">
-                    <a href={factura.pdfUrl} target="_blank" rel="noopener noreferrer"
+                    <a href={`/api/facturas/${factura.id}/pdf`} target="_blank" rel="noopener noreferrer"
                       className="p-2 hover:bg-blue-50 rounded-lg transition-colors" title="Descargar PDF">
                       <Download className="h-4 w-4 text-blue-600" />
                     </a>

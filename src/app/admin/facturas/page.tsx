@@ -82,8 +82,9 @@ export default function AdminFacturasPage() {
     if (numReal) formData.append("numeroReal", numReal);
     const res = await fetch("/api/admin/facturas/upload", { method: "POST", body: formData });
     const data = await res.json();
-    if (data.factura) {
-      setFacturas(prev => prev.map(f => f.id === pendingUploadId ? { ...f, pdfUrl: data.factura.pdfUrl, numeroReal: data.factura.numeroReal } : f));
+    if (data.ok) {
+      // Mark as having PDF without storing base64 in state
+      setFacturas(prev => prev.map(f => f.id === pendingUploadId ? { ...f, pdfUrl: "uploaded", numeroReal: data.factura.numeroReal } : f));
     }
     setUploadingId(null);
     e.target.value = "";
@@ -221,7 +222,7 @@ export default function AdminFacturasPage() {
                               {factura.pdfUrl ? "Reemplazar PDF" : "Subir factura PDF"}
                             </Button>
                             {factura.pdfUrl && (
-                              <a href={factura.pdfUrl} target="_blank" rel="noopener noreferrer">
+                              <a href={`/api/facturas/${factura.id}/pdf`} target="_blank" rel="noopener noreferrer">
                                 <Button size="sm" variant="outline" className="text-green-700 border-green-200 hover:bg-green-50">
                                   <Download className="h-3.5 w-3.5" /> Descargar PDF
                                 </Button>
