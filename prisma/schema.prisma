@@ -66,6 +66,11 @@ enum MovimientoTipo {
   PAGO_RECIBIDO
 }
 
+enum TipoPago {
+  CREDITO
+  CONTADO
+}
+
 enum NotificacionTipo {
   SOLICITUD_RECIBIDA
   SOLICITUD_APROBADA
@@ -129,6 +134,8 @@ model Socio {
   cargo              String
   passwordHash       String
   status             SocioStatus @default(ACTIVO)
+  tipoPago           TipoPago    @default(CREDITO)
+  plazoCredito       Int         @default(30)
   lineaCredito       Decimal     @default(0) @db.Decimal(12, 2)
   creditoUtilizado   Decimal     @default(0) @db.Decimal(12, 2)
   logoUrl            String?

@@ -28,6 +28,8 @@ export default async function SocioDashboard() {
       }),
     ]);
 
+  const tipoPago = (socio as unknown as { tipoPago?: string }).tipoPago ?? "CREDITO";
+  const plazoCredito = (socio as unknown as { plazoCredito?: number }).plazoCredito ?? 30;
   const lineaCredito = Number(socio.lineaCredito);
   const creditoUtilizado = Number(socio.creditoUtilizado);
   const creditoDisponible = lineaCredito - creditoUtilizado;
@@ -44,26 +46,36 @@ export default async function SocioDashboard() {
         <p className="text-slate-500 mt-1">RUC: {socio.ruc} · {socio.sector.replace(/_/g, " ")}</p>
       </div>
 
-      {/* Credit card */}
-      <div className="bg-gradient-to-r from-blue-950 to-blue-900 rounded-2xl p-6 mb-6 text-white">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-blue-200 text-sm">Línea de crédito disponible</p>
-            <p className="text-4xl font-black mt-1">{formatCurrency(creditoDisponible)}</p>
+      {/* Credit / Contado card */}
+      {tipoPago === "CREDITO" ? (
+        <div className="bg-gradient-to-r from-blue-950 to-blue-900 rounded-2xl p-6 mb-6 text-white">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-blue-200 text-sm">Línea de crédito disponible · Plazo {plazoCredito} días</p>
+              <p className="text-4xl font-black mt-1">{formatCurrency(creditoDisponible)}</p>
+            </div>
+            <CreditCard className="h-10 w-10 text-blue-300" />
           </div>
-          <CreditCard className="h-10 w-10 text-blue-300" />
+          <div className="h-2 bg-white/20 rounded-full mb-2">
+            <div className="h-2 bg-white rounded-full transition-all" style={{ width: `${Math.min(usagePercent, 100)}%` }} />
+          </div>
+          <div className="flex justify-between text-sm text-blue-200">
+            <span>Utilizado: {formatCurrency(creditoUtilizado)}</span>
+            <span>Total: {formatCurrency(lineaCredito)}</span>
+          </div>
         </div>
-        <div className="h-2 bg-white/20 rounded-full mb-2">
-          <div
-            className="h-2 bg-white rounded-full transition-all"
-            style={{ width: `${Math.min(usagePercent, 100)}%` }}
-          />
+      ) : (
+        <div className="bg-gradient-to-r from-green-700 to-green-600 rounded-2xl p-6 mb-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-100 text-sm font-semibold uppercase tracking-wide">Cuenta al contado</p>
+              <p className="text-lg font-bold mt-1">Pago por transferencia o link antes del despacho</p>
+              <p className="text-green-100 text-sm mt-2">Sus pedidos se confirman al verificar el pago. Contáctenos por WhatsApp para coordinar.</p>
+            </div>
+            <CreditCard className="h-10 w-10 text-green-200 shrink-0" />
+          </div>
         </div>
-        <div className="flex justify-between text-sm text-blue-200">
-          <span>Utilizado: {formatCurrency(creditoUtilizado)}</span>
-          <span>Total: {formatCurrency(lineaCredito)}</span>
-        </div>
-      </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-8">

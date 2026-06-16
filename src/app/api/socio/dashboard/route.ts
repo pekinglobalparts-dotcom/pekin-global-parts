@@ -39,6 +39,8 @@ export async function GET(req: NextRequest) {
         razonSocial: socio.razonSocial,
         ruc: socio.ruc,
         sector: socio.sector,
+        tipoPago: (socio as unknown as { tipoPago?: string }).tipoPago ?? "CREDITO",
+        plazoCredito: (socio as unknown as { plazoCredito?: number }).plazoCredito ?? 30,
         lineaCredito: socio.lineaCredito,
         creditoUtilizado: socio.creditoUtilizado,
         creditoDisponible:

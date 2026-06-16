@@ -13,6 +13,8 @@ const accionSchema = z.object({
   accion: z.enum(["aprobar", "rechazar", "en_revision"]),
   motivo: z.string().optional(),
   lineaCredito: z.coerce.number().min(0).optional(),
+  tipoPago: z.enum(["CREDITO", "CONTADO"]).optional(),
+  plazoCredito: z.coerce.number().int().min(0).optional(),
 });
 
 export async function PATCH(
@@ -31,7 +33,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
   }
 
-  const { accion, motivo, lineaCredito = 0 } = parsed.data;
+  const { accion, motivo, lineaCredito = 0, tipoPago = "CREDITO", plazoCredito = 30 } = parsed.data;
 
   const solicitud = await prisma.solicitud.findUnique({ where: { id } });
   if (!solicitud) {
@@ -107,11 +109,13 @@ export async function PATCH(
           representanteLegal: solicitud.representanteLegal,
           cargo: solicitud.cargo,
           passwordHash,
-          lineaCredito: lineaCredito,
+          tipoPago,
+          plazoCredito,
+          lineaCredito: tipoPago === "CREDITO" ? lineaCredito : 0,
         },
       });
 
-      if (lineaCredito > 0) {
+      if (tipoPago === "CREDITO" && lineaCredito > 0) {
         await tx.movimientoCredito.create({
           data: {
             socioId: newSocio.id,

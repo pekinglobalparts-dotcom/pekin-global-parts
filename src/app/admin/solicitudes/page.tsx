@@ -33,6 +33,8 @@ export default function SolicitudesPage() {
   const [filter, setFilter] = useState("PENDIENTE");
   const [selected, setSelected] = useState<Solicitud | null>(null);
   const [lineaCredito, setLineaCredito] = useState("10000");
+  const [tipoPago, setTipoPago] = useState<"CREDITO" | "CONTADO">("CREDITO");
+  const [plazoCredito, setPlazoCredito] = useState("30");
   const [motivo, setMotivo] = useState("");
   const [processing, setProcessing] = useState(false);
   const [credenciales, setCredenciales] = useState<{ ruc: string; password: string; empresa: string } | null>(null);
@@ -58,7 +60,9 @@ export default function SolicitudesPage() {
       body: JSON.stringify({
         accion,
         motivo: accion === "rechazar" ? motivo : undefined,
-        lineaCredito: accion === "aprobar" ? Number(lineaCredito) : undefined,
+        lineaCredito: accion === "aprobar" && tipoPago === "CREDITO" ? Number(lineaCredito) : 0,
+        tipoPago: accion === "aprobar" ? tipoPago : undefined,
+        plazoCredito: accion === "aprobar" && tipoPago === "CREDITO" ? Number(plazoCredito) : undefined,
       }),
     });
     const data = await res.json();
@@ -235,17 +239,58 @@ export default function SolicitudesPage() {
 
             {selected.status === "PENDIENTE" || selected.status === "EN_REVISION" ? (
               <div className="space-y-4">
+                {/* Tipo de pago */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Línea de crédito inicial (S/)
-                  </label>
-                  <input
-                    type="number"
-                    value={lineaCredito}
-                    onChange={(e) => setLineaCredito(e.target.value)}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
-                  />
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Modalidad de pago</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setTipoPago("CREDITO")}
+                      className={`py-3 rounded-xl border-2 text-sm font-bold transition-all ${tipoPago === "CREDITO" ? "border-blue-900 bg-blue-900 text-white" : "border-slate-200 text-slate-500 hover:border-slate-300"}`}
+                    >
+                      💳 A crédito
+                    </button>
+                    <button
+                      onClick={() => setTipoPago("CONTADO")}
+                      className={`py-3 rounded-xl border-2 text-sm font-bold transition-all ${tipoPago === "CONTADO" ? "border-green-600 bg-green-600 text-white" : "border-slate-200 text-slate-500 hover:border-slate-300"}`}
+                    >
+                      💵 Al contado
+                    </button>
+                  </div>
                 </div>
+
+                {/* Campos solo para crédito */}
+                {tipoPago === "CREDITO" && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Línea de crédito (S/)</label>
+                      <input
+                        type="number"
+                        value={lineaCredito}
+                        onChange={(e) => setLineaCredito(e.target.value)}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Plazo de pago</label>
+                      <select
+                        value={plazoCredito}
+                        onChange={(e) => setPlazoCredito(e.target.value)}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                      >
+                        <option value="15">15 días</option>
+                        <option value="30">30 días</option>
+                        <option value="45">45 días</option>
+                        <option value="60">60 días</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {tipoPago === "CONTADO" && (
+                  <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800">
+                    El cliente pagará por transferencia o link de pago antes de cada despacho. No se asigna línea de crédito.
+                  </div>
+                )}
 
                 <div className="flex gap-3">
                   <Button
