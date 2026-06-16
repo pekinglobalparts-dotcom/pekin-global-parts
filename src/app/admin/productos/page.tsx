@@ -281,7 +281,7 @@ export default function AdminProductosPage() {
                               </div>
                               <p className="font-semibold text-slate-900 text-sm truncate">{producto.nombre}</p>
                               <p className="text-xs text-slate-400">
-                                {producto.marca.nombre} · {producto.categoria.nombre}
+                                {producto.marca.nombre !== "Sin marca" ? `${producto.marca.nombre} · ` : ""}{producto.categoria.nombre}
                               </p>
                             </div>
 
@@ -547,7 +547,7 @@ export default function AdminProductosPage() {
                     >
                       <option value="">Seleccionar...</option>
                       {marcas.map(m => (
-                        <option key={m.id} value={m.id}>{m.nombre}</option>
+                        <option key={m.id} value={m.id}>{m.nombre === "Sin marca" ? "Sin marca específica" : m.nombre}</option>
                       ))}
                     </select>
                   </div>
