@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react";
 import {
   LayoutDashboard, FileText, Users, Package,
   ShoppingCart, Receipt, CreditCard, LogOut,
-  ChevronRight, Settings, BarChart3, Database,
+  ChevronRight, Settings, BarChart3, Database, UserCog,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +28,14 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ user }: AdminSidebarProps) {
   const pathname = usePathname();
+  const isSuperAdmin = user.adminRole === "SUPER_ADMIN";
+
+  const visibleLinks = [
+    ...links,
+    ...(isSuperAdmin ? [
+      { href: "/admin/administradores", label: "Administradores", icon: UserCog },
+    ] : []),
+  ];
 
   return (
     <aside className="w-64 bg-[#0f1f3d] flex flex-col h-full border-r border-white/5">
@@ -51,7 +59,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {links.map((link) => {
+        {visibleLinks.map((link) => {
           const active = link.exact
             ? pathname === link.href
             : pathname.startsWith(link.href);

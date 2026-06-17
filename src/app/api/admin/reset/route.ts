@@ -19,6 +19,9 @@ export async function POST(req: NextRequest) {
   if (!session || session.user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  if (session.user.adminRole !== "SUPER_ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const body = await req.json();
   const parsed = resetSchema.safeParse(body);

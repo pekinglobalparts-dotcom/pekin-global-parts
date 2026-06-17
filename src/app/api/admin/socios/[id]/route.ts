@@ -54,6 +54,12 @@ export async function PATCH(
 
   const { lineaCredito, tipoPago, plazoCredito, ...rest } = parsed.data;
 
+  // Only SUPER_ADMIN can touch credit/payment fields
+  const isSuperAdmin = session.user.adminRole === "SUPER_ADMIN";
+  if ((lineaCredito !== undefined || tipoPago !== undefined || plazoCredito !== undefined) && !isSuperAdmin) {
+    return NextResponse.json({ error: "Forbidden: solo SUPER_ADMIN puede modificar crédito" }, { status: 403 });
+  }
+
   const socioActual = await prisma.socio.findUnique({
     where: { id },
     select: { lineaCredito: true, creditoUtilizado: true },
@@ -106,6 +112,9 @@ export async function DELETE(
   const session = await auth();
   if (!session || session.user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (session.user.adminRole !== "SUPER_ADMIN") {
+    return NextResponse.json({ error: "Forbidden: solo SUPER_ADMIN puede eliminar socios" }, { status: 403 });
   }
 
   const { id } = await params;
