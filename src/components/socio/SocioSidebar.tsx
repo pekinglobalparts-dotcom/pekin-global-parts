@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 import {
   LayoutDashboard, ShoppingCart, Receipt, CreditCard,
-  Package, Bell, LogOut, FileText, UserCircle,
+  Package, Bell, LogOut, FileText, UserCircle, Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +29,7 @@ export function SocioSidebar({ user }: SocioSidebarProps) {
     { href: "/socio", label: "Dashboard", icon: LayoutDashboard, exact: true },
     { href: "/socio/catalogo", label: "Catálogo", icon: Package },
     { href: "/socio/cotizaciones", label: "Cotizaciones", icon: FileText },
+    { href: "/socio/solicitudes-repuesto", label: "Repuesto específico", icon: Search },
     { href: "/socio/pedidos", label: "Pedidos", icon: ShoppingCart },
     { href: "/socio/facturas", label: "Facturas", icon: Receipt },
     { href: "/socio/credito", label: "Línea de crédito", icon: CreditCard },

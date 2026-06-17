@@ -128,7 +128,7 @@ export default async function SocioDashboard() {
           <div className="p-5 grid grid-cols-2 gap-3">
             {[
               { href: "/socio/catalogo", label: "Ver catálogo", icon: "📦" },
-              { href: "/socio/cotizaciones", label: "Nueva cotización", icon: "📋" },
+              { href: "/socio/solicitudes-repuesto", label: "Repuesto específico", icon: "🔍" },
               { href: "/socio/pedidos", label: "Mis pedidos", icon: "🚚" },
               { href: "/socio/facturas", label: "Mis facturas", icon: "🧾" },
             ].map((a) => (
