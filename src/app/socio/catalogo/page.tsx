@@ -4,12 +4,15 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, X, MessageCircle, ShoppingCart, Package,
-  ChevronDown, Star, AlertCircle, Check, Plus, Minus, Trash2, Send,
+  ChevronDown, Star, AlertCircle, Check, Plus, Minus, Trash2, Send, Car,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
+
+// ── Types ──────────────────────────────────────────────────────────────────────
 interface Producto {
   id: string;
   codigo: string;
@@ -34,26 +37,226 @@ interface CartItem {
 interface Categoria { id: string; nombre: string; slug: string }
 interface Marca { id: string; nombre: string }
 
+interface RepuestoItem {
+  modelo: string;
+  anio: string;
+  repuesto: string;
+}
+
+interface CartRepuestoGroup {
+  brand: string;
+  items: RepuestoItem[];
+}
+
+// ── Brand data ─────────────────────────────────────────────────────────────────
+const VEHICLE_BRANDS = [
+  { name: "Toyota",      color: "#CC0000",  emoji: "🚗" },
+  { name: "Nissan",      color: "#C3002F",  emoji: "🚙" },
+  { name: "Mitsubishi",  color: "#E60026",  emoji: "🚗" },
+  { name: "Hyundai",     color: "#002C5F",  emoji: "🚙" },
+  { name: "Kia",         color: "#05141F",  emoji: "🚗" },
+  { name: "Volkswagen",  color: "#001E50",  emoji: "🚙" },
+  { name: "Chevrolet",   color: "#D4AF37",  emoji: "🚗" },
+  { name: "Ford",        color: "#003DA5",  emoji: "🚙" },
+  { name: "BYD",         color: "#1DB954",  emoji: "⚡" },
+  { name: "Chery",       color: "#CC0000",  emoji: "🚗" },
+  { name: "JAC",         color: "#003087",  emoji: "🚙" },
+  { name: "Jetour",      color: "#1a1a2e",  emoji: "🚗" },
+  { name: "Land Rover",  color: "#005A2B",  emoji: "🛻" },
+  { name: "Jeep",        color: "#1B1B1B",  emoji: "🛻" },
+  { name: "Honda",       color: "#CC0000",  emoji: "🚗" },
+  { name: "Mazda",       color: "#910000",  emoji: "🚙" },
+  { name: "Suzuki",      color: "#003087",  emoji: "🚗" },
+];
+
+// ── Brand Request Modal ────────────────────────────────────────────────────────
+function BrandRequestModal({
+  brandName,
+  onClose,
+  onAddToCart,
+}: {
+  brandName: string;
+  onClose: () => void;
+  onAddToCart: (items: RepuestoItem[], brand: string) => void;
+}) {
+  const [items, setItems] = useState<RepuestoItem[]>([
+    { modelo: "", anio: "", repuesto: "" },
+  ]);
+
+  const updateItem = (index: number, field: keyof RepuestoItem, value: string) => {
+    setItems(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item));
+  };
+
+  const addItem = () => setItems(prev => [...prev, { modelo: "", anio: "", repuesto: "" }]);
+  const removeItem = (index: number) => setItems(prev => prev.filter((_, i) => i !== index));
+
+  const buildWAMessage = () => {
+    const lines = items
+      .filter(i => i.repuesto.trim())
+      .map((item, idx) =>
+        `${idx + 1}. ${item.repuesto}${item.modelo ? ` — Modelo: ${item.modelo}` : ""}${item.anio ? ` (${item.anio})` : ""}`
+      );
+    return `Hola, necesito repuestos para *${brandName}*:\n\n${lines.join("\n")}\n\nPor favor, ¿me pueden ayudar con cotización?`;
+  };
+
+  const handleWA = () => {
+    const msg = buildWAMessage();
+    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+  };
+
+  const handleAddToCart = () => {
+    const valid = items.filter(i => i.repuesto.trim());
+    if (valid.length > 0) {
+      onAddToCart(valid, brandName);
+      onClose();
+    }
+  };
+
+  const hasContent = items.some(i => i.repuesto.trim());
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden"
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-r from-[#1a1f6e] to-[#2a2f8e] px-6 py-5 flex items-center justify-between">
+          <div>
+            <p className="text-[#e8121a] text-xs font-bold uppercase tracking-widest">Solicitar repuestos</p>
+            <h2 className="text-white font-black text-xl">{brandName}</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <X className="h-5 w-5 text-white/70" />
+          </button>
+        </div>
+
+        {/* Items */}
+        <div className="p-6 max-h-[55vh] overflow-y-auto space-y-4">
+          {items.map((item, index) => (
+            <div key={index} className="bg-slate-50 rounded-xl p-4 relative">
+              {items.length > 1 && (
+                <button
+                  onClick={() => removeItem(index)}
+                  className="absolute top-3 right-3 p-1 hover:bg-red-50 rounded-lg text-slate-300 hover:text-red-500 transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+
+              <p className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wide">
+                Ítem {index + 1}
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Modelo</label>
+                  <input
+                    type="text"
+                    placeholder="ej. Corolla, RAV4..."
+                    value={item.modelo}
+                    onChange={e => updateItem(index, "modelo", e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a1f6e]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Año</label>
+                  <input
+                    type="text"
+                    placeholder="ej. 2022"
+                    value={item.anio}
+                    onChange={e => updateItem(index, "anio", e.target.value)}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a1f6e]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-600 block mb-1">Repuesto que busca *</label>
+                <textarea
+                  placeholder="ej. Pastillas de freno delanteras, filtro de aceite..."
+                  value={item.repuesto}
+                  onChange={e => updateItem(index, "repuesto", e.target.value)}
+                  rows={2}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a1f6e] resize-none"
+                />
+              </div>
+            </div>
+          ))}
+
+          <button
+            onClick={addItem}
+            className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 hover:border-[#1a1f6e] text-slate-400 hover:text-[#1a1f6e] py-3 rounded-xl text-sm font-semibold transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            Agregar otro repuesto
+          </button>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-slate-100 flex flex-col gap-3">
+          <button
+            onClick={handleWA}
+            disabled={!hasContent}
+            className="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors text-sm"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Enviar por WhatsApp
+          </button>
+          <button
+            onClick={handleAddToCart}
+            disabled={!hasContent}
+            className="w-full flex items-center justify-center gap-2 bg-[#1a1f6e] hover:bg-[#141a5e] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors text-sm"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Agregar al carrito de cotización
+          </button>
+          <p className="text-xs text-slate-400 text-center">
+            Nuestro equipo le responderá a la brevedad con disponibilidad y precios.
+          </p>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 // ── Cart Drawer ────────────────────────────────────────────────────────────────
 function CartDrawer({
-  items,
+  products,
+  repuestos,
   onClose,
   onUpdateQty,
-  onRemove,
+  onRemoveProduct,
+  onRemoveRepuestoGroup,
   onEnviar,
   sending,
   sent,
 }: {
-  items: CartItem[];
+  products: CartItem[];
+  repuestos: CartRepuestoGroup[];
   onClose: () => void;
   onUpdateQty: (id: string, qty: number) => void;
-  onRemove: (id: string) => void;
+  onRemoveProduct: (id: string) => void;
+  onRemoveRepuestoGroup: (brand: string) => void;
   onEnviar: (notas: string) => void;
   sending: boolean;
   sent: boolean;
 }) {
   const [notas, setNotas] = useState("");
-  const total = items.reduce((s, i) => s + i.producto.precio * i.cantidad, 0);
+  const total = products.reduce((s, i) => s + i.producto.precio * i.cantidad, 0);
+  const totalItems = products.length + repuestos.length;
 
   return (
     <motion.div
@@ -76,7 +279,7 @@ function CartDrawer({
             <ShoppingCart className="h-5 w-5 text-blue-900" />
             <h2 className="font-black text-slate-900 text-lg">Mi cotización</h2>
             <span className="bg-blue-900 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-              {items.length}
+              {totalItems}
             </span>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
@@ -97,68 +300,101 @@ function CartDrawer({
           </div>
         ) : (
           <>
-            {/* Items */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
-              {items.length === 0 ? (
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+              {totalItems === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-slate-400 py-16">
                   <ShoppingCart className="h-12 w-12 mb-3 text-slate-200" />
                   <p className="text-sm font-medium">El carrito está vacío</p>
-                  <p className="text-xs mt-1">Agrega productos del catálogo</p>
+                  <p className="text-xs mt-1">Selecciona una marca o busca en el catálogo</p>
                 </div>
               ) : (
-                items.map(({ producto, cantidad }) => (
-                  <div key={producto.id} className="flex gap-3 bg-slate-50 rounded-xl p-3">
-                    <div className="w-14 h-14 rounded-lg bg-slate-200 overflow-hidden shrink-0">
-                      {producto.imagenUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={producto.imagenUrl} alt={producto.nombre} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="h-6 w-6 text-slate-300" />
+                <>
+                  {/* Repuesto groups */}
+                  {repuestos.map(group => (
+                    <div key={group.brand} className="bg-slate-50 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Car className="h-4 w-4 text-[#1a1f6e]" />
+                          <span className="font-bold text-slate-900 text-sm">{group.brand}</span>
                         </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-slate-900 leading-snug line-clamp-2">{producto.nombre}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{producto.codigo}</p>
-                      <p className="text-sm font-black text-blue-900 mt-1">{formatCurrency(producto.precio * cantidad)}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <button onClick={() => onRemove(producto.id)} className="p-1 hover:bg-red-50 rounded-lg text-slate-300 hover:text-red-500 transition-colors">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                      <div className="flex items-center gap-1.5">
                         <button
-                          onClick={() => onUpdateQty(producto.id, cantidad - 1)}
-                          className="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center hover:border-slate-300 transition-colors"
+                          onClick={() => onRemoveRepuestoGroup(group.brand)}
+                          className="p-1 hover:bg-red-50 rounded-lg text-slate-300 hover:text-red-500 transition-colors"
                         >
-                          <Minus className="h-3 w-3 text-slate-600" />
-                        </button>
-                        <span className="text-sm font-bold text-slate-900 w-6 text-center">{cantidad}</span>
-                        <button
-                          onClick={() => onUpdateQty(producto.id, cantidad + 1)}
-                          className="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center hover:border-slate-300 transition-colors"
-                        >
-                          <Plus className="h-3 w-3 text-slate-600" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
+                      <div className="space-y-1.5">
+                        {group.items.map((item, i) => (
+                          <div key={i} className="text-xs text-slate-600 flex gap-1">
+                            <span className="text-slate-400">{i + 1}.</span>
+                            <span>
+                              <span className="font-medium">{item.repuesto}</span>
+                              {item.modelo && <span className="text-slate-400"> · {item.modelo}</span>}
+                              {item.anio && <span className="text-slate-400"> ({item.anio})</span>}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+
+                  {/* Product items */}
+                  {products.map(({ producto, cantidad }) => (
+                    <div key={producto.id} className="flex gap-3 bg-slate-50 rounded-xl p-3">
+                      <div className="w-14 h-14 rounded-lg bg-slate-200 overflow-hidden shrink-0">
+                        {producto.imagenUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={producto.imagenUrl} alt={producto.nombre} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="h-6 w-6 text-slate-300" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900 leading-snug line-clamp-2">{producto.nombre}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{producto.codigo}</p>
+                        <p className="text-sm font-black text-blue-900 mt-1">{formatCurrency(producto.precio * cantidad)}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        <button onClick={() => onRemoveProduct(producto.id)} className="p-1 hover:bg-red-50 rounded-lg text-slate-300 hover:text-red-500 transition-colors">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => onUpdateQty(producto.id, cantidad - 1)}
+                            className="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center hover:border-slate-300 transition-colors"
+                          >
+                            <Minus className="h-3 w-3 text-slate-600" />
+                          </button>
+                          <span className="text-sm font-bold text-slate-900 w-6 text-center">{cantidad}</span>
+                          <button
+                            onClick={() => onUpdateQty(producto.id, cantidad + 1)}
+                            className="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center hover:border-slate-300 transition-colors"
+                          >
+                            <Plus className="h-3 w-3 text-slate-600" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
               )}
             </div>
 
-            {/* Footer */}
-            {items.length > 0 && (
+            {totalItems > 0 && (
               <div className="px-6 py-5 border-t border-slate-100 space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-500">Subtotal referencial</span>
-                  <span className="text-lg font-black text-blue-900">{formatCurrency(total)}</span>
-                </div>
+                {products.length > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-500">Subtotal referencial</span>
+                    <span className="text-lg font-black text-blue-900">{formatCurrency(total)}</span>
+                  </div>
+                )}
                 <textarea
                   value={notas}
                   onChange={e => setNotas(e.target.value)}
-                  placeholder="Notas adicionales (urgencia, especificaciones, modelo del vehículo...)"
+                  placeholder="Notas adicionales (urgencia, especificaciones...)"
                   rows={2}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 resize-none"
                 />
@@ -172,7 +408,7 @@ function CartDrawer({
                   ) : (
                     <Send className="h-4 w-4" />
                   )}
-                  {sending ? "Enviando..." : `Enviar cotización · ${items.length} ${items.length === 1 ? "producto" : "productos"}`}
+                  {sending ? "Enviando..." : `Enviar cotización · ${totalItems} ${totalItems === 1 ? "ítem" : "ítems"}`}
                 </button>
                 <p className="text-xs text-slate-400 text-center">
                   El precio final puede variar según disponibilidad y condiciones comerciales.
@@ -198,7 +434,6 @@ function ProductCard({
   onVerDetalle: (p: Producto) => void;
   enCarrito: boolean;
 }) {
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
   const msg = encodeURIComponent(
     `Hola, me interesa:\n• ${producto.nombre}\n• Código: ${producto.codigo}`
   );
@@ -212,11 +447,11 @@ function ProductCard({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       whileHover={{ y: -6, transition: { duration: 0.2 } }}
-      className="bg-white rounded-2xl border border-slate-200 overflow-hidden group hover:shadow-xl hover:border-blue-200 transition-all duration-300 cursor-pointer"
+      className="bg-white rounded-2xl border border-slate-200 overflow-hidden group hover:shadow-xl hover:border-blue-200 transition-all duration-300"
     >
       <div
         onClick={() => onVerDetalle(producto)}
-        className="relative aspect-square bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden"
+        className="relative aspect-square bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden cursor-pointer"
       >
         {producto.imagenUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -248,8 +483,6 @@ function ProductCard({
             <Check className="h-3.5 w-3.5" />
           </div>
         )}
-
-        <div className="absolute inset-0 bg-blue-900/0 group-hover:bg-blue-900/5 transition-colors" />
       </div>
 
       <div className="p-4">
@@ -262,7 +495,7 @@ function ProductCard({
 
         <h3
           onClick={() => onVerDetalle(producto)}
-          className="font-bold text-slate-900 text-sm leading-snug mb-1 line-clamp-2 hover:text-blue-900 transition-colors"
+          className="font-bold text-slate-900 text-sm leading-snug mb-1 line-clamp-2 hover:text-blue-900 transition-colors cursor-pointer"
         >
           {producto.nombre}
         </h3>
@@ -285,16 +518,14 @@ function ProductCard({
             <button
               onClick={() => onAgregar(producto)}
               className={`text-xs font-semibold px-3 py-2 rounded-lg transition-all flex items-center gap-1 ${
-                enCarrito
-                  ? "bg-green-600 hover:bg-green-700 text-white"
-                  : "bg-blue-900 hover:bg-blue-800 text-white"
+                enCarrito ? "bg-green-600 hover:bg-green-700 text-white" : "bg-blue-900 hover:bg-blue-800 text-white"
               }`}
             >
               {enCarrito ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
               {enCarrito ? "Agregado" : "Agregar"}
             </button>
             <a
-              href={`https://wa.me/${whatsapp}?text=${msg}`}
+              href={`https://wa.me/${WA_NUMBER}?text=${msg}`}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-lg transition-colors"
@@ -321,7 +552,6 @@ function ProductDetailModal({
   onAgregar: (p: Producto) => void;
   enCarrito: boolean;
 }) {
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
   const msg = encodeURIComponent(
     `Hola, me interesa:\n• ${producto.nombre}\n• Código: ${producto.codigo}`
   );
@@ -399,7 +629,7 @@ function ProductDetailModal({
             </div>
             <div className="flex gap-3">
               <a
-                href={`https://wa.me/${whatsapp}?text=${msg}`}
+                href={`https://wa.me/${WA_NUMBER}?text=${msg}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition-colors"
@@ -425,23 +655,32 @@ function ProductDetailModal({
 }
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
+type Tab = "marcas" | "catalogo";
+
 export default function SocioCatalogoPage() {
+  const [activeTab, setActiveTab] = useState<Tab>("marcas");
+
+  // Catalog state
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [marcas, setMarcas] = useState<Marca[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [categoriaFiltro, setCategoriaFiltro] = useState("");
   const [marcaFiltro, setMarcaFiltro] = useState("");
-  const [total, setTotal] = useState(0);
+  const [totalProductos, setTotalProductos] = useState(0);
   const [page, setPage] = useState(1);
   const [detalle, setDetalle] = useState<Producto | null>(null);
 
   // Cart state
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartProducts, setCartProducts] = useState<CartItem[]>([]);
+  const [cartRepuestos, setCartRepuestos] = useState<CartRepuestoGroup[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+
+  // Brand request modal
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
 
   const searchTimeout = useRef<NodeJS.Timeout>(null);
 
@@ -457,7 +696,7 @@ export default function SocioCatalogoPage() {
     const res = await fetch(`/api/productos?${params}`);
     const data = await res.json();
     setProductos(data.productos || []);
-    setTotal(data.total || 0);
+    setTotalProductos(data.total || 0);
     setLoading(false);
   }, [page, search, categoriaFiltro, marcaFiltro]);
 
@@ -467,33 +706,46 @@ export default function SocioCatalogoPage() {
   }, []);
 
   useEffect(() => {
+    if (activeTab !== "catalogo") return;
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
     searchTimeout.current = setTimeout(fetchProductos, 300);
     return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current); };
-  }, [fetchProductos]);
+  }, [fetchProductos, activeTab]);
 
   const clearFiltros = () => {
     setSearch(""); setCategoriaFiltro(""); setMarcaFiltro(""); setPage(1);
   };
 
-  const agregarAlCarrito = (producto: Producto) => {
-    setCart(prev => {
+  const agregarProductoAlCarrito = (producto: Producto) => {
+    setCartProducts(prev => {
       const exists = prev.find(i => i.producto.id === producto.id);
-      if (exists) return prev; // ya está, no duplicar
+      if (exists) return prev;
       return [...prev, { producto, cantidad: 1 }];
     });
     setCartOpen(true);
   };
 
-  const updateQty = (id: string, qty: number) => {
+  const agregarRepuestosAlCarrito = (items: RepuestoItem[], brand: string) => {
+    setCartRepuestos(prev => {
+      const exists = prev.find(g => g.brand === brand);
+      if (exists) {
+        return prev.map(g => g.brand === brand ? { ...g, items: [...g.items, ...items] } : g);
+      }
+      return [...prev, { brand, items }];
+    });
+    setCartOpen(true);
+  };
+
+  const updateProductQty = (id: string, qty: number) => {
     if (qty <= 0) {
-      setCart(prev => prev.filter(i => i.producto.id !== id));
+      setCartProducts(prev => prev.filter(i => i.producto.id !== id));
     } else {
-      setCart(prev => prev.map(i => i.producto.id === id ? { ...i, cantidad: qty } : i));
+      setCartProducts(prev => prev.map(i => i.producto.id === id ? { ...i, cantidad: qty } : i));
     }
   };
 
-  const removeItem = (id: string) => setCart(prev => prev.filter(i => i.producto.id !== id));
+  const removeProduct = (id: string) => setCartProducts(prev => prev.filter(i => i.producto.id !== id));
+  const removeRepuestoGroup = (brand: string) => setCartRepuestos(prev => prev.filter(g => g.brand !== brand));
 
   const enviarCotizacion = async (notas: string) => {
     setSending(true);
@@ -501,13 +753,19 @@ export default function SocioCatalogoPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        items: cart.map(i => ({ productoId: i.producto.id, cantidad: i.cantidad })),
-        notas,
+        items: cartProducts.map(i => ({ productoId: i.producto.id, cantidad: i.cantidad })),
+        notas: [
+          notas,
+          ...cartRepuestos.map(g =>
+            `[${g.brand}] ${g.items.map(i => `${i.repuesto}${i.modelo ? ` (${i.modelo}${i.anio ? " " + i.anio : ""})` : ""}`).join(", ")}`
+          ),
+        ].filter(Boolean).join("\n"),
       }),
     });
     setSent(true);
     setSending(false);
-    setCart([]);
+    setCartProducts([]);
+    setCartRepuestos([]);
   };
 
   const handleCloseCart = () => {
@@ -516,15 +774,16 @@ export default function SocioCatalogoPage() {
   };
 
   const tienesFiltros = search || categoriaFiltro || marcaFiltro;
-  const cartIds = new Set(cart.map(i => i.producto.id));
+  const cartIds = new Set(cartProducts.map(i => i.producto.id));
+  const totalCartItems = cartProducts.length + cartRepuestos.length;
 
   return (
     <div className="p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">Catálogo de productos</h1>
-          <p className="text-slate-500 text-sm mt-0.5">{total} productos disponibles</p>
+          <h1 className="text-2xl font-black text-slate-900">Catálogo de repuestos</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Selecciona tu marca o busca en el catálogo</p>
         </div>
 
         {/* Cart button */}
@@ -534,116 +793,183 @@ export default function SocioCatalogoPage() {
         >
           <ShoppingCart className="h-4 w-4" />
           Mi cotización
-          {cart.length > 0 && (
+          {totalCartItems > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-black w-5 h-5 rounded-full flex items-center justify-center">
-              {cart.length}
+              {totalCartItems}
             </span>
           )}
         </button>
       </div>
 
-      {/* Search + filters */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-6">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Buscar por nombre, código, modelo..."
-              value={search}
-              onChange={e => { setSearch(e.target.value); setPage(1); }}
-              className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
-            />
-          </div>
-
-          <div className="relative">
-            <select
-              value={categoriaFiltro}
-              onChange={e => { setCategoriaFiltro(e.target.value); setPage(1); }}
-              className="appearance-none w-full sm:w-44 border border-slate-200 rounded-xl px-4 py-2.5 text-sm pr-9 focus:outline-none focus:ring-2 focus:ring-blue-900"
-            >
-              <option value="">Todas las categorías</option>
-              {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-          </div>
-
-          <div className="relative">
-            <select
-              value={marcaFiltro}
-              onChange={e => { setMarcaFiltro(e.target.value); setPage(1); }}
-              className="appearance-none w-full sm:w-36 border border-slate-200 rounded-xl px-4 py-2.5 text-sm pr-9 focus:outline-none focus:ring-2 focus:ring-blue-900"
-            >
-              <option value="">Todas las marcas</option>
-              {marcas.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-          </div>
-
-          {tienesFiltros && (
-            <button onClick={clearFiltros} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 whitespace-nowrap">
-              <X className="h-4 w-4" />
-              Limpiar
-            </button>
-          )}
-        </div>
+      {/* Tabs */}
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 w-fit">
+        <button
+          onClick={() => setActiveTab("marcas")}
+          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold transition-all ${
+            activeTab === "marcas"
+              ? "bg-white text-[#1a1f6e] shadow-sm"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          <Car className="h-4 w-4" />
+          Por marca
+        </button>
+        <button
+          onClick={() => { setActiveTab("catalogo"); if (productos.length === 0) fetchProductos(); }}
+          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold transition-all ${
+            activeTab === "catalogo"
+              ? "bg-white text-[#1a1f6e] shadow-sm"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          <Search className="h-4 w-4" />
+          Buscar en catálogo
+        </button>
       </div>
 
-      {/* Grid */}
-      {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="rounded-2xl border border-slate-200 overflow-hidden animate-pulse">
-              <div className="aspect-square bg-slate-100" />
-              <div className="p-4 space-y-2">
-                <div className="h-3 bg-slate-100 rounded w-1/3" />
-                <div className="h-4 bg-slate-100 rounded w-full" />
-                <div className="h-3 bg-slate-100 rounded w-1/2" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : productos.length === 0 ? (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-20 text-slate-400">
-          <Package className="h-16 w-16 mx-auto mb-4 text-slate-200" />
-          <p className="font-semibold text-slate-600 text-lg">No se encontraron productos</p>
-          <p className="text-sm mt-1">Intente con otros filtros de búsqueda</p>
-          {tienesFiltros && (
-            <button onClick={clearFiltros} className="mt-4 text-blue-900 font-medium hover:underline">Limpiar filtros</button>
-          )}
-        </motion.div>
-      ) : (
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${search}-${categoriaFiltro}-${marcaFiltro}-${page}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-          >
-            {productos.map((producto) => (
-              <ProductCard
-                key={producto.id}
-                producto={producto}
-                onAgregar={agregarAlCarrito}
-                onVerDetalle={setDetalle}
-                enCarrito={cartIds.has(producto.id)}
-              />
+      {/* Tab: Marcas */}
+      {activeTab === "marcas" && (
+        <div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {VEHICLE_BRANDS.map(brand => (
+              <motion.button
+                key={brand.name}
+                whileHover={{ y: -4, scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setSelectedBrand(brand.name)}
+                className="group flex flex-col items-start p-5 rounded-2xl text-left shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden relative"
+                style={{
+                  background: `linear-gradient(135deg, ${brand.color} 0%, ${brand.color}cc 100%)`,
+                }}
+              >
+                {/* Decorative circles */}
+                <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-white/10" />
+                <div className="absolute -bottom-6 -right-2 w-24 h-24 rounded-full bg-black/10" />
+
+                <div className="relative z-10">
+                  <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest mb-1">
+                    Repuestos para
+                  </p>
+                  <p className="text-lg font-black text-white leading-tight mb-3">{brand.name}</p>
+                  <span className="text-2xl">{brand.emoji}</span>
+                </div>
+              </motion.button>
             ))}
-          </motion.div>
-        </AnimatePresence>
+          </div>
+
+          <p className="text-xs text-slate-400 text-center mt-6">
+            Haz clic en una marca para solicitar repuestos específicos
+          </p>
+        </div>
       )}
 
-      {/* Pagination */}
-      {total > 12 && (
-        <div className="flex items-center justify-center gap-3 mt-8">
-          <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium disabled:opacity-40 hover:border-slate-300 transition-colors">
-            Anterior
-          </button>
-          <span className="text-sm text-slate-500">Página {page} de {Math.ceil(total / 12)}</span>
-          <button disabled={page >= Math.ceil(total / 12)} onClick={() => setPage(p => p + 1)} className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium disabled:opacity-40 hover:border-slate-300 transition-colors">
-            Siguiente
-          </button>
+      {/* Tab: Catálogo */}
+      {activeTab === "catalogo" && (
+        <div>
+          {/* Search + filters */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre, código, modelo..."
+                  value={search}
+                  onChange={e => { setSearch(e.target.value); setPage(1); }}
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+                />
+              </div>
+
+              <div className="relative">
+                <select
+                  value={categoriaFiltro}
+                  onChange={e => { setCategoriaFiltro(e.target.value); setPage(1); }}
+                  className="appearance-none w-full sm:w-44 border border-slate-200 rounded-xl px-4 py-2.5 text-sm pr-9 focus:outline-none focus:ring-2 focus:ring-blue-900"
+                >
+                  <option value="">Todas las categorías</option>
+                  {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+              </div>
+
+              <div className="relative">
+                <select
+                  value={marcaFiltro}
+                  onChange={e => { setMarcaFiltro(e.target.value); setPage(1); }}
+                  className="appearance-none w-full sm:w-36 border border-slate-200 rounded-xl px-4 py-2.5 text-sm pr-9 focus:outline-none focus:ring-2 focus:ring-blue-900"
+                >
+                  <option value="">Todas las marcas</option>
+                  {marcas.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+              </div>
+
+              {tienesFiltros && (
+                <button onClick={clearFiltros} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 whitespace-nowrap">
+                  <X className="h-4 w-4" />
+                  Limpiar
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Grid */}
+          {loading ? (
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="rounded-2xl border border-slate-200 overflow-hidden animate-pulse">
+                  <div className="aspect-square bg-slate-100" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-3 bg-slate-100 rounded w-1/3" />
+                    <div className="h-4 bg-slate-100 rounded w-full" />
+                    <div className="h-3 bg-slate-100 rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : productos.length === 0 ? (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-20 text-slate-400">
+              <Package className="h-16 w-16 mx-auto mb-4 text-slate-200" />
+              <p className="font-semibold text-slate-600 text-lg">No se encontraron productos</p>
+              <p className="text-sm mt-1">Intente con otros filtros de búsqueda</p>
+              {tienesFiltros && (
+                <button onClick={clearFiltros} className="mt-4 text-blue-900 font-medium hover:underline">Limpiar filtros</button>
+              )}
+            </motion.div>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${search}-${categoriaFiltro}-${marcaFiltro}-${page}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+              >
+                {productos.map((producto) => (
+                  <ProductCard
+                    key={producto.id}
+                    producto={producto}
+                    onAgregar={agregarProductoAlCarrito}
+                    onVerDetalle={setDetalle}
+                    enCarrito={cartIds.has(producto.id)}
+                  />
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          )}
+
+          {/* Pagination */}
+          {totalProductos > 12 && (
+            <div className="flex items-center justify-center gap-3 mt-8">
+              <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium disabled:opacity-40 hover:border-slate-300 transition-colors">
+                Anterior
+              </button>
+              <span className="text-sm text-slate-500">Página {page} de {Math.ceil(totalProductos / 12)}</span>
+              <button disabled={page >= Math.ceil(totalProductos / 12)} onClick={() => setPage(p => p + 1)} className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium disabled:opacity-40 hover:border-slate-300 transition-colors">
+                Siguiente
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -653,16 +979,25 @@ export default function SocioCatalogoPage() {
           <ProductDetailModal
             producto={detalle}
             onClose={() => setDetalle(null)}
-            onAgregar={agregarAlCarrito}
+            onAgregar={agregarProductoAlCarrito}
             enCarrito={cartIds.has(detalle.id)}
+          />
+        )}
+        {selectedBrand && (
+          <BrandRequestModal
+            brandName={selectedBrand}
+            onClose={() => setSelectedBrand(null)}
+            onAddToCart={agregarRepuestosAlCarrito}
           />
         )}
         {cartOpen && (
           <CartDrawer
-            items={cart}
+            products={cartProducts}
+            repuestos={cartRepuestos}
             onClose={handleCloseCart}
-            onUpdateQty={updateQty}
-            onRemove={removeItem}
+            onUpdateQty={updateProductQty}
+            onRemoveProduct={removeProduct}
+            onRemoveRepuestoGroup={removeRepuestoGroup}
             onEnviar={enviarCotizacion}
             sending={sending}
             sent={sent}
