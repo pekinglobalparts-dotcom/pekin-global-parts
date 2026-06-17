@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Search, Filter, X, MessageCircle, ShoppingCart, Package,
-  ChevronDown, Star, AlertCircle, Check,
+  Search, X, MessageCircle, ShoppingCart, Package,
+  ChevronDown, Star, AlertCircle, Check, Plus, Minus, Trash2, Send,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,21 +26,181 @@ interface Producto {
   marca: { nombre: string };
 }
 
+interface CartItem {
+  producto: Producto;
+  cantidad: number;
+}
+
 interface Categoria { id: string; nombre: string; slug: string }
 interface Marca { id: string; nombre: string }
 
+// ── Cart Drawer ────────────────────────────────────────────────────────────────
+function CartDrawer({
+  items,
+  onClose,
+  onUpdateQty,
+  onRemove,
+  onEnviar,
+  sending,
+  sent,
+}: {
+  items: CartItem[];
+  onClose: () => void;
+  onUpdateQty: (id: string, qty: number) => void;
+  onRemove: (id: string) => void;
+  onEnviar: (notas: string) => void;
+  sending: boolean;
+  sent: boolean;
+}) {
+  const [notas, setNotas] = useState("");
+  const total = items.reduce((s, i) => s + i.producto.precio * i.cantidad, 0);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex justify-end"
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+        transition={{ type: "spring", damping: 28, stiffness: 280 }}
+        className="bg-white w-full max-w-md h-full flex flex-col shadow-2xl"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <ShoppingCart className="h-5 w-5 text-blue-900" />
+            <h2 className="font-black text-slate-900 text-lg">Mi cotización</h2>
+            <span className="bg-blue-900 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              {items.length}
+            </span>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+            <X className="h-4 w-4 text-slate-500" />
+          </button>
+        </div>
+
+        {sent ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+              <Check className="h-10 w-10 text-green-600" />
+            </div>
+            <h3 className="text-xl font-black text-slate-900 mb-2">¡Cotización enviada!</h3>
+            <p className="text-slate-500 text-sm mb-6">
+              Recibirá nuestra respuesta en su panel y por correo electrónico.
+            </p>
+            <Button onClick={onClose}>Cerrar</Button>
+          </div>
+        ) : (
+          <>
+            {/* Items */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+              {items.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-slate-400 py-16">
+                  <ShoppingCart className="h-12 w-12 mb-3 text-slate-200" />
+                  <p className="text-sm font-medium">El carrito está vacío</p>
+                  <p className="text-xs mt-1">Agrega productos del catálogo</p>
+                </div>
+              ) : (
+                items.map(({ producto, cantidad }) => (
+                  <div key={producto.id} className="flex gap-3 bg-slate-50 rounded-xl p-3">
+                    <div className="w-14 h-14 rounded-lg bg-slate-200 overflow-hidden shrink-0">
+                      {producto.imagenUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={producto.imagenUrl} alt={producto.nombre} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="h-6 w-6 text-slate-300" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-slate-900 leading-snug line-clamp-2">{producto.nombre}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{producto.codigo}</p>
+                      <p className="text-sm font-black text-blue-900 mt-1">{formatCurrency(producto.precio * cantidad)}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <button onClick={() => onRemove(producto.id)} className="p-1 hover:bg-red-50 rounded-lg text-slate-300 hover:text-red-500 transition-colors">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => onUpdateQty(producto.id, cantidad - 1)}
+                          className="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center hover:border-slate-300 transition-colors"
+                        >
+                          <Minus className="h-3 w-3 text-slate-600" />
+                        </button>
+                        <span className="text-sm font-bold text-slate-900 w-6 text-center">{cantidad}</span>
+                        <button
+                          onClick={() => onUpdateQty(producto.id, cantidad + 1)}
+                          className="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center hover:border-slate-300 transition-colors"
+                        >
+                          <Plus className="h-3 w-3 text-slate-600" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer */}
+            {items.length > 0 && (
+              <div className="px-6 py-5 border-t border-slate-100 space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-slate-500">Subtotal referencial</span>
+                  <span className="text-lg font-black text-blue-900">{formatCurrency(total)}</span>
+                </div>
+                <textarea
+                  value={notas}
+                  onChange={e => setNotas(e.target.value)}
+                  placeholder="Notas adicionales (urgencia, especificaciones, modelo del vehículo...)"
+                  rows={2}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 resize-none"
+                />
+                <button
+                  onClick={() => onEnviar(notas)}
+                  disabled={sending}
+                  className="w-full flex items-center justify-center gap-2 bg-blue-900 hover:bg-blue-800 disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition-colors text-sm"
+                >
+                  {sending ? (
+                    <span className="animate-spin border-2 border-white/30 border-t-white rounded-full w-4 h-4" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  {sending ? "Enviando..." : `Enviar cotización · ${items.length} ${items.length === 1 ? "producto" : "productos"}`}
+                </button>
+                <p className="text-xs text-slate-400 text-center">
+                  El precio final puede variar según disponibilidad y condiciones comerciales.
+                </p>
+              </div>
+            )}
+          </>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ── Product Card ───────────────────────────────────────────────────────────────
 function ProductCard({
   producto,
-  onCotizar,
+  onAgregar,
   onVerDetalle,
+  enCarrito,
 }: {
   producto: Producto;
-  onCotizar: (p: Producto) => void;
+  onAgregar: (p: Producto) => void;
   onVerDetalle: (p: Producto) => void;
+  enCarrito: boolean;
 }) {
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
   const msg = encodeURIComponent(
-    `Hola, me interesa solicitar cotización:\n• Producto: ${producto.nombre}\n• Código: ${producto.codigo}\n• Cantidad: 1`
+    `Hola, me interesa:\n• ${producto.nombre}\n• Código: ${producto.codigo}`
   );
   const inStock = producto.stock > 0;
   const lowStock = producto.stock > 0 && producto.stock <= producto.stockMinimo;
@@ -54,7 +214,6 @@ function ProductCard({
       whileHover={{ y: -6, transition: { duration: 0.2 } }}
       className="bg-white rounded-2xl border border-slate-200 overflow-hidden group hover:shadow-xl hover:border-blue-200 transition-all duration-300 cursor-pointer"
     >
-      {/* Image area */}
       <div
         onClick={() => onVerDetalle(producto)}
         className="relative aspect-square bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden"
@@ -72,40 +231,33 @@ function ProductCard({
           </div>
         )}
 
-        {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
           {producto.destacado && (
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-1 bg-amber-400 text-amber-900 text-xs font-bold px-2 py-0.5 rounded-full shadow-sm"
-            >
+            <div className="flex items-center gap-1 bg-amber-400 text-amber-900 text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
               <Star className="h-2.5 w-2.5 fill-current" />
               Destacado
-            </motion.div>
+            </div>
           )}
-          <div
-            className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-              !inStock
-                ? "bg-red-100 text-red-700"
-                : lowStock
-                ? "bg-amber-100 text-amber-700"
-                : "bg-green-100 text-green-700"
-            }`}
-          >
+          <div className={`text-xs font-semibold px-2 py-0.5 rounded-full ${!inStock ? "bg-red-100 text-red-700" : lowStock ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"}`}>
             {!inStock ? "Sin stock" : lowStock ? `Últimas ${producto.stock}` : "En stock"}
           </div>
         </div>
 
-        {/* Hover overlay */}
+        {enCarrito && (
+          <div className="absolute top-3 right-3 bg-blue-900 text-white rounded-full p-1.5 shadow-lg">
+            <Check className="h-3.5 w-3.5" />
+          </div>
+        )}
+
         <div className="absolute inset-0 bg-blue-900/0 group-hover:bg-blue-900/5 transition-colors" />
       </div>
 
-      {/* Info */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs font-mono text-slate-400">{producto.codigo}</span>
-          <span className="text-xs text-slate-400">{producto.marca.nombre}</span>
+          {producto.marca.nombre !== "Sin marca" && (
+            <span className="text-xs text-slate-400">{producto.marca.nombre}</span>
+          )}
         </div>
 
         <h3
@@ -124,20 +276,22 @@ function ProductCard({
           </p>
         )}
 
-        {/* Price + CTA */}
         <div className="flex items-center justify-between pt-3 border-t border-slate-100">
           <div>
             <p className="text-xl font-black text-blue-900">{formatCurrency(producto.precio)}</p>
-                    <p className="text-xs text-slate-400">Inc. IGV</p>
-            <p className="text-xs text-slate-400">por {producto.unidad}</p>
+            <p className="text-xs text-slate-400">Inc. IGV · por {producto.unidad}</p>
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => onCotizar(producto)}
-              className="bg-blue-900 hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors flex items-center gap-1"
+              onClick={() => onAgregar(producto)}
+              className={`text-xs font-semibold px-3 py-2 rounded-lg transition-all flex items-center gap-1 ${
+                enCarrito
+                  ? "bg-green-600 hover:bg-green-700 text-white"
+                  : "bg-blue-900 hover:bg-blue-800 text-white"
+              }`}
             >
-              <ShoppingCart className="h-3.5 w-3.5" />
-              Cotizar
+              {enCarrito ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+              {enCarrito ? "Agregado" : "Agregar"}
             </button>
             <a
               href={`https://wa.me/${whatsapp}?text=${msg}`}
@@ -155,14 +309,17 @@ function ProductCard({
   );
 }
 
+// ── Product Detail Modal ───────────────────────────────────────────────────────
 function ProductDetailModal({
   producto,
   onClose,
-  onCotizar,
+  onAgregar,
+  enCarrito,
 }: {
   producto: Producto;
   onClose: () => void;
-  onCotizar: (p: Producto) => void;
+  onAgregar: (p: Producto) => void;
+  enCarrito: boolean;
 }) {
   const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
   const msg = encodeURIComponent(
@@ -174,7 +331,7 @@ function ProductDetailModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-40 p-4"
       onClick={e => e.target === e.currentTarget && onClose()}
     >
       <motion.div
@@ -209,7 +366,9 @@ function ProductDetailModal({
           </div>
 
           <h2 className="text-xl font-black text-slate-900 mb-2">{producto.nombre}</h2>
-          <p className="text-slate-500 text-sm mb-1">Marca: <strong>{producto.marca.nombre}</strong></p>
+          {producto.marca.nombre !== "Sin marca" && (
+            <p className="text-slate-500 text-sm mb-1">Marca: <strong>{producto.marca.nombre}</strong></p>
+          )}
 
           {producto.descripcion && (
             <p className="text-slate-600 text-sm mt-3 mb-4 leading-relaxed">{producto.descripcion}</p>
@@ -220,20 +379,14 @@ function ProductDetailModal({
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Modelos compatibles</p>
               <div className="flex flex-wrap gap-1.5">
                 {producto.modelosCompatibles.map(m => (
-                  <span key={m} className="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium">
-                    {m}
-                  </span>
+                  <span key={m} className="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium">{m}</span>
                 ))}
               </div>
             </div>
           )}
 
           <div className="flex items-center gap-3 mt-2 mb-5">
-            <div
-              className={`flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg ${
-                producto.stock > 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
-              }`}
-            >
+            <div className={`flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-lg ${producto.stock > 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
               {producto.stock > 0 ? <Check className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
               {producto.stock > 0 ? `${producto.stock} ${producto.unidad} disponibles` : "Sin stock"}
             </div>
@@ -242,8 +395,7 @@ function ProductDetailModal({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-3xl font-black text-blue-900">{formatCurrency(producto.precio)}</p>
-              <p className="text-xs text-slate-400">Inc. IGV</p>
-              <p className="text-xs text-slate-400">Precio por {producto.unidad}</p>
+              <p className="text-xs text-slate-400">Inc. IGV · Precio por {producto.unidad}</p>
             </div>
             <div className="flex gap-3">
               <a
@@ -255,10 +407,15 @@ function ProductDetailModal({
                 <MessageCircle className="h-4 w-4" />
                 WhatsApp
               </a>
-              <Button onClick={() => { onClose(); onCotizar(producto); }}>
-                <ShoppingCart className="h-4 w-4" />
-                Solicitar cotización
-              </Button>
+              <button
+                onClick={() => { onAgregar(producto); onClose(); }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-colors ${
+                  enCarrito ? "bg-green-600 hover:bg-green-700 text-white" : "bg-blue-900 hover:bg-blue-800 text-white"
+                }`}
+              >
+                {enCarrito ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                {enCarrito ? "Ya en carrito" : "Agregar al carrito"}
+              </button>
             </div>
           </div>
         </div>
@@ -267,106 +424,7 @@ function ProductDetailModal({
   );
 }
 
-function CotizacionModal({
-  producto,
-  onClose,
-}: {
-  producto: Producto;
-  onClose: () => void;
-}) {
-  const [cantidad, setCantidad] = useState(1);
-  const [notas, setNotas] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    await fetch("/api/socio/cotizaciones", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        items: [{ productoId: producto.id, cantidad, notas }],
-        notas,
-      }),
-    });
-    setSuccess(true);
-    setLoading(false);
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6"
-      >
-        {success ? (
-          <div className="text-center py-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Check className="h-8 w-8 text-green-600" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">¡Cotización enviada!</h3>
-            <p className="text-slate-500 text-sm mb-6">
-              Recibirá la respuesta en su panel y por correo electrónico.
-            </p>
-            <Button onClick={onClose}>Cerrar</Button>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-slate-900">Solicitar cotización</h3>
-              <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg">
-                <X className="h-4 w-4 text-slate-500" />
-              </button>
-            </div>
-
-            <div className="bg-slate-50 rounded-xl p-4 mb-5">
-              <p className="font-semibold text-slate-900 text-sm">{producto.nombre}</p>
-              <p className="text-xs text-slate-400 mt-0.5">{producto.codigo} · {formatCurrency(producto.precio)} / {producto.unidad}</p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Cantidad</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={cantidad}
-                  onChange={e => setCantidad(parseInt(e.target.value) || 1)}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Notas adicionales</label>
-                <textarea
-                  value={notas}
-                  onChange={e => setNotas(e.target.value)}
-                  placeholder="Especificaciones adicionales, urgencia, etc."
-                  rows={3}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 resize-none"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <Button variant="ghost" className="flex-1" onClick={onClose}>Cancelar</Button>
-              <Button className="flex-1" loading={loading} onClick={handleSubmit}>
-                Enviar cotización
-              </Button>
-            </div>
-          </>
-        )}
-      </motion.div>
-    </motion.div>
-  );
-}
-
+// ── Main Page ──────────────────────────────────────────────────────────────────
 export default function SocioCatalogoPage() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -378,7 +436,13 @@ export default function SocioCatalogoPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [detalle, setDetalle] = useState<Producto | null>(null);
-  const [cotizarProducto, setCotizarProducto] = useState<Producto | null>(null);
+
+  // Cart state
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
   const searchTimeout = useRef<NodeJS.Timeout>(null);
 
   const fetchProductos = useCallback(async () => {
@@ -412,20 +476,75 @@ export default function SocioCatalogoPage() {
     setSearch(""); setCategoriaFiltro(""); setMarcaFiltro(""); setPage(1);
   };
 
+  const agregarAlCarrito = (producto: Producto) => {
+    setCart(prev => {
+      const exists = prev.find(i => i.producto.id === producto.id);
+      if (exists) return prev; // ya está, no duplicar
+      return [...prev, { producto, cantidad: 1 }];
+    });
+    setCartOpen(true);
+  };
+
+  const updateQty = (id: string, qty: number) => {
+    if (qty <= 0) {
+      setCart(prev => prev.filter(i => i.producto.id !== id));
+    } else {
+      setCart(prev => prev.map(i => i.producto.id === id ? { ...i, cantidad: qty } : i));
+    }
+  };
+
+  const removeItem = (id: string) => setCart(prev => prev.filter(i => i.producto.id !== id));
+
+  const enviarCotizacion = async (notas: string) => {
+    setSending(true);
+    await fetch("/api/socio/cotizaciones", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: cart.map(i => ({ productoId: i.producto.id, cantidad: i.cantidad })),
+        notas,
+      }),
+    });
+    setSent(true);
+    setSending(false);
+    setCart([]);
+  };
+
+  const handleCloseCart = () => {
+    setCartOpen(false);
+    if (sent) setSent(false);
+  };
+
   const tienesFiltros = search || categoriaFiltro || marcaFiltro;
+  const cartIds = new Set(cart.map(i => i.producto.id));
 
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-black text-slate-900">Catálogo de productos</h1>
-        <p className="text-slate-500 text-sm mt-0.5">{total} productos disponibles</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-black text-slate-900">Catálogo de productos</h1>
+          <p className="text-slate-500 text-sm mt-0.5">{total} productos disponibles</p>
+        </div>
+
+        {/* Cart button */}
+        <button
+          onClick={() => setCartOpen(true)}
+          className="relative flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition-colors"
+        >
+          <ShoppingCart className="h-4 w-4" />
+          Mi cotización
+          {cart.length > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-black w-5 h-5 rounded-full flex items-center justify-center">
+              {cart.length}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Search + filters */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-6">
         <div className="flex flex-col sm:flex-row gap-3">
-          {/* Search */}
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
@@ -437,7 +556,6 @@ export default function SocioCatalogoPage() {
             />
           </div>
 
-          {/* Category filter */}
           <div className="relative">
             <select
               value={categoriaFiltro}
@@ -445,14 +563,11 @@ export default function SocioCatalogoPage() {
               className="appearance-none w-full sm:w-44 border border-slate-200 rounded-xl px-4 py-2.5 text-sm pr-9 focus:outline-none focus:ring-2 focus:ring-blue-900"
             >
               <option value="">Todas las categorías</option>
-              {categorias.map(c => (
-                <option key={c.id} value={c.id}>{c.nombre}</option>
-              ))}
+              {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
           </div>
 
-          {/* Brand filter */}
           <div className="relative">
             <select
               value={marcaFiltro}
@@ -460,18 +575,13 @@ export default function SocioCatalogoPage() {
               className="appearance-none w-full sm:w-36 border border-slate-200 rounded-xl px-4 py-2.5 text-sm pr-9 focus:outline-none focus:ring-2 focus:ring-blue-900"
             >
               <option value="">Todas las marcas</option>
-              {marcas.map(m => (
-                <option key={m.id} value={m.id}>{m.nombre}</option>
-              ))}
+              {marcas.map(m => <option key={m.id} value={m.id}>{m.nombre}</option>)}
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
           </div>
 
           {tienesFiltros && (
-            <button
-              onClick={clearFiltros}
-              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 whitespace-nowrap"
-            >
+            <button onClick={clearFiltros} className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 whitespace-nowrap">
               <X className="h-4 w-4" />
               Limpiar
             </button>
@@ -494,18 +604,12 @@ export default function SocioCatalogoPage() {
           ))}
         </div>
       ) : productos.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center py-20 text-slate-400"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-20 text-slate-400">
           <Package className="h-16 w-16 mx-auto mb-4 text-slate-200" />
           <p className="font-semibold text-slate-600 text-lg">No se encontraron productos</p>
           <p className="text-sm mt-1">Intente con otros filtros de búsqueda</p>
           {tienesFiltros && (
-            <button onClick={clearFiltros} className="mt-4 text-blue-900 font-medium hover:underline">
-              Limpiar filtros
-            </button>
+            <button onClick={clearFiltros} className="mt-4 text-blue-900 font-medium hover:underline">Limpiar filtros</button>
           )}
         </motion.div>
       ) : (
@@ -521,8 +625,9 @@ export default function SocioCatalogoPage() {
               <ProductCard
                 key={producto.id}
                 producto={producto}
-                onCotizar={setCotizarProducto}
+                onAgregar={agregarAlCarrito}
                 onVerDetalle={setDetalle}
+                enCarrito={cartIds.has(producto.id)}
               />
             ))}
           </motion.div>
@@ -532,21 +637,11 @@ export default function SocioCatalogoPage() {
       {/* Pagination */}
       {total > 12 && (
         <div className="flex items-center justify-center gap-3 mt-8">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage(p => p - 1)}
-            className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium disabled:opacity-40 hover:border-slate-300 transition-colors"
-          >
+          <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium disabled:opacity-40 hover:border-slate-300 transition-colors">
             Anterior
           </button>
-          <span className="text-sm text-slate-500">
-            Página {page} de {Math.ceil(total / 12)}
-          </span>
-          <button
-            disabled={page >= Math.ceil(total / 12)}
-            onClick={() => setPage(p => p + 1)}
-            className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium disabled:opacity-40 hover:border-slate-300 transition-colors"
-          >
+          <span className="text-sm text-slate-500">Página {page} de {Math.ceil(total / 12)}</span>
+          <button disabled={page >= Math.ceil(total / 12)} onClick={() => setPage(p => p + 1)} className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium disabled:opacity-40 hover:border-slate-300 transition-colors">
             Siguiente
           </button>
         </div>
@@ -558,13 +653,19 @@ export default function SocioCatalogoPage() {
           <ProductDetailModal
             producto={detalle}
             onClose={() => setDetalle(null)}
-            onCotizar={p => { setDetalle(null); setCotizarProducto(p); }}
+            onAgregar={agregarAlCarrito}
+            enCarrito={cartIds.has(detalle.id)}
           />
         )}
-        {cotizarProducto && (
-          <CotizacionModal
-            producto={cotizarProducto}
-            onClose={() => setCotizarProducto(null)}
+        {cartOpen && (
+          <CartDrawer
+            items={cart}
+            onClose={handleCloseCart}
+            onUpdateQty={updateQty}
+            onRemove={removeItem}
+            onEnviar={enviarCotizacion}
+            sending={sending}
+            sent={sent}
           />
         )}
       </AnimatePresence>
