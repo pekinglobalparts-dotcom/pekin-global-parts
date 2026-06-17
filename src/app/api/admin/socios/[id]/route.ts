@@ -6,6 +6,8 @@ import { z } from "zod";
 const updateSchema = z.object({
   status: z.enum(["ACTIVO", "SUSPENDIDO", "INACTIVO"]).optional(),
   lineaCredito: z.coerce.number().min(0).optional(),
+  tipoPago: z.enum(["CREDITO", "CONTADO"]).optional(),
+  plazoCredito: z.coerce.number().int().min(0).optional(),
   direccion: z.string().optional(),
   ciudad: z.string().optional(),
 });
@@ -50,7 +52,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
   }
 
-  const { lineaCredito, ...rest } = parsed.data;
+  const { lineaCredito, tipoPago, plazoCredito, ...rest } = parsed.data;
 
   const socioActual = await prisma.socio.findUnique({
     where: { id },
@@ -59,6 +61,8 @@ export async function PATCH(
   if (!socioActual) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
   const updateData: Record<string, unknown> = { ...rest };
+  if (tipoPago !== undefined) updateData.tipoPago = tipoPago;
+  if (plazoCredito !== undefined) updateData.plazoCredito = plazoCredito;
 
   if (lineaCredito !== undefined) {
     updateData.lineaCredito = lineaCredito;

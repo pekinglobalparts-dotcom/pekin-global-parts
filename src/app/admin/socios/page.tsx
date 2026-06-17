@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Search, X, CreditCard, Mail, Phone, Building2, Edit2, Check, Trash2 } from "lucide-react";
+import { Users, Search, X, CreditCard, Mail, Phone, Building2, Edit2, Check, Trash2, Settings } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,10 @@ export default function AdminSociosPage() {
   const [filter, setFilter] = useState("ACTIVO");
   const [selected, setSelected] = useState<Socio | null>(null);
   const [editingCredito, setEditingCredito] = useState(false);
+  const [editingModalidad, setEditingModalidad] = useState(false);
   const [nuevaLinea, setNuevaLinea] = useState("");
+  const [nuevoTipoPago, setNuevoTipoPago] = useState<"CREDITO" | "CONTADO">("CREDITO");
+  const [nuevoPlazo, setNuevoPlazo] = useState("30");
   const [saving, setSaving] = useState(false);
 
   const fetch_ = useCallback(async () => {
@@ -65,6 +68,24 @@ export default function AdminSociosPage() {
     });
     setSocios(prev => prev.map(s => s.id === id ? { ...s, status } : s));
     if (selected?.id === id) setSelected(s => s ? { ...s, status } : null);
+    setSaving(false);
+  };
+
+  const updateModalidad = async () => {
+    if (!selected) return;
+    setSaving(true);
+    await fetch(`/api/admin/socios/${selected.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tipoPago: nuevoTipoPago,
+        plazoCredito: nuevoTipoPago === "CREDITO" ? parseInt(nuevoPlazo) : 0,
+        lineaCredito: nuevoTipoPago === "CREDITO" ? parseFloat(nuevaLinea) : 0,
+      }),
+    });
+    setSocios(prev => prev.map(s => s.id === selected.id ? { ...s, tipoPago: nuevoTipoPago, plazoCredito: parseInt(nuevoPlazo) } : s));
+    setSelected(s => s ? { ...s, tipoPago: nuevoTipoPago, plazoCredito: parseInt(nuevoPlazo) } : null);
+    setEditingModalidad(false);
     setSaving(false);
   };
 
@@ -248,7 +269,12 @@ export default function AdminSociosPage() {
                 {/* Credit / Contado */}
                 {selected.tipoPago === "CONTADO" ? (
                   <div className="bg-gradient-to-r from-green-700 to-green-600 rounded-2xl p-5 text-white">
-                    <p className="text-green-100 text-xs font-semibold uppercase tracking-wide mb-2">Cuenta al contado</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-green-100 text-xs font-semibold uppercase tracking-wide">Cuenta al contado</p>
+                      <button onClick={() => { setEditingModalidad(true); setNuevoTipoPago("CONTADO"); setNuevoPlazo("30"); }} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+                        <Edit2 className="h-3.5 w-3.5 text-green-200" />
+                      </button>
+                    </div>
                     <p className="text-sm font-medium text-white">Pago por transferencia o link antes del despacho</p>
                     <p className="text-green-100 text-xs mt-1">No se gestiona línea de crédito</p>
                   </div>
@@ -256,12 +282,17 @@ export default function AdminSociosPage() {
                   <div className="bg-gradient-to-r from-[#0f1f3d] to-blue-900 rounded-2xl p-5 text-white">
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-blue-200 text-sm">Línea de crédito · {selected.plazoCredito} días</p>
-                      <button
-                        onClick={() => setEditingCredito(!editingCredito)}
-                        className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-                      >
-                        <Edit2 className="h-3.5 w-3.5 text-blue-200" />
-                      </button>
+                      <div className="flex gap-1">
+                        <button onClick={() => { setEditingModalidad(true); setNuevoTipoPago("CREDITO"); setNuevoPlazo(String(selected.plazoCredito)); setNuevaLinea(String(selected.lineaCredito)); }} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors" title="Cambiar modalidad">
+                          <Settings className="h-3.5 w-3.5 text-blue-300" />
+                        </button>
+                        <button
+                          onClick={() => setEditingCredito(!editingCredito)}
+                          className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                          <Edit2 className="h-3.5 w-3.5 text-blue-200" />
+                        </button>
+                      </div>
                     </div>
 
                     {editingCredito ? (
@@ -373,6 +404,78 @@ export default function AdminSociosPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Modalidad de pago modal */}
+      {editingModalidad && selected && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-slate-900">Cambiar modalidad de pago</h3>
+              <button onClick={() => setEditingModalidad(false)} className="text-slate-400 hover:text-slate-600"><X className="h-4 w-4" /></button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <button
+                onClick={() => setNuevoTipoPago("CREDITO")}
+                className={`py-3 rounded-xl border-2 text-sm font-bold transition-all ${nuevoTipoPago === "CREDITO" ? "border-blue-900 bg-blue-900 text-white" : "border-slate-200 text-slate-500 hover:border-slate-300"}`}
+              >
+                💳 A crédito
+              </button>
+              <button
+                onClick={() => setNuevoTipoPago("CONTADO")}
+                className={`py-3 rounded-xl border-2 text-sm font-bold transition-all ${nuevoTipoPago === "CONTADO" ? "border-green-600 bg-green-600 text-white" : "border-slate-200 text-slate-500 hover:border-slate-300"}`}
+              >
+                💵 Al contado
+              </button>
+            </div>
+
+            {nuevoTipoPago === "CREDITO" && (
+              <div className="space-y-3 mb-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Línea de crédito (S/)</label>
+                  <input
+                    type="number"
+                    value={nuevaLinea}
+                    onChange={e => setNuevaLinea(e.target.value)}
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                    placeholder="10000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Plazo de pago</label>
+                  <select
+                    value={nuevoPlazo}
+                    onChange={e => setNuevoPlazo(e.target.value)}
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
+                  >
+                    <option value="15">15 días</option>
+                    <option value="30">30 días</option>
+                    <option value="45">45 días</option>
+                    <option value="60">60 días</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {nuevoTipoPago === "CONTADO" && (
+              <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800 mb-4">
+                Se eliminará la línea de crédito. El cliente pagará antes de cada despacho.
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <button onClick={() => setEditingModalidad(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancelar</button>
+              <button
+                onClick={updateModalidad}
+                disabled={saving}
+                className="flex-1 py-2.5 rounded-xl bg-[#0f1f3d] text-white text-sm font-bold hover:bg-blue-900 disabled:opacity-50"
+              >
+                {saving ? "Guardando..." : "Guardar cambio"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
