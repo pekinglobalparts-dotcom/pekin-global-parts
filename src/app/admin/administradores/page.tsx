@@ -177,7 +177,7 @@ export default function AdministradoresPage() {
                 </div>
 
                 {/* Role toggle */}
-                {admin.id !== session?.user?.id && (
+                {admin.id !== currentId && (
                   <select
                     value={admin.role}
                     onChange={e => changeRole(admin.id, e.target.value as "SUPER_ADMIN" | "ADMIN")}
@@ -189,7 +189,7 @@ export default function AdministradoresPage() {
                 )}
 
                 {/* Actions */}
-                {admin.id !== session?.user?.id && (
+                {admin.id !== currentId && (
                   <div className="flex items-center gap-1 shrink-0">
                     <button
                       onClick={() => { setResetPasswordId(admin.id); setNewPassword(""); }}
