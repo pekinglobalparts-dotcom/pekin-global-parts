@@ -385,6 +385,130 @@ function Contacto() {
   );
 }
 
+// ── Formulario de afiliación ───────────────────────────────────────────────────
+function Afiliacion() {
+  const [form, setForm] = useState({
+    razonSocial: "", ruc: "", emailCorporativo: "", telefono: "",
+    sector: "FLOTA_CORPORATIVA", representanteLegal: "", cargo: "", mensaje: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/solicitudes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Error al enviar"); }
+      else { setSent(true); }
+    } catch {
+      setError("Error de conexión. Intente nuevamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const SECTORES = [
+    { value: "FLOTA_CORPORATIVA", label: "Flota Corporativa" },
+    { value: "RENTING", label: "Renting" },
+    { value: "ASEGURADORA", label: "Aseguradora" },
+    { value: "TALLER_AUTORIZADO", label: "Taller Autorizado" },
+    { value: "CONCESIONARIA", label: "Concesionaria" },
+    { value: "LEASING", label: "Leasing" },
+    { value: "OTRO", label: "Otro" },
+  ];
+
+  return (
+    <section id="afiliacion" className="py-20 bg-slate-50">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 bg-[#0f1f3d]/10 text-[#0f1f3d] text-xs font-bold px-4 py-1.5 rounded-full mb-4 uppercase tracking-wider">
+            🏢 Portal exclusivo B2B
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-4">Solicita tu acceso como socio</h2>
+          <p className="text-slate-500 max-w-xl mx-auto">Completa el formulario y te contactamos en menos de 24 horas para activar tu cuenta con precios preferenciales.</p>
+        </div>
+
+        {sent ? (
+          <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-100">
+            <div className="text-6xl mb-4">✅</div>
+            <h3 className="text-2xl font-black text-slate-900 mb-2">¡Solicitud enviada!</h3>
+            <p className="text-slate-500 mb-6">Revisaremos tu solicitud y te contactaremos en menos de 24 horas hábiles.</p>
+            <a href="https://socios.pekinglobalparts.com/login" className="inline-flex items-center gap-2 bg-[#0f1f3d] text-white font-bold px-6 py-3 rounded-xl text-sm hover:bg-blue-950 transition-colors">
+              Ir al portal de socios →
+            </a>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 space-y-5">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Razón Social *</label>
+                <input required value={form.razonSocial} onChange={e => setForm(f => ({ ...f, razonSocial: e.target.value }))}
+                  placeholder="Empresa S.A.C." className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">RUC *</label>
+                <input required value={form.ruc} onChange={e => setForm(f => ({ ...f, ruc: e.target.value }))}
+                  placeholder="20xxxxxxxxx" maxLength={11} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]" />
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Email corporativo *</label>
+                <input required type="email" value={form.emailCorporativo} onChange={e => setForm(f => ({ ...f, emailCorporativo: e.target.value }))}
+                  placeholder="contacto@empresa.com" className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Teléfono *</label>
+                <input required value={form.telefono} onChange={e => setForm(f => ({ ...f, telefono: e.target.value }))}
+                  placeholder="+51 9xx xxx xxx" className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Sector *</label>
+              <select required value={form.sector} onChange={e => setForm(f => ({ ...f, sector: e.target.value }))}
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d] bg-white">
+                {SECTORES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Representante legal *</label>
+                <input required value={form.representanteLegal} onChange={e => setForm(f => ({ ...f, representanteLegal: e.target.value }))}
+                  placeholder="Nombre completo" className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Cargo *</label>
+                <input required value={form.cargo} onChange={e => setForm(f => ({ ...f, cargo: e.target.value }))}
+                  placeholder="Gerente, Director, etc." className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Mensaje adicional</label>
+              <textarea rows={3} value={form.mensaje} onChange={e => setForm(f => ({ ...f, mensaje: e.target.value }))}
+                placeholder="Cuéntanos sobre tu flota, cantidad de vehículos, marcas que manejas..."
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d] resize-none" />
+            </div>
+            {error && <p className="text-red-500 text-sm bg-red-50 p-3 rounded-xl">{error}</p>}
+            <button type="submit" disabled={loading}
+              className="w-full bg-[#0f1f3d] hover:bg-blue-950 text-white font-black py-3.5 rounded-xl transition-colors disabled:opacity-60 text-sm">
+              {loading ? "Enviando solicitud..." : "Enviar solicitud de acceso →"}
+            </button>
+            <p className="text-center text-xs text-slate-400">Sin costo de membresía · Aprobación en menos de 24 horas</p>
+          </form>
+        )}
+      </div>
+    </section>
+  );
+}
+
 // ── Libro de Reclamaciones + Reseñas ──────────────────────────────────────────
 function ReclamacionesResenas() {
   const [showModal, setShowModal] = useState(false);
@@ -626,6 +750,7 @@ export default function HomePage() {
         <Servicios />
         <EmpresaCTA />
         <Contacto />
+        <Afiliacion />
         <ReclamacionesResenas />
       </main>
       <Footer />
