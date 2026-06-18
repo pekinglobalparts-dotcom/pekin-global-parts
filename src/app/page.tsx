@@ -131,14 +131,14 @@ function Hero() {
           Importación directa · +17 marcas
         </div>
 
-        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white leading-tight mb-4">
+        <h1 className="text-5xl sm:text-6xl lg:text-8xl font-black text-white leading-none mb-2">
           Tu aliado
         </h1>
-        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-[#e8121a] leading-tight mb-6">
+        <h1 className="text-5xl sm:text-6xl lg:text-8xl font-black text-[#e8121a] leading-none mb-8">
           en movimiento
         </h1>
 
-        <p className="text-lg sm:text-xl text-blue-200 max-w-2xl mx-auto mb-12 leading-relaxed">
+        <p className="text-xl sm:text-2xl text-blue-100 max-w-2xl mx-auto mb-12 leading-relaxed font-medium">
           Pastillas, amortiguadores, frenos y más — para tu vehículo personal o toda tu flota empresarial.
         </p>
 
@@ -407,7 +407,7 @@ function Footer() {
         </div>
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
           <p>© {new Date().getFullYear()} Pekín Global Parts SAC · RUC: 20612880396</p>
-          <p>Hecho con ❤️ en Lima, Perú</p>
+          <p>Lima, Perú · {new Date().getFullYear()}</p>
         </div>
       </div>
     </footer>
