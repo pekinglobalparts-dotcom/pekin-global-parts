@@ -51,19 +51,19 @@ function LoginForm() {
   return (
     <div className="min-h-screen bg-slate-900 flex">
       {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#e8121a] to-[#a00e12] flex-col justify-between p-12 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-950 to-slate-900 flex-col justify-between p-12 relative overflow-hidden">
         <div
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-5"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)",
+              "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
             backgroundSize: "40px 40px",
           }}
         />
         <a href="https://www.pekinglobalparts.com" className="relative flex items-center gap-3">
           <div>
             <span className="text-2xl font-black text-white">PEKIN</span>
-            <span className="text-xs font-semibold text-red-200 block tracking-widest">
+            <span className="text-xs font-semibold text-red-400 block tracking-widest">
               GLOBAL PARTS
             </span>
           </div>
@@ -74,7 +74,7 @@ function LoginForm() {
             Tu aliado{" "}
             <span className="text-red-400">en movimiento</span>
           </h2>
-          <p className="text-red-100 text-lg">
+          <p className="text-slate-400 text-lg">
             Plataforma exclusiva B2B para empresas automotrices.
           </p>
         </div>
