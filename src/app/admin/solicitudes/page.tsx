@@ -1,10 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Check, X, Eye, Clock, Copy } from "lucide-react";
+import { Check, X, Eye, Clock, Copy, FileText, FileUp, ExternalLink } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
+interface DocCredito {
+  id: string;
+  tipo: string;
+  nombre: string;
+  url: string;
+}
 
 interface Solicitud {
   id: string;
@@ -18,6 +25,9 @@ interface Solicitud {
   mensaje?: string;
   status: string;
   createdAt: string;
+  tokenDocumentos?: string;
+  documentosAt?: string;
+  documentos?: DocCredito[];
 }
 
 const statusBadge: Record<string, "warning" | "success" | "destructive" | "default"> = {
@@ -38,6 +48,8 @@ export default function SolicitudesPage() {
   const [motivo, setMotivo] = useState("");
   const [processing, setProcessing] = useState(false);
   const [credenciales, setCredenciales] = useState<{ ruc: string; password: string; empresa: string } | null>(null);
+  const [solicitandoDocs, setSolicitandoDocs] = useState(false);
+  const [docLinkCopiado, setDocLinkCopiado] = useState(false);
 
   const fetchSolicitudes = useCallback(async () => {
     setLoading(true);
@@ -50,6 +62,18 @@ export default function SolicitudesPage() {
   useEffect(() => {
     fetchSolicitudes();
   }, [fetchSolicitudes]);
+
+  const handleSolicitarDocs = async () => {
+    if (!selected) return;
+    setSolicitandoDocs(true);
+    const res = await fetch(`/api/admin/solicitudes/${selected.id}/solicitar-documentos`, { method: "POST" });
+    const data = await res.json();
+    if (res.ok) {
+      setSelected(prev => prev ? { ...prev, status: "EN_REVISION", tokenDocumentos: data.uploadUrl.split("/documentos/")[1] } : null);
+      fetchSolicitudes();
+    }
+    setSolicitandoDocs(false);
+  };
 
   const handleAccion = async (accion: "aprobar" | "rechazar" | "en_revision") => {
     if (!selected) return;
@@ -236,6 +260,53 @@ export default function SolicitudesPage() {
                 </div>
               )}
             </div>
+
+            {/* Documentos subidos */}
+            {selected.documentos && selected.documentos.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                  <FileText className="h-4 w-4" /> Documentos recibidos ({selected.documentos.length})
+                </p>
+                <div className="space-y-1.5">
+                  {selected.documentos.map(doc => (
+                    <a key={doc.id} href={doc.url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 hover:bg-blue-100 transition-colors">
+                      <ExternalLink className="h-3 w-3 shrink-0" />
+                      <span className="font-semibold">{doc.tipo.replace(/_/g, " ")}</span>
+                      <span className="text-blue-400 truncate">{doc.nombre}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Solicitar documentos (antes de aprobar) */}
+            {(selected.status === "PENDIENTE" || selected.status === "EN_REVISION") && !selected.tokenDocumentos && (
+              <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <p className="text-sm font-bold text-amber-800 mb-1">¿Necesitas documentos de crédito?</p>
+                <p className="text-xs text-amber-700 mb-3">Envía un enlace de carga al solicitante antes de aprobar la línea de crédito.</p>
+                <Button variant="outline" className="w-full border-amber-300 text-amber-800 hover:bg-amber-100" loading={solicitandoDocs} onClick={handleSolicitarDocs}>
+                  <FileUp className="h-4 w-4" /> Solicitar documentos por email
+                </Button>
+              </div>
+            )}
+
+            {selected.tokenDocumentos && (!selected.documentos || selected.documentos.length === 0) && (
+              <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 text-xs text-slate-600">
+                <span>Enlace de carga enviado — esperando documentos</span>
+                <button
+                  onClick={() => {
+                    const url = `${window.location.origin}/documentos/${selected.tokenDocumentos}`;
+                    navigator.clipboard.writeText(url);
+                    setDocLinkCopiado(true);
+                    setTimeout(() => setDocLinkCopiado(false), 2000);
+                  }}
+                  className="flex items-center gap-1 font-semibold text-blue-700 hover:text-blue-900"
+                >
+                  <Copy className="h-3 w-3" /> {docLinkCopiado ? "Copiado" : "Copiar link"}
+                </button>
+              </div>
+            )}
 
             {selected.status === "PENDIENTE" || selected.status === "EN_REVISION" ? (
               <div className="space-y-4">

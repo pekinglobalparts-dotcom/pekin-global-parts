@@ -121,12 +121,28 @@ model Solicitud {
   motivoRechazo      String?
   revisadoPor        String?
   revisadoAt         DateTime?
+  tokenDocumentos    String?         @unique
+  documentosAt       DateTime?
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 
   socio              Socio?
+  documentos         DocumentoCredito[]
 
   @@map("solicitudes")
+}
+
+model DocumentoCredito {
+  id          String   @id @default(cuid())
+  solicitudId String
+  tipo        String
+  nombre      String
+  url         String
+  createdAt   DateTime @default(now())
+
+  solicitud   Solicitud @relation(fields: [solicitudId], references: [id], onDelete: Cascade)
+
+  @@map("documentos_credito")
 }
 
 model Socio {

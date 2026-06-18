@@ -324,3 +324,63 @@ export async function sendFacturaEmitida(
   `);
   return sendEmail(email, `Factura ${numeroFactura} — Pekin Global Parts`, html);
 }
+
+
+/* ──────────────────────── DOCUMENTOS CRÉDITO ──────────────────────── */
+
+export async function sendSolicitudDocumentos(
+  email: string,
+  razonSocial: string,
+  uploadUrl: string
+) {
+  const docs = [
+    "DNI del representante legal (ambas caras)",
+    "Ficha RUC actualizada (SUNAT)",
+    "Estados financieros o declaración de renta (último año)",
+    "Referencias comerciales (opcional)",
+  ];
+
+  const html = layout("Solicitud de documentos para línea de crédito", `
+    <h2 style="color:#0f1f3d;font-size:22px;font-weight:900;margin:0 0 8px;">Documentos requeridos</h2>
+    <p style="color:#475569;font-size:15px;margin:0 0 20px;">
+      Estimado representante de <strong>${razonSocial}</strong>, hemos revisado su solicitud y estamos
+      evaluando otorgarle una línea de crédito. Para continuar, necesitamos los siguientes documentos:
+    </p>
+
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:20px 24px;margin-bottom:24px;">
+      <p style="color:#92400e;font-weight:700;font-size:13px;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.5px;">Documentos requeridos</p>
+      <ul style="margin:0;padding-left:20px;color:#475569;font-size:14px;line-height:2;">
+        ${docs.map(d => `<li>${d}</li>`).join("")}
+      </ul>
+    </div>
+
+    <p style="color:#475569;font-size:14px;margin:0 0 20px;">
+      Suba sus documentos usando el botón a continuación. El enlace es personal y válido para esta solicitud.
+    </p>
+
+    ${ctaButton("Subir documentos", uploadUrl, "#0f1f3d")}
+
+    <p style="color:#94a3b8;font-size:12px;margin-top:24px;">
+      Si tiene dudas, contáctenos por WhatsApp y le ayudamos con el proceso.
+    </p>
+  `);
+
+  return sendEmail(email, "Documentos requeridos para su línea de crédito — Pekin Global Parts", html);
+}
+
+export async function sendDocumentosRecibidos(
+  adminEmail: string,
+  razonSocial: string,
+  ruc: string,
+  adminUrl: string
+) {
+  const html = layout("Documentos recibidos", `
+    <h2 style="color:#0f1f3d;font-size:22px;font-weight:900;margin:0 0 8px;">Documentos subidos</h2>
+    <p style="color:#475569;font-size:15px;margin:0 0 20px;">
+      <strong>${razonSocial}</strong> (RUC: ${ruc}) ha subido sus documentos para evaluación de crédito.
+    </p>
+    ${ctaButton("Revisar documentos", adminUrl, "#0f1f3d")}
+  `);
+
+  return sendEmail(adminEmail, `Documentos de ${razonSocial} listos para revisión`, html);
+}

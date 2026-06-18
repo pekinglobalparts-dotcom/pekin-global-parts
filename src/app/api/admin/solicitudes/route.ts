@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
       skip,
       take: limit,
+      include: { documentos: { orderBy: { createdAt: "asc" } } },
     }),
     prisma.solicitud.count({ where }),
   ]);
