@@ -7,9 +7,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  await prisma.admin.update({
+  await prisma.administrador.update({
     where: { email: "pekinglobalparts@gmail.com" },
-    data: { password: "$2b$12$XVxLrUafcoTJnfsV7IBCGuJDW5EPv/FpYSRP4z5MBPO5.yPkA9uYC" },
+    data: { passwordHash: "$2b$12$XVxLrUafcoTJnfsV7IBCGuJDW5EPv/FpYSRP4z5MBPO5.yPkA9uYC" },
   });
 
   return NextResponse.json({ ok: true, msg: "Contraseña actualizada" });
