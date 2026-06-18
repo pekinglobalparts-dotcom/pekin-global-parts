@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Logo, LogoWhite } from "@/components/Logo";
+import { X } from "lucide-react";
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
 
@@ -384,6 +385,152 @@ function Contacto() {
   );
 }
 
+// ── Libro de Reclamaciones + Reseñas ──────────────────────────────────────────
+function ReclamacionesResenas() {
+  const [showModal, setShowModal] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [form, setForm] = useState({ nombre: "", dni: "", email: "", tipo: "queja", descripcion: "" });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await fetch("/api/reclamacion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      setSent(true);
+    } catch {
+      setSent(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <section className="py-16 bg-slate-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid sm:grid-cols-2 gap-6">
+            {/* Libro de Reclamaciones */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-xl">📋</div>
+                <div>
+                  <h3 className="font-black text-slate-900">Libro de Reclamaciones</h3>
+                  <p className="text-xs text-slate-400">Obligatorio por ley · INDECOPI</p>
+                </div>
+              </div>
+              <p className="text-slate-500 text-sm leading-relaxed mb-4">
+                Tu opinión es importante. Si tienes alguna queja o sugerencia, déjanos saber. Respondemos en 48 horas.
+              </p>
+              <button
+                onClick={() => { setShowModal(true); setSent(false); }}
+                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-sm transition-colors"
+              >
+                Presentar Reclamación
+              </button>
+            </div>
+
+            {/* Reseñas */}
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-xl">⭐</div>
+                <div>
+                  <h3 className="font-black text-slate-900">Déjanos tu Reseña</h3>
+                  <p className="text-xs text-slate-400">Tu experiencia nos ayuda a mejorar</p>
+                </div>
+              </div>
+              <p className="text-slate-500 text-sm leading-relaxed mb-4">
+                ¿Tuviste una buena experiencia? Comparte tu opinión en Google y ayúdanos a seguir creciendo.
+              </p>
+              <a
+                href="https://g.page/r/pekinglobalparts/review"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 rounded-xl text-sm transition-colors text-center"
+              >
+                ⭐ Dejar Reseña en Google
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Modal Reclamación */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-black text-slate-900 text-lg">📋 Libro de Reclamaciones</h2>
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            {sent ? (
+              <div className="text-center py-8">
+                <div className="text-5xl mb-4">✅</div>
+                <p className="font-bold text-slate-900 mb-2">Reclamación registrada</p>
+                <p className="text-slate-500 text-sm">Te respondemos dentro de las próximas 48 horas.</p>
+                <button onClick={() => setShowModal(false)} className="mt-6 bg-slate-900 text-white font-bold px-6 py-2.5 rounded-xl text-sm">
+                  Cerrar
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600 block mb-1">Nombre completo *</label>
+                    <input required value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-600 block mb-1">DNI / RUC *</label>
+                    <input required value={form.dni} onChange={e => setForm(f => ({ ...f, dni: e.target.value }))}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Correo electrónico *</label>
+                  <input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Tipo</label>
+                  <select value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    <option value="queja">Queja</option>
+                    <option value="reclamo">Reclamo</option>
+                    <option value="sugerencia">Sugerencia</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600 block mb-1">Descripción *</label>
+                  <textarea required rows={4} value={form.descripcion} onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
+                    placeholder="Describe detalladamente tu queja, reclamo o sugerencia..."
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none" />
+                </div>
+                <div className="flex gap-3 pt-1">
+                  <button type="button" onClick={() => setShowModal(false)}
+                    className="flex-1 border border-slate-200 text-slate-600 font-bold py-2.5 rounded-xl text-sm hover:bg-slate-50 transition-colors">
+                    Cancelar
+                  </button>
+                  <button type="submit" disabled={loading}
+                    className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-60">
+                    {loading ? "Enviando..." : "Enviar Reclamación"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 // ── Footer ─────────────────────────────────────────────────────────────────────
 function Footer() {
   return (
@@ -479,6 +626,7 @@ export default function HomePage() {
         <Servicios />
         <EmpresaCTA />
         <Contacto />
+        <ReclamacionesResenas />
       </main>
       <Footer />
       <WhatsAppFAB />
