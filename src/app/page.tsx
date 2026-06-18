@@ -370,7 +370,7 @@ function Contacto() {
           {[
             { icon: "📱", title: "WhatsApp", desc: "+51 953 096 242", href: waLink("Hola, quiero más información") },
             { icon: "📧", title: "Email", desc: "ventas@pekinglobalparts.com", href: "mailto:ventas@pekinglobalparts.com" },
-            { icon: "📍", title: "Ubicación", desc: "Lima, Perú", href: "#" },
+            { icon: "📍", title: "Oficina / Almacén", desc: "El Agustino, Lima, Perú", href: "#" },
           ].map(c => (
             <a key={c.title} href={c.href} target={c.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer"
               className="bg-slate-50 rounded-2xl p-6 text-center hover:shadow-lg transition-shadow group border border-slate-100">
