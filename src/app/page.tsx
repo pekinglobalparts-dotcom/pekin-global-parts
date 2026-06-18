@@ -53,7 +53,7 @@ function Navbar() {
   ];
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white shadow-md" : "bg-white/95 backdrop-blur-sm"}`}>
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-[#0f1f3d] shadow-md" : "bg-[#0f1f3d]/95 backdrop-blur-sm"}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <a href="#inicio" aria-label="Pekín S&A inicio">
@@ -61,7 +61,7 @@ function Navbar() {
           </a>
           <nav className="hidden md:flex items-center gap-8">
             {navLinks.map(l => (
-              <a key={l.label} href={l.href} className="text-sm font-semibold text-slate-700 hover:text-[#e8121a] transition-colors">
+              <a key={l.label} href={l.href} className="text-sm font-semibold text-blue-200 hover:text-white transition-colors">
                 {l.label}
               </a>
             ))}
@@ -69,7 +69,7 @@ function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             <a
               href="https://socios.pekinglobalparts.com/login"
-              className="text-sm font-bold text-[#1a1f6e] border border-[#1a1f6e] px-4 py-2 rounded-full hover:bg-[#1a1f6e] hover:text-white transition-colors"
+              className="text-sm font-bold text-white border border-white/30 px-4 py-2 rounded-full hover:bg-white hover:text-[#0f1f3d] transition-colors"
             >
               Portal Socios
             </a>
@@ -95,7 +95,7 @@ function Navbar() {
         </div>
       </div>
       {menuOpen && (
-        <div className="md:hidden bg-white border-t border-slate-100 px-4 pb-4">
+        <div className="md:hidden bg-[#0f1f3d] border-t border-white/10 px-4 pb-4">
           {navLinks.map(l => (
             <a key={l.label} href={l.href} onClick={() => setMenuOpen(false)} className="block py-3 text-sm font-semibold text-slate-700 hover:text-[#e8121a] border-b border-slate-50 last:border-0 transition-colors">
               {l.label}
@@ -118,25 +118,27 @@ function Navbar() {
 // ── Hero con dos caminos ────────────────────────────────────────────────────────
 function Hero() {
   return (
-    <section id="inicio" className="relative min-h-screen flex items-center justify-center bg-[#e8121a] overflow-hidden pt-16">
+    <section id="inicio" className="relative min-h-screen flex items-center justify-center bg-[#0f1f3d] overflow-hidden pt-16">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-32 -right-32 w-96 h-96 bg-white/5 rounded-full" />
-        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-[#1a1f6e]/30 rounded-full" />
+        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-[#e8121a]/10 rounded-full" />
         <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-white/5 rounded-full" />
       </div>
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 text-center py-20">
-        <div className="inline-flex items-center gap-2 bg-white/15 text-white text-xs font-bold px-4 py-1.5 rounded-full mb-8 tracking-wider uppercase">
-          <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+        <div className="inline-flex items-center gap-2 bg-white/10 text-white/80 text-xs font-bold px-4 py-1.5 rounded-full mb-8 tracking-wider uppercase">
+          <span className="w-1.5 h-1.5 bg-[#e8121a] rounded-full animate-pulse" />
           Importación directa · +17 marcas
         </div>
 
-        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white leading-tight mb-6">
-          Tu repuesto,<br />
-          <span className="text-white/85">donde lo necesitas</span>
+        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white leading-tight mb-4">
+          Tu aliado
+        </h1>
+        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-[#e8121a] leading-tight mb-6">
+          en movimiento
         </h1>
 
-        <p className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto mb-12 leading-relaxed">
+        <p className="text-lg sm:text-xl text-blue-200 max-w-2xl mx-auto mb-12 leading-relaxed">
           Pastillas, amortiguadores, frenos y más — para tu vehículo personal o toda tu flota empresarial.
         </p>
 
@@ -150,7 +152,7 @@ function Hero() {
             className="group bg-white rounded-2xl p-6 text-left hover:shadow-2xl transition-all hover:-translate-y-1"
           >
             <div className="text-3xl mb-3">🔧</div>
-            <h2 className="text-[#e8121a] font-black text-lg leading-tight mb-2">Soy cliente particular</h2>
+            <h2 className="text-[#0f1f3d] font-black text-lg leading-tight mb-2">Soy cliente particular</h2>
             <p className="text-slate-600 text-sm leading-relaxed mb-4">
               Busco repuestos para mi auto. Consulta por WhatsApp y te cotizamos al instante.
             </p>
@@ -163,11 +165,11 @@ function Hero() {
           {/* Empresa / socio */}
           <a
             href="https://socios.pekinglobalparts.com/login"
-            className="group bg-[#1a1f6e] rounded-2xl p-6 text-left hover:shadow-2xl transition-all hover:-translate-y-1"
+            className="group bg-[#e8121a] rounded-2xl p-6 text-left hover:shadow-2xl transition-all hover:-translate-y-1"
           >
             <div className="text-3xl mb-3">🏢</div>
             <h2 className="text-white font-black text-lg leading-tight mb-2">Tengo una empresa</h2>
-            <p className="text-blue-200 text-sm leading-relaxed mb-4">
+            <p className="text-red-100 text-sm leading-relaxed mb-4">
               Renting, taller, aseguradora o flota. Accede a precios B2B, crédito y atención prioritaria.
             </p>
             <div className="flex items-center gap-2 text-white font-bold text-sm">
