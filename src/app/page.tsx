@@ -447,7 +447,7 @@ function ReclamacionesResenas() {
                 ¿Tuviste una buena experiencia? Comparte tu opinión en Google y ayúdanos a seguir creciendo.
               </p>
               <a
-                href="https://g.page/r/pekinglobalparts/review"
+                href="https://g.page/r/CXNskH5S5I5BECE/review"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 rounded-xl text-sm transition-colors text-center"
