@@ -23,7 +23,11 @@ export async function GET() {
     orderBy: { createdAt: "asc" },
   });
 
-  return NextResponse.json({ admins });
+  return NextResponse.json({
+    admins,
+    currentId: session.user.id,
+    isSuperAdmin: session.user.adminRole === "SUPER_ADMIN",
+  });
 }
 
 export async function POST(req: NextRequest) {

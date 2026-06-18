@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { UserCog, Plus, X, Check, Shield, ShieldAlert, Power, Key, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { useSession } from "next-auth/react";
 
 interface Admin {
   id: string;
@@ -16,10 +15,9 @@ interface Admin {
 }
 
 export default function AdministradoresPage() {
-  const { data: session } = useSession();
-  const isSuperAdmin = (session?.user as { adminRole?: string })?.adminRole === "SUPER_ADMIN";
-
   const [admins, setAdmins] = useState<Admin[]>([]);
+  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -33,7 +31,12 @@ export default function AdministradoresPage() {
   useEffect(() => {
     fetch("/api/admin/administradores")
       .then(r => r.json())
-      .then(d => { setAdmins(d.admins || []); setLoading(false); })
+      .then(d => {
+        setAdmins(d.admins || []);
+        setCurrentId(d.currentId || null);
+        setIsSuperAdmin(d.isSuperAdmin || false);
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, []);
 
@@ -163,7 +166,7 @@ export default function AdministradoresPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="font-semibold text-slate-900 text-sm">{admin.nombre} {admin.apellido}</p>
-                    {admin.id === session?.user?.id && (
+                    {admin.id === currentId && (
                       <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-medium">Tú</span>
                     )}
                     {!admin.activo && (
