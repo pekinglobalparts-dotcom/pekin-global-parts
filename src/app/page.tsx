@@ -23,7 +23,6 @@ const BRANDS = [
   { name: "Chery",       color: "#CC0000", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/chery.png" },
   { name: "JAC",         color: "#003087", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/jac.png" },
   { name: "Jetour",      color: "#1a1a2e", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/jetour.png" },
-  { name: "Land Rover",  color: "#005A2B", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/landRover.png" },
   { name: "Jeep",        color: "#1B1B1B", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/jeep.png" },
   { name: "Honda",       color: "#CC0000", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/honda.png" },
   { name: "Mazda",       color: "#910000", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mazda.png" },
