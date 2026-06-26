@@ -11,23 +11,23 @@ function waLink(msg: string) {
 }
 
 const BRANDS = [
-  { name: "Toyota",      color: "#CC0000" },
-  { name: "Nissan",      color: "#C3002F" },
-  { name: "Mitsubishi",  color: "#E60026" },
-  { name: "Hyundai",     color: "#002C5F" },
-  { name: "Kia",         color: "#05141F" },
-  { name: "Volkswagen",  color: "#001E50" },
-  { name: "Chevrolet",   color: "#D4AF37" },
-  { name: "Ford",        color: "#003DA5" },
-  { name: "BYD",         color: "#1DB954" },
-  { name: "Chery",       color: "#CC0000" },
-  { name: "JAC",         color: "#003087" },
-  { name: "Jetour",      color: "#1a1a2e" },
-  { name: "Land Rover",  color: "#005A2B" },
-  { name: "Jeep",        color: "#1B1B1B" },
-  { name: "Honda",       color: "#CC0000" },
-  { name: "Mazda",       color: "#910000" },
-  { name: "Suzuki",      color: "#003087" },
+  { name: "Toyota",      color: "#CC0000", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/toyota.png" },
+  { name: "Nissan",      color: "#C3002F", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/nissan.png" },
+  { name: "Mitsubishi",  color: "#E60026", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mitsubishi.png" },
+  { name: "Hyundai",     color: "#002C5F", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/hyundai.png" },
+  { name: "Kia",         color: "#05141F", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/kia.png" },
+  { name: "Volkswagen",  color: "#001E50", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/volkswagen.png" },
+  { name: "Chevrolet",   color: "#D4AF37", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/chevrolet.png" },
+  { name: "Ford",        color: "#003DA5", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/ford.png" },
+  { name: "BYD",         color: "#1DB954", logo: "https://upload.wikimedia.org/wikipedia/commons/2/23/BYD_Auto_Logo.svg" },
+  { name: "Chery",       color: "#CC0000", logo: "https://upload.wikimedia.org/wikipedia/commons/4/40/Chery_logo.svg" },
+  { name: "JAC",         color: "#003087", logo: "https://upload.wikimedia.org/wikipedia/commons/9/92/JAC_logo_2011.svg" },
+  { name: "Jetour",      color: "#1a1a2e", logo: "https://upload.wikimedia.org/wikipedia/commons/6/69/Jetour_logo.svg" },
+  { name: "Land Rover",  color: "#005A2B", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/landRover.png" },
+  { name: "Jeep",        color: "#1B1B1B", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/jeep.png" },
+  { name: "Honda",       color: "#CC0000", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/honda.png" },
+  { name: "Mazda",       color: "#910000", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/mazda.png" },
+  { name: "Suzuki",      color: "#003087", logo: "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized/suzuki.png" },
 ];
 
 const WA_ICON = (
@@ -202,11 +202,8 @@ function MarcasCarrusel() {
               rel="noopener noreferrer"
               className="flex flex-col items-center gap-2 group shrink-0"
             >
-              <div
-                className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-md group-hover:scale-110 transition-transform"
-                style={{ backgroundColor: brand.color }}
-              >
-                {brand.name[0]}
+              <div className="w-16 h-16 rounded-xl bg-white shadow-md flex items-center justify-center group-hover:scale-110 transition-transform p-2 border border-slate-100">
+                <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" loading="lazy" />
               </div>
               <span className="text-xs font-semibold text-slate-600 group-hover:text-[#e8121a] transition-colors">{brand.name}</span>
             </a>
@@ -229,11 +226,11 @@ function Marcas() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           {BRANDS.map(brand => (
             <a key={brand.name} href={waLink(`Hola, necesito repuestos para mi ${brand.name}`)} target="_blank" rel="noopener noreferrer"
-              className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">
-              <div className="h-2 w-full" style={{ backgroundColor: brand.color }} />
-              <div className="p-5 flex flex-col items-center gap-2">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-black text-lg" style={{ backgroundColor: brand.color }}>
-                  {brand.name[0]}
+              className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 border border-slate-100">
+              <div className="h-1.5 w-full" style={{ backgroundColor: brand.color }} />
+              <div className="p-5 flex flex-col items-center gap-3">
+                <div className="w-16 h-16 flex items-center justify-center">
+                  <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" loading="lazy" />
                 </div>
                 <span className="text-sm font-bold text-slate-800 text-center">{brand.name}</span>
                 <span className="text-[10px] text-green-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
