@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 180" width="520" height="180">
+  <!-- Background rojo -->
+  <rect width="520" height="180" rx="0" fill="#E8220A"/>
+
+  <!-- ICON: 4 arcos 2x2 -->
+  <!-- Fila superior: 2 arcos ∩ azul oscuro -->
+  <path d="M28,105 L28,72 Q28,32 62,32 Q96,32 96,72 L96,105"
+        fill="none" stroke="#1C2B8C" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M104,105 L104,72 Q104,32 138,32 Q172,32 172,72 L172,105"
+        fill="none" stroke="#1C2B8C" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Fila inferior: 2 arcos ∪ lila/morado -->
+  <path d="M28,110 L28,143 Q28,168 62,168 Q96,168 96,143 L96,110"
+        fill="none" stroke="#7B7FC4" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M104,110 L104,143 Q104,168 138,168 Q172,168 172,143 L172,110"
+        fill="none" stroke="#7B7FC4" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- TEXTO principal: PEKÍN S&A -->
+  <text x="196" y="110"
+        font-family="'Arial Black', 'Arial Bold', Arial, sans-serif"
+        font-size="52"
+        font-weight="900"
+        fill="#1C2B8C"
+        letter-spacing="1">PEKÍN S&amp;A</text>
+
+  <!-- SUBTÍTULO -->
+  <text x="198" y="140"
+        font-family="Arial, sans-serif"
+        font-size="17"
+        font-weight="700"
+        fill="#1C2B8C"
+        letter-spacing="3.5">TU ALIADO EN MOVIMIENTO</text>
+</svg>
