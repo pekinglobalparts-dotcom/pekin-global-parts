@@ -23,14 +23,14 @@ export function Logo({ className = "", compact: _compact }: LogoProps) {
 
 export function LogoWhite({ className = "", compact: _compact }: LogoProps) {
   return (
-    <div className={`flex items-center py-2 ${className}`}>
+    <div className={`flex items-center ${className}`}>
       <Image
         src="/img/logo-pekin.jpg"
         alt="Pekín S&A — Tu aliado en movimiento"
         width={170}
         height={55}
         priority
-        className="object-contain"
+        className="h-10 w-auto object-contain"
       />
     </div>
   );
