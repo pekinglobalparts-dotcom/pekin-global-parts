@@ -154,8 +154,8 @@ function Hero() {
                 rel="noopener noreferrer"
                 className="flex flex-col items-center gap-2 group shrink-0"
               >
-                <div className="w-14 h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 flex items-center justify-center group-hover:bg-white/20 transition-all p-2">
-                  <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain brightness-0 invert" loading="lazy" />
+                <div className="w-14 h-14 rounded-xl bg-white shadow-md flex items-center justify-center group-hover:scale-105 transition-transform p-2">
+                  <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" loading="lazy" />
                 </div>
                 <span className="text-[10px] font-semibold text-blue-200/70 group-hover:text-white transition-colors">{brand.name}</span>
               </a>
