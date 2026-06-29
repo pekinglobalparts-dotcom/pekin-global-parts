@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Eye, EyeOff, Building2, ShieldCheck } from "lucide-react";
 import { loginSchema, type LoginInput } from "@/lib/validations";
 import { Button } from "@/components/ui/button";
@@ -51,22 +52,11 @@ function LoginForm() {
   return (
     <div className="min-h-screen bg-slate-900 flex">
       {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-950 to-slate-900 flex-col justify-between p-12 relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
-        <a href="https://www.pekinglobalparts.com" className="relative flex items-center gap-3">
-          <div>
-            <span className="text-2xl font-black text-white">PEKIN</span>
-            <span className="text-xs font-semibold text-red-400 block tracking-widest">
-              GLOBAL PARTS
-            </span>
-          </div>
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden">
+        <Image src="/img/flota-hilux.jpg" alt="" fill className="object-cover" priority />
+        <div className="absolute inset-0 bg-blue-950/80" />
+        <a href="https://www.pekinglobalparts.com" className="relative">
+          <Image src="/img/logo-pekin.jpg" alt="Pekín S&A" width={220} height={72} className="object-contain rounded" priority />
         </a>
 
         <div className="relative">

@@ -49,24 +49,24 @@ interface CartRepuestoGroup {
 }
 
 // ── Brand data ─────────────────────────────────────────────────────────────────
+const CDN = "https://raw.githubusercontent.com/filippofilip95/car-logos-dataset/master/logos/optimized";
 const VEHICLE_BRANDS = [
-  { name: "Toyota",      color: "#CC0000",  emoji: "🚗" },
-  { name: "Nissan",      color: "#C3002F",  emoji: "🚙" },
-  { name: "Mitsubishi",  color: "#E60026",  emoji: "🚗" },
-  { name: "Hyundai",     color: "#002C5F",  emoji: "🚙" },
-  { name: "Kia",         color: "#05141F",  emoji: "🚗" },
-  { name: "Volkswagen",  color: "#001E50",  emoji: "🚙" },
-  { name: "Chevrolet",   color: "#D4AF37",  emoji: "🚗" },
-  { name: "Ford",        color: "#003DA5",  emoji: "🚙" },
-  { name: "BYD",         color: "#1DB954",  emoji: "⚡" },
-  { name: "Chery",       color: "#CC0000",  emoji: "🚗" },
-  { name: "JAC",         color: "#003087",  emoji: "🚙" },
-  { name: "Jetour",      color: "#1a1a2e",  emoji: "🚗" },
-  { name: "Land Rover",  color: "#005A2B",  emoji: "🛻" },
-  { name: "Jeep",        color: "#1B1B1B",  emoji: "🛻" },
-  { name: "Honda",       color: "#CC0000",  emoji: "🚗" },
-  { name: "Mazda",       color: "#910000",  emoji: "🚙" },
-  { name: "Suzuki",      color: "#003087",  emoji: "🚗" },
+  { name: "Toyota",      color: "#CC0000",  logo: `${CDN}/toyota.png` },
+  { name: "Nissan",      color: "#C3002F",  logo: `${CDN}/nissan.png` },
+  { name: "Mitsubishi",  color: "#E60026",  logo: `${CDN}/mitsubishi.png` },
+  { name: "Hyundai",     color: "#002C5F",  logo: `${CDN}/hyundai.png` },
+  { name: "Kia",         color: "#05141F",  logo: `${CDN}/kia.png` },
+  { name: "Volkswagen",  color: "#001E50",  logo: `${CDN}/volkswagen.png` },
+  { name: "Chevrolet",   color: "#D4AF37",  logo: `${CDN}/chevrolet.png` },
+  { name: "Ford",        color: "#003DA5",  logo: `${CDN}/ford.png` },
+  { name: "BYD",         color: "#1DB954",  logo: `${CDN}/byd.png` },
+  { name: "Chery",       color: "#CC0000",  logo: `${CDN}/chery.png` },
+  { name: "JAC",         color: "#003087",  logo: `${CDN}/jac.png` },
+  { name: "Jetour",      color: "#1a1a2e",  logo: `${CDN}/jetour.png` },
+  { name: "Jeep",        color: "#1B1B1B",  logo: `${CDN}/jeep.png` },
+  { name: "Honda",       color: "#CC0000",  logo: `${CDN}/honda.png` },
+  { name: "Mazda",       color: "#910000",  logo: `${CDN}/mazda.png` },
+  { name: "Suzuki",      color: "#003087",  logo: `${CDN}/suzuki.png` },
 ];
 
 // ── Brand Request Modal ────────────────────────────────────────────────────────
@@ -846,12 +846,15 @@ export default function SocioCatalogoPage() {
                 <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-white/10" />
                 <div className="absolute -bottom-6 -right-2 w-24 h-24 rounded-full bg-black/10" />
 
-                <div className="relative z-10">
+                <div className="relative z-10 w-full">
                   <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest mb-1">
                     Repuestos para
                   </p>
                   <p className="text-lg font-black text-white leading-tight mb-3">{brand.name}</p>
-                  <span className="text-2xl">{brand.emoji}</span>
+                  <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-md">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={brand.logo} alt={brand.name} className="w-9 h-9 object-contain" loading="lazy" />
+                  </div>
                 </div>
               </motion.button>
             ))}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
@@ -40,16 +41,9 @@ export function SocioSidebar({ user }: SocioSidebarProps) {
   return (
     <aside className="w-64 bg-[#0f1f3d] flex flex-col h-full shrink-0">
       <div className="p-6 border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
-            <span className="text-white text-xs font-black">PK</span>
-          </div>
-          <div>
-            <span className="text-sm font-black text-white">PEKIN</span>
-            <span className="text-[10px] text-red-400 block tracking-widest font-semibold leading-none">
-              PORTAL SOCIOS
-            </span>
-          </div>
+        <div className="flex flex-col gap-1">
+          <Image src="/img/logo-pekin.jpg" alt="Pekín S&A" width={160} height={52} className="object-contain rounded" />
+          <span className="text-[10px] text-red-400 tracking-widest font-bold uppercase leading-none pl-0.5">Portal Socios</span>
         </div>
       </div>
 
