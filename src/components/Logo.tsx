@@ -12,8 +12,8 @@ export function Logo({ className = "", compact: _compact }: LogoProps) {
       <Image
         src="/img/logo-pekin.jpg"
         alt="Pekín S&A — Tu aliado en movimiento"
-        width={240}
-        height={78}
+        width={248}
+        height={100}
         priority
         className="object-contain"
       />
@@ -27,10 +27,10 @@ export function LogoWhite({ className = "", compact: _compact }: LogoProps) {
       <Image
         src="/img/logo-pekin.jpg"
         alt="Pekín S&A — Tu aliado en movimiento"
-        width={200}
-        height={65}
+        width={198}
+        height={80}
         priority
-        className="object-contain rounded"
+        className="object-contain"
       />
     </div>
   );
