@@ -313,6 +313,8 @@ function PortadasSlider() {
             src={s.img}
             alt={s.tag}
             className="w-full h-full object-cover"
+            loading={i === 0 ? "eager" : "lazy"}
+            decoding="async"
             style={{ filter: "brightness(0.35)" }}
           />
         </div>
