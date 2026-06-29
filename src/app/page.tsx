@@ -213,40 +213,159 @@ function MarcasCarrusel() {
   );
 }
 
-// ── Marcas grid ────────────────────────────────────────────────────────────────
-function Marcas() {
+// ── Slider de portadas ─────────────────────────────────────────────────────────
+const SLIDES = [
+  {
+    img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80",
+    tag: "Flotas empresariales",
+    title: "Repuestos para toda tu flota",
+    desc: "Hilux, L200, BT-50 y más — precios B2B con línea de crédito exclusiva.",
+    cta: "Cotizar flota",
+    waMsg: "Hola, necesito repuestos para mi flota de camionetas",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=1600&q=80",
+    tag: "Sistemas de frenos",
+    title: "Pastillas · Discos · Tambores",
+    desc: "Frenos de alto rendimiento para camionetas, SUVs y vehículos de carga.",
+    cta: "Consultar frenos",
+    waMsg: "Hola, necesito repuestos de frenos para mi vehículo",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1613214049841-028981a2eb71?w=1600&q=80",
+    tag: "Suspensión",
+    title: "Amortiguadores · Resortes · Bujes",
+    desc: "Suspensión completa para terrenos difíciles y uso urbano exigente.",
+    cta: "Ver suspensión",
+    waMsg: "Hola, necesito repuestos de suspensión para mi vehículo",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1567636788276-40a47795ba4d?w=1600&q=80",
+    tag: "Carrocería",
+    title: "Faros · Parachoques · Espejos",
+    desc: "Piezas de carrocería originales y alternativas para todas las marcas.",
+    cta: "Consultar carrocería",
+    waMsg: "Hola, necesito repuestos de carrocería para mi vehículo",
+  },
+  {
+    img: "https://images.unsplash.com/photo-1600912600704-3f4dbeb30e8e?w=1600&q=80",
+    tag: "Llantas y neumáticos",
+    title: "Llantas para todo terreno",
+    desc: "Aros y neumáticos para camionetas 4x4, SUVs y vehículos de trabajo.",
+    cta: "Ver llantas",
+    waMsg: "Hola, necesito llantas y neumáticos para mi vehículo",
+  },
+];
+
+function PortadasSlider() {
+  const [current, setCurrent] = useState(0);
+  const [animating, setAnimating] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setAnimating(true);
+      setTimeout(() => {
+        setCurrent(c => (c + 1) % SLIDES.length);
+        setAnimating(false);
+      }, 600);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const goTo = (idx: number) => {
+    if (idx === current) return;
+    setAnimating(true);
+    setTimeout(() => {
+      setCurrent(idx);
+      setAnimating(false);
+    }, 400);
+  };
+
+  const slide = SLIDES[current];
+
   return (
-    <section id="marcas" className="py-20 bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-14">
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-4">Repuestos para tu marca</h2>
-          <p className="text-slate-500 max-w-xl mx-auto">Selecciona tu marca y te enviamos cotización por WhatsApp</p>
+    <section id="marcas" className="relative bg-[#0a0f1e] overflow-hidden" style={{ minHeight: "560px" }}>
+      {/* Imagen de fondo con transición */}
+      {SLIDES.map((s, i) => (
+        <div
+          key={i}
+          className="absolute inset-0 transition-opacity duration-700"
+          style={{ opacity: i === current ? 1 : 0, zIndex: 0 }}
+        >
+          <img
+            src={s.img}
+            alt={s.tag}
+            className="w-full h-full object-cover"
+            style={{ filter: "brightness(0.35)" }}
+          />
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {BRANDS.map(brand => (
-            <a key={brand.name} href={waLink(`Hola, necesito repuestos para mi ${brand.name}`)} target="_blank" rel="noopener noreferrer"
-              className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 border border-slate-100">
-              <div className="h-1.5 w-full" style={{ backgroundColor: brand.color }} />
-              <div className="p-5 flex flex-col items-center gap-3">
-                <div className="w-16 h-16 flex items-center justify-center">
-                  <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain" loading="lazy" />
-                </div>
-                <span className="text-sm font-bold text-slate-800 text-center">{brand.name}</span>
-                <span className="text-[10px] text-green-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                  {WA_ICON} Consultar
-                </span>
-              </div>
+      ))}
+
+      {/* Gradiente rojo lateral izquierdo */}
+      <div className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-[#e8121a]/40 to-transparent z-10 pointer-events-none" />
+
+      {/* Contenido */}
+      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 flex flex-col justify-center" style={{ minHeight: "560px" }}>
+        <div
+          className="max-w-2xl transition-all duration-500"
+          style={{ opacity: animating ? 0 : 1, transform: animating ? "translateY(16px)" : "translateY(0)" }}
+        >
+          <div className="inline-flex items-center gap-2 bg-[#e8121a] text-white text-xs font-bold px-4 py-1.5 rounded-full mb-6 uppercase tracking-widest">
+            <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+            {slide.tag}
+          </div>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-4">
+            {slide.title}
+          </h2>
+          <p className="text-blue-100/80 text-lg mb-8 leading-relaxed max-w-lg">
+            {slide.desc}
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <a
+              href={waLink(slide.waMsg)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-black px-8 py-4 rounded-xl text-base transition-all hover:-translate-y-0.5 shadow-lg"
+            >
+              {WA_ICON} {slide.cta}
             </a>
+            <a
+              href="#afiliacion"
+              className="inline-flex items-center gap-2 border border-white/30 text-white font-bold px-8 py-4 rounded-xl text-base hover:bg-white/10 transition-all"
+            >
+              Ver portal B2B →
+            </a>
+          </div>
+        </div>
+
+        {/* Puntos de navegación */}
+        <div className="flex gap-3 mt-12">
+          {SLIDES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goTo(i)}
+              className={`transition-all duration-300 rounded-full ${i === current ? "w-8 h-2 bg-[#e8121a]" : "w-2 h-2 bg-white/40 hover:bg-white/70"}`}
+              aria-label={`Slide ${i + 1}`}
+            />
           ))}
         </div>
-        <div className="mt-10 text-center">
-          <p className="text-slate-500 text-sm">¿No encuentras tu marca?</p>
-          <a href={waLink("Hola, necesito repuestos para mi vehículo que no está en la lista")} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 mt-2 text-green-600 font-bold hover:text-green-700 transition-colors">
-            {WA_ICON} Consúltanos por WhatsApp
-          </a>
-        </div>
       </div>
+
+      {/* Flechas laterales */}
+      <button
+        onClick={() => goTo((current - 1 + SLIDES.length) % SLIDES.length)}
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-all border border-white/20"
+        aria-label="Anterior"
+      >
+        ‹
+      </button>
+      <button
+        onClick={() => goTo((current + 1) % SLIDES.length)}
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 flex items-center justify-center text-white transition-all border border-white/20"
+        aria-label="Siguiente"
+      >
+        ›
+      </button>
     </section>
   );
 }
@@ -672,7 +791,7 @@ export default function HomePage() {
       <main>
         <Hero />
         <MarcasCarrusel />
-        <Marcas />
+        <PortadasSlider />
         <Nosotros />
         <Servicios />
         <EmpresaCTA />
