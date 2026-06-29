@@ -142,9 +142,26 @@ function Hero() {
           en movimiento
         </h1>
 
-        <p className="text-xl sm:text-2xl text-blue-100/80 max-w-2xl mx-auto mb-14 leading-relaxed">
-          Pastillas, amortiguadores, frenos y más — para tu vehículo personal o toda tu flota empresarial.
-        </p>
+        {/* Carrusel de marcas dentro del hero */}
+        <div className="w-full overflow-hidden mb-14 -mx-4">
+          <p className="text-center text-[10px] font-bold text-blue-300/60 uppercase tracking-widest mb-4">Trabajamos con las principales marcas</p>
+          <div className="flex animate-marquee gap-8 w-max">
+            {[...BRANDS, ...BRANDS].map((brand, i) => (
+              <a
+                key={i}
+                href={waLink(`Hola, necesito repuestos para mi ${brand.name}`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-2 group shrink-0"
+              >
+                <div className="w-14 h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 flex items-center justify-center group-hover:bg-white/20 transition-all p-2">
+                  <img src={brand.logo} alt={brand.name} className="w-full h-full object-contain brightness-0 invert" loading="lazy" />
+                </div>
+                <span className="text-[10px] font-semibold text-blue-200/70 group-hover:text-white transition-colors">{brand.name}</span>
+              </a>
+            ))}
+          </div>
+        </div>
 
         <div className="grid sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
           <a href={waLink("Hola, quiero consultar sobre un repuesto para mi vehículo")} target="_blank" rel="noopener noreferrer"
@@ -790,7 +807,6 @@ export default function HomePage() {
       <Navbar />
       <main>
         <Hero />
-        <MarcasCarrusel />
         <PortadasSlider />
         <Nosotros />
         <Servicios />
