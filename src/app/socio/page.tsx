@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import Image from "next/image";
 import { CreditCard, ShoppingCart, Receipt, FileText, Bell } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -39,11 +40,16 @@ export default async function SocioDashboard() {
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-black text-slate-900">
-          Bienvenido, {socio.razonSocial}
-        </h1>
-        <p className="text-slate-500 mt-1">RUC: {socio.ruc} · {socio.sector.replace(/_/g, " ")}</p>
+      {/* Hero banner */}
+      <div className="relative rounded-2xl overflow-hidden mb-8 h-44">
+        <Image src="/img/flota-hilux.jpg" alt="Flota de camionetas" fill className="object-cover object-center" />
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-950/90 to-blue-900/60" />
+        <div className="absolute inset-0 flex flex-col justify-center px-8">
+          <h1 className="text-2xl font-black text-white">
+            Bienvenido, {socio.razonSocial}
+          </h1>
+          <p className="text-blue-200 mt-1 text-sm">RUC: {socio.ruc} · {socio.sector.replace(/_/g, " ")}</p>
+        </div>
       </div>
 
       {/* Credit / Contado card */}
