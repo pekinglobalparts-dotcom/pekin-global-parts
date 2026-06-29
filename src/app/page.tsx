@@ -216,7 +216,7 @@ function MarcasCarrusel() {
 // ── Slider de portadas ─────────────────────────────────────────────────────────
 const SLIDES = [
   {
-    img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80",
+    img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&q=80",
     tag: "Flotas empresariales",
     title: "Repuestos para toda tu flota",
     desc: "Hilux, L200, BT-50 y más — precios B2B con línea de crédito exclusiva.",
@@ -224,7 +224,7 @@ const SLIDES = [
     waMsg: "Hola, necesito repuestos para mi flota de camionetas",
   },
   {
-    img: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=1600&q=80",
+    img: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=80",
     tag: "Sistemas de frenos",
     title: "Pastillas · Discos · Tambores",
     desc: "Frenos de alto rendimiento para camionetas, SUVs y vehículos de carga.",
@@ -232,7 +232,7 @@ const SLIDES = [
     waMsg: "Hola, necesito repuestos de frenos para mi vehículo",
   },
   {
-    img: "https://images.unsplash.com/photo-1613214049841-028981a2eb71?w=1600&q=80",
+    img: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=1600&q=80",
     tag: "Suspensión",
     title: "Amortiguadores · Resortes · Bujes",
     desc: "Suspensión completa para terrenos difíciles y uso urbano exigente.",
@@ -240,7 +240,7 @@ const SLIDES = [
     waMsg: "Hola, necesito repuestos de suspensión para mi vehículo",
   },
   {
-    img: "https://images.unsplash.com/photo-1567636788276-40a47795ba4d?w=1600&q=80",
+    img: "https://images.unsplash.com/photo-1571607388263-1044f9ea01dd?w=1600&q=80",
     tag: "Carrocería",
     title: "Faros · Parachoques · Espejos",
     desc: "Piezas de carrocería originales y alternativas para todas las marcas.",
@@ -248,7 +248,7 @@ const SLIDES = [
     waMsg: "Hola, necesito repuestos de carrocería para mi vehículo",
   },
   {
-    img: "https://images.unsplash.com/photo-1600912600704-3f4dbeb30e8e?w=1600&q=80",
+    img: "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=1600&q=80",
     tag: "Llantas y neumáticos",
     title: "Llantas para todo terreno",
     desc: "Aros y neumáticos para camionetas 4x4, SUVs y vehículos de trabajo.",
