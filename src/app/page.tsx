@@ -135,10 +135,10 @@ function Hero() {
           Importación directa · +17 marcas de vehículos
         </div>
 
-        <h1 className="text-6xl sm:text-7xl lg:text-9xl font-black text-white leading-none mb-2 tracking-tight">
+        <h1 className="text-4xl sm:text-6xl lg:text-9xl font-black text-white leading-none mb-2 tracking-tight">
           Tu aliado
         </h1>
-        <h1 className="text-6xl sm:text-7xl lg:text-9xl font-black text-[#e8121a] leading-none mb-10 tracking-tight">
+        <h1 className="text-4xl sm:text-6xl lg:text-9xl font-black text-[#e8121a] leading-none mb-10 tracking-tight">
           en movimiento
         </h1>
 
@@ -189,10 +189,10 @@ function Hero() {
           </a>
         </div>
 
-        <div className="mt-16 grid grid-cols-3 gap-8 max-w-md mx-auto">
+        <div className="mt-10 grid grid-cols-3 gap-4 max-w-md mx-auto">
           {[{ n: "17+", label: "Marcas" }, { n: "24h", label: "Respuesta" }, { n: "100%", label: "Garantía" }].map(s => (
             <div key={s.label} className="text-center">
-              <div className="text-4xl font-black text-white">{s.n}</div>
+              <div className="text-2xl sm:text-4xl font-black text-white">{s.n}</div>
               <div className="text-blue-300/70 text-xs font-semibold uppercase tracking-widest mt-1">{s.label}</div>
             </div>
           ))}
