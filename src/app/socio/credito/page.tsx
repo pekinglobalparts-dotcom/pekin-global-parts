@@ -73,18 +73,18 @@ export default function CreditoPage() {
           animate={{ opacity: 1, y: 0 }}
           className="md:col-span-3 bg-gradient-to-r from-blue-950 to-blue-900 rounded-2xl p-6 text-white"
         >
-          <div className="grid grid-cols-3 gap-6 mb-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
             <div>
               <p className="text-blue-200 text-sm mb-1">Línea total</p>
-              <p className="text-3xl font-black">{loading ? "..." : formatCurrency(lineaCredito)}</p>
+              <p className="text-2xl sm:text-3xl font-black">{loading ? "..." : formatCurrency(lineaCredito)}</p>
             </div>
             <div>
               <p className="text-blue-200 text-sm mb-1">Utilizado</p>
-              <p className="text-3xl font-black text-red-300">{loading ? "..." : formatCurrency(creditoUtilizado)}</p>
+              <p className="text-2xl sm:text-3xl font-black text-red-300">{loading ? "..." : formatCurrency(creditoUtilizado)}</p>
             </div>
             <div>
               <p className="text-blue-200 text-sm mb-1">Disponible</p>
-              <p className="text-3xl font-black text-green-300">{loading ? "..." : formatCurrency(creditoDisponible)}</p>
+              <p className="text-2xl sm:text-3xl font-black text-green-300">{loading ? "..." : formatCurrency(creditoDisponible)}</p>
             </div>
           </div>
 

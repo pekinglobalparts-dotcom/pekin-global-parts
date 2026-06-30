@@ -84,20 +84,20 @@ export default async function SocioDashboard() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-3 gap-3 mb-8">
         {[
           { label: "Pedidos activos", value: pedidosActivos, icon: ShoppingCart, color: "text-orange-600", bg: "bg-orange-50" },
-          { label: "Facturas pendientes", value: facturasPendientes, icon: Receipt, color: "text-red-600", bg: "bg-red-50" },
+          { label: "Facturas pend.", value: facturasPendientes, icon: Receipt, color: "text-red-600", bg: "bg-red-50" },
           { label: "Cotizaciones", value: cotizacionesPendientes, icon: FileText, color: "text-purple-600", bg: "bg-purple-50" },
         ].map((s) => (
           <Card key={s.label}>
-            <CardContent className="flex items-center gap-4 p-5">
-              <div className={`${s.bg} rounded-xl p-3`}>
-                <s.icon className={`h-5 w-5 ${s.color}`} />
+            <CardContent className="flex flex-col items-center text-center gap-2 p-3 sm:flex-row sm:text-left sm:gap-4 sm:p-5">
+              <div className={`${s.bg} rounded-xl p-2 sm:p-3 shrink-0`}>
+                <s.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${s.color}`} />
               </div>
               <div>
-                <div className="text-2xl font-black text-slate-900">{s.value}</div>
-                <div className="text-xs text-slate-500">{s.label}</div>
+                <div className="text-xl sm:text-2xl font-black text-slate-900">{s.value}</div>
+                <div className="text-[10px] sm:text-xs text-slate-500 leading-tight">{s.label}</div>
               </div>
             </CardContent>
           </Card>

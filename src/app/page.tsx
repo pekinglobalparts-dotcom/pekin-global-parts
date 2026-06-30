@@ -165,7 +165,7 @@ function Hero() {
 
         <div className="grid sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
           <a href={waLink("Hola, quiero consultar sobre un repuesto para mi vehículo")} target="_blank" rel="noopener noreferrer"
-            className="group bg-white rounded-2xl p-7 text-left hover:shadow-2xl hover:shadow-white/10 transition-all hover:-translate-y-1">
+            className="group bg-white rounded-2xl p-4 sm:p-7 text-left hover:shadow-2xl hover:shadow-white/10 transition-all hover:-translate-y-1">
             <div className="text-3xl mb-3">🔧</div>
             <h2 className="text-[#0f1f3d] font-black text-xl leading-tight mb-2">Soy cliente particular</h2>
             <p className="text-slate-500 text-sm leading-relaxed mb-5">
@@ -177,7 +177,7 @@ function Hero() {
           </a>
 
           <a href="https://socios.pekinglobalparts.com/login"
-            className="group bg-[#e8121a] rounded-2xl p-7 text-left hover:shadow-2xl hover:shadow-red-900/30 transition-all hover:-translate-y-1">
+            className="group bg-[#e8121a] rounded-2xl p-4 sm:p-7 text-left hover:shadow-2xl hover:shadow-red-900/30 transition-all hover:-translate-y-1">
             <div className="text-3xl mb-3">🏢</div>
             <h2 className="text-white font-black text-xl leading-tight mb-2">Tengo una empresa</h2>
             <p className="text-red-100 text-sm leading-relaxed mb-5">
