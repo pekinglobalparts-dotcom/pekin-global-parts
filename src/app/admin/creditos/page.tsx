@@ -66,18 +66,18 @@ export default function AdminCreditosPage() {
       </div>
 
       {!loading && (
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-white border border-slate-200 rounded-2xl p-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4">
             <p className="text-xs text-slate-400 mb-1">Total líneas otorgadas</p>
-            <p className="text-2xl font-black text-slate-900">{formatCurrency(totalLineas)}</p>
+            <p className="text-xl sm:text-2xl font-black text-slate-900">{formatCurrency(totalLineas)}</p>
           </div>
-          <div className="bg-white border border-slate-200 rounded-2xl p-5">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4">
             <p className="text-xs text-slate-400 mb-1">Total utilizado</p>
-            <p className="text-2xl font-black text-blue-900">{formatCurrency(totalUtilizado)}</p>
+            <p className="text-xl sm:text-2xl font-black text-blue-900">{formatCurrency(totalUtilizado)}</p>
           </div>
-          <div className="bg-white border border-slate-200 rounded-2xl p-5">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4">
             <p className="text-xs text-slate-400 mb-1">Disponible total</p>
-            <p className="text-2xl font-black text-green-700">{formatCurrency(totalLineas - totalUtilizado)}</p>
+            <p className="text-xl sm:text-2xl font-black text-green-700">{formatCurrency(totalLineas - totalUtilizado)}</p>
           </div>
         </div>
       )}
@@ -122,11 +122,11 @@ export default function AdminCreditosPage() {
                 <table className="w-full">
                   <thead className="bg-slate-50 border-b border-slate-100">
                     <tr>
-                      <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Empresa</th>
-                      <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Línea total</th>
-                      <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Utilizado</th>
-                      <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide w-48">Uso</th>
-                      <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Disponible</th>
+                      <th className="text-left px-3 sm:px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Empresa</th>
+                      <th className="text-left px-3 sm:px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Línea total</th>
+                      <th className="text-left px-3 sm:px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Utiliza.</th>
+                      <th className="hidden sm:table-cell text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide w-48">Uso</th>
+                      <th className="hidden sm:table-cell text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Disponible</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
@@ -135,13 +135,13 @@ export default function AdminCreditosPage() {
                       const disponible = Number(s.lineaCredito) - Number(s.creditoUtilizado);
                       return (
                         <tr key={s.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-5 py-4">
+                          <td className="px-3 sm:px-5 py-4">
                             <div className="font-semibold text-slate-900 text-sm">{s.razonSocial}</div>
                             <div className="text-xs text-slate-400">{s.ruc}</div>
                           </td>
-                          <td className="px-5 py-4 text-sm font-bold text-slate-700">{formatCurrency(s.lineaCredito)}</td>
-                          <td className="px-5 py-4 text-sm text-slate-600">{formatCurrency(s.creditoUtilizado)}</td>
-                          <td className="px-5 py-4">
+                          <td className="px-3 sm:px-5 py-4 text-sm font-bold text-slate-700">{formatCurrency(s.lineaCredito)}</td>
+                          <td className="px-3 sm:px-5 py-4 text-sm text-slate-600">{formatCurrency(s.creditoUtilizado)}</td>
+                          <td className="hidden sm:table-cell px-5 py-4">
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                                 <div
@@ -156,7 +156,7 @@ export default function AdminCreditosPage() {
                               }`}>{Math.round(p)}%</span>
                             </div>
                           </td>
-                          <td className="px-5 py-4">
+                          <td className="hidden sm:table-cell px-5 py-4">
                             <span className={`text-sm font-bold ${disponible < 0 ? "text-red-600" : "text-green-700"}`}>
                               {formatCurrency(disponible)}
                             </span>
