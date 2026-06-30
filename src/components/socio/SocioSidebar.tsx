@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 import {
   LayoutDashboard, ShoppingCart, Receipt, CreditCard,
-  Package, Bell, LogOut, FileText, UserCircle, Search,
+  Package, Bell, LogOut, FileText, UserCircle, Search, Menu, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,7 @@ interface SocioSidebarProps {
 export function SocioSidebar({ user }: SocioSidebarProps) {
   const pathname = usePathname();
   const [unread, setUnread] = useState(0);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/socio/notificaciones")
@@ -25,6 +26,9 @@ export function SocioSidebar({ user }: SocioSidebarProps) {
       .then(d => setUnread(d.unreadCount || 0))
       .catch(() => {});
   }, [pathname]);
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => { setOpen(false); }, [pathname]);
 
   const links = [
     { href: "/socio", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -38,13 +42,16 @@ export function SocioSidebar({ user }: SocioSidebarProps) {
     { href: "/socio/perfil", label: "Mi perfil", icon: UserCircle },
   ];
 
-  return (
-    <aside className="w-64 bg-[#0f1f3d] flex flex-col h-full shrink-0">
-      <div className="p-6 border-b border-white/10">
+  const SidebarContent = () => (
+    <>
+      <div className="p-5 border-b border-white/10 flex items-center justify-between">
         <div className="flex flex-col gap-1">
-          <Image src="/img/logo-pekin.jpg" alt="Pekín S&A" width={160} height={52} className="object-contain rounded" />
+          <Image src="/img/logo-pekin.jpg" alt="Pekín S&A" width={140} height={46} className="object-contain" />
           <span className="text-[10px] text-red-400 tracking-widest font-bold uppercase leading-none pl-0.5">Portal Socios</span>
         </div>
+        <button onClick={() => setOpen(false)} className="md:hidden text-white/60 hover:text-white p-1">
+          <X className="h-5 w-5" />
+        </button>
       </div>
 
       <nav className="flex-1 p-4 space-y-0.5 overflow-y-auto">
@@ -93,6 +100,39 @@ export function SocioSidebar({ user }: SocioSidebarProps) {
           Cerrar sesión
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile top bar */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-[#0f1f3d] flex items-center px-4 py-3 border-b border-white/10">
+        <button onClick={() => setOpen(true)} className="text-white mr-3">
+          <Menu className="h-6 w-6" />
+        </button>
+        <Image src="/img/logo-pekin.jpg" alt="Pekín S&A" width={110} height={36} className="object-contain" />
+      </div>
+
+      {/* Mobile overlay */}
+      {open && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/50"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Sidebar — drawer on mobile, fixed on desktop */}
+      <aside className={cn(
+        "bg-[#0f1f3d] flex flex-col h-full shrink-0 transition-transform duration-300",
+        "fixed md:relative inset-y-0 left-0 z-50",
+        "w-64",
+        open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+      )}>
+        <SidebarContent />
+      </aside>
+
+      {/* Spacer so main content doesn't hide under mobile top bar */}
+      <div className="md:hidden h-14 shrink-0" />
+    </>
   );
 }
