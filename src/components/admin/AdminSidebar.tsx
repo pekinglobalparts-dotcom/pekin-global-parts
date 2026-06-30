@@ -1,21 +1,23 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import {
   LayoutDashboard, FileText, Users, Package,
   ShoppingCart, Receipt, CreditCard, LogOut,
-  ChevronRight, Settings, BarChart3, Database, UserCog, Search,
+  ChevronRight, Database, UserCog, Search, Menu, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/admin/solicitudes", label: "Solicitudes", icon: FileText, badge: "solicitudes" },
+  { href: "/admin/solicitudes", label: "Solicitudes", icon: FileText },
   { href: "/admin/socios", label: "Socios", icon: Users },
   { href: "/admin/productos", label: "Productos", icon: Package },
-  { href: "/admin/cotizaciones", label: "Cotizaciones", icon: ShoppingCart, badge: "cotizaciones" },
+  { href: "/admin/cotizaciones", label: "Cotizaciones", icon: ShoppingCart },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
   { href: "/admin/facturas", label: "Facturas", icon: Receipt },
   { href: "/admin/creditos", label: "Créditos", icon: CreditCard },
@@ -29,36 +31,30 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ user }: AdminSidebarProps) {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
   const isSuperAdmin = user.adminRole === "SUPER_ADMIN";
+
+  useEffect(() => { setOpen(false); }, [pathname]);
 
   const visibleLinks = [
     ...links,
-    ...(isSuperAdmin ? [
-      { href: "/admin/administradores", label: "Administradores", icon: UserCog },
-    ] : []),
+    ...(isSuperAdmin ? [{ href: "/admin/administradores", label: "Administradores", icon: UserCog }] : []),
   ];
 
-  return (
-    <aside className="w-64 bg-[#0f1f3d] flex flex-col h-full border-r border-white/5">
-      {/* Logo */}
-      <div className="px-6 py-5 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center shrink-0">
-            <span className="text-white font-black text-xs">PK</span>
-          </div>
-          <div>
-            <span className="text-white font-black text-sm leading-none">PEKIN</span>
-            <span className="text-red-400 text-[10px] font-semibold block tracking-widest leading-none mt-0.5">
-              GLOBAL PARTS
-            </span>
-          </div>
+  const SidebarContent = () => (
+    <>
+      <div className="px-5 py-4 border-b border-white/10">
+        <div className="flex items-center justify-between">
+          <Image src="/img/logo-pekin.jpg" alt="Pekín S&A" width={130} height={42} className="object-contain" />
+          <button onClick={() => setOpen(false)} className="md:hidden text-white/60 hover:text-white p-1">
+            <X className="h-5 w-5" />
+          </button>
         </div>
-        <div className="mt-3 px-2 py-1 bg-white/5 rounded-lg">
+        <div className="mt-2 px-2 py-1 bg-white/5 rounded-lg">
           <span className="text-slate-400 text-xs font-medium">Panel Administrativo</span>
         </div>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {visibleLinks.map((link) => {
           const active = link.exact
@@ -83,7 +79,6 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         })}
       </nav>
 
-      {/* User */}
       <div className="px-3 py-4 border-t border-white/10 space-y-1">
         <div className="px-3 py-3 rounded-xl bg-white/5">
           <div className="flex items-center gap-3">
@@ -104,6 +99,34 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           Cerrar sesión
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile top bar */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-[#0f1f3d] flex items-center px-4 py-3 border-b border-white/10">
+        <button onClick={() => setOpen(true)} className="text-white mr-3">
+          <Menu className="h-6 w-6" />
+        </button>
+        <Image src="/img/logo-pekin.jpg" alt="Pekín S&A" width={110} height={36} className="object-contain" />
+      </div>
+
+      {/* Mobile overlay */}
+      {open && (
+        <div className="md:hidden fixed inset-0 z-40 bg-black/50" onClick={() => setOpen(false)} />
+      )}
+
+      {/* Sidebar */}
+      <aside className={cn(
+        "bg-[#0f1f3d] flex flex-col h-full border-r border-white/5 shrink-0",
+        "fixed md:relative inset-y-0 left-0 z-50 w-64 transition-transform duration-300",
+        open ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+      )}>
+        <SidebarContent />
+      </aside>
+
+      <div className="md:hidden h-14 shrink-0" />
+    </>
   );
 }
