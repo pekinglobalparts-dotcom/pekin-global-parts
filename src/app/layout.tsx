@@ -24,11 +24,31 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "es_PE",
-    url: process.env.NEXT_PUBLIC_APP_URL,
+    url: "https://www.pekinglobalparts.com",
     siteName: "Pekin Global Parts",
     title: "Pekin Global Parts | Importadora de Autopartes B2B",
     description:
       "Plataforma B2B exclusiva para empresas. Importadora especializada en autopartes de alta calidad.",
+    images: [
+      {
+        url: "https://www.pekinglobalparts.com/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Pekín S&A — Tu aliado en movimiento",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pekin Global Parts | Importadora de Autopartes B2B",
+    description: "Plataforma B2B exclusiva para empresas automotrices en Perú.",
+    images: ["https://www.pekinglobalparts.com/og-image.jpg"],
+  },
+  icons: {
+    icon: [
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/icon-512.png",
   },
   robots: { index: true, follow: true },
 };
