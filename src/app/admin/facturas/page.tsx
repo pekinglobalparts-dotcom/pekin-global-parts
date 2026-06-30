@@ -168,7 +168,7 @@ export default function AdminFacturasPage() {
                   {factura.status === "PENDIENTE" && (
                     <Button size="sm" variant="outline" loading={updating === factura.id}
                       onClick={e => { e.stopPropagation(); markPagada(factura.id); }}
-                      className="shrink-0 text-green-700 border-green-200 hover:bg-green-50">
+                      className="hidden sm:flex shrink-0 text-green-700 border-green-200 hover:bg-green-50">
                       <CheckCircle className="h-3.5 w-3.5" /> Marcar pagada
                     </Button>
                   )}

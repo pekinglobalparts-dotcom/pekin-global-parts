@@ -105,15 +105,15 @@ export default function AdministradoresPage() {
   };
 
   return (
-    <div className="p-8 max-w-3xl">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 sm:p-8 max-w-3xl">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-8">
         <div>
           <h1 className="text-2xl font-black text-slate-900">Administradores</h1>
           <p className="text-slate-500 text-sm mt-1">Gestiona los usuarios con acceso al panel.</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition-colors"
+          className="flex items-center gap-2 bg-blue-900 hover:bg-blue-800 text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition-colors shrink-0"
         >
           <Plus className="h-4 w-4" />
           Nuevo administrador
@@ -121,7 +121,7 @@ export default function AdministradoresPage() {
       </div>
 
       {/* Permissions info */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-3">
             <ShieldAlert className="h-5 w-5 text-amber-600" />
@@ -159,7 +159,7 @@ export default function AdministradoresPage() {
         ) : (
           <div className="divide-y divide-slate-50">
             {admins.map(admin => (
-              <div key={admin.id} className="px-6 py-4 flex items-center gap-4">
+              <div key={admin.id} className="px-3 sm:px-6 py-4 flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${admin.role === "SUPER_ADMIN" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
                   {admin.nombre[0]}{admin.apellido[0]}
                 </div>
