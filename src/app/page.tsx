@@ -163,28 +163,21 @@ function Hero() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:gap-5 w-full max-w-2xl mx-auto">
+        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg mx-auto">
           <a href={waLink("Hola, quiero consultar sobre un repuesto para mi vehículo")} target="_blank" rel="noopener noreferrer"
-            className="group bg-white rounded-xl sm:rounded-2xl p-2.5 sm:p-7 text-left hover:shadow-2xl hover:shadow-white/10 transition-all hover:-translate-y-1 overflow-hidden">
-            <div className="text-xl sm:text-3xl mb-1.5 sm:mb-3">🔧</div>
-            <h2 className="text-[#0f1f3d] font-black text-[13px] sm:text-xl leading-tight mb-1 sm:mb-2">Cliente particular</h2>
-            <p className="text-slate-500 text-[10px] sm:text-sm leading-snug mb-2 sm:mb-5 line-clamp-3">
-              Cotizamos tu repuesto al instante por WhatsApp.
-            </p>
-            <div className="flex items-center gap-1 sm:gap-2 text-green-600 font-bold text-[10px] sm:text-sm">
-              {WA_ICON} Consultar
+            className="flex-1 flex items-center gap-3 bg-white hover:bg-slate-50 rounded-2xl px-5 py-4 transition-all hover:-translate-y-0.5 hover:shadow-xl">
+            <span className="text-2xl shrink-0">🔧</span>
+            <div className="min-w-0">
+              <p className="text-[#0f1f3d] font-black text-sm leading-tight">Soy cliente particular</p>
+              <p className="text-slate-400 text-xs mt-0.5">Cotizar por WhatsApp →</p>
             </div>
           </a>
-
           <a href="https://socios.pekinglobalparts.com/login"
-            className="group bg-[#e8121a] rounded-xl sm:rounded-2xl p-2.5 sm:p-7 text-left hover:shadow-2xl hover:shadow-red-900/30 transition-all hover:-translate-y-1 overflow-hidden">
-            <div className="text-xl sm:text-3xl mb-1.5 sm:mb-3">🏢</div>
-            <h2 className="text-white font-black text-[13px] sm:text-xl leading-tight mb-1 sm:mb-2">Tengo una empresa</h2>
-            <p className="text-red-100 text-[10px] sm:text-sm leading-snug mb-2 sm:mb-5 line-clamp-3">
-              Flotas, talleres y aseguradoras. Crédito B2B y portal exclusivo.
-            </p>
-            <div className="flex items-center gap-1 sm:gap-2 text-white font-bold text-[10px] sm:text-sm">
-              <span>→</span> Portal socios
+            className="flex-1 flex items-center gap-3 bg-[#e8121a] hover:bg-red-600 rounded-2xl px-5 py-4 transition-all hover:-translate-y-0.5 hover:shadow-xl">
+            <span className="text-2xl shrink-0">🏢</span>
+            <div className="min-w-0">
+              <p className="text-white font-black text-sm leading-tight">Tengo una empresa</p>
+              <p className="text-red-200 text-xs mt-0.5">Portal de socios →</p>
             </div>
           </a>
         </div>
