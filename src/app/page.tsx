@@ -163,21 +163,28 @@ function Hero() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-lg mx-auto">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 w-full max-w-2xl mx-auto">
           <a href={waLink("Hola, quiero consultar sobre un repuesto para mi vehículo")} target="_blank" rel="noopener noreferrer"
-            className="flex-1 flex items-center gap-3 bg-white hover:bg-slate-50 rounded-2xl px-5 py-4 transition-all hover:-translate-y-0.5 hover:shadow-xl">
-            <span className="text-2xl shrink-0">🔧</span>
-            <div className="min-w-0">
-              <p className="text-[#0f1f3d] font-black text-sm leading-tight">Soy cliente particular</p>
-              <p className="text-slate-400 text-xs mt-0.5">Cotizar por WhatsApp →</p>
+            className="group bg-white rounded-2xl p-3 sm:p-7 text-left hover:shadow-2xl hover:shadow-white/10 transition-all hover:-translate-y-1">
+            <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">🔧</div>
+            <h2 className="text-[#0f1f3d] font-black text-base sm:text-xl leading-tight mb-1 sm:mb-2">Soy cliente particular</h2>
+            <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-5">
+              Busca tu repuesto por marca de vehículo. Cotizamos al instante por WhatsApp.
+            </p>
+            <div className="flex items-center gap-1 sm:gap-2 text-green-600 font-bold text-xs sm:text-sm">
+              {WA_ICON} Consultar ahora
             </div>
           </a>
+
           <a href="https://socios.pekinglobalparts.com/login"
-            className="flex-1 flex items-center gap-3 bg-[#e8121a] hover:bg-red-600 rounded-2xl px-5 py-4 transition-all hover:-translate-y-0.5 hover:shadow-xl">
-            <span className="text-2xl shrink-0">🏢</span>
-            <div className="min-w-0">
-              <p className="text-white font-black text-sm leading-tight">Tengo una empresa</p>
-              <p className="text-red-200 text-xs mt-0.5">Portal de socios →</p>
+            className="group bg-[#e8121a] rounded-2xl p-3 sm:p-7 text-left hover:shadow-2xl hover:shadow-red-900/30 transition-all hover:-translate-y-1">
+            <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">🏢</div>
+            <h2 className="text-white font-black text-base sm:text-xl leading-tight mb-1 sm:mb-2">Tengo una empresa</h2>
+            <p className="text-red-100 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-5">
+              Renting, taller, aseguradora o flota. Precios B2B, línea de crédito y portal exclusivo.
+            </p>
+            <div className="flex items-center gap-1 sm:gap-2 text-white font-bold text-xs sm:text-sm">
+              <span>→</span> Ingresar al portal
             </div>
           </a>
         </div>
