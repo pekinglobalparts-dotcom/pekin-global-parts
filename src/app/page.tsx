@@ -60,6 +60,7 @@ function Navbar() {
 
   const navLinks = [
     { label: "Inicio",    href: "#inicio" },
+    { label: "Catálogo",  href: "/catalogo" },
     { label: "Marcas",    href: "#marcas" },
     { label: "Nosotros",  href: "#nosotros" },
     { label: "Contacto",  href: "#contacto" },
