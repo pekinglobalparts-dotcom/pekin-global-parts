@@ -35,11 +35,15 @@ export async function POST(
 
   const uploadUrl = `${APP_URL}/documentos/${token}`;
 
+  let emailSent = false;
+  let emailError: string | null = null;
   try {
     await sendSolicitudDocumentos(solicitud.emailCorporativo, solicitud.razonSocial, uploadUrl);
+    emailSent = true;
   } catch (e) {
+    emailError = e instanceof Error ? e.message : "No se pudo enviar el correo";
     console.error("[solicitar-documentos] email error", e);
   }
 
-  return NextResponse.json({ ok: true, uploadUrl });
+  return NextResponse.json({ ok: true, uploadUrl, emailSent, emailError });
 }
