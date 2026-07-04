@@ -50,6 +50,7 @@ export default function SolicitudesPage() {
   const [credenciales, setCredenciales] = useState<{ ruc: string; password: string; empresa: string } | null>(null);
   const [solicitandoDocs, setSolicitandoDocs] = useState(false);
   const [docLinkCopiado, setDocLinkCopiado] = useState(false);
+  const [docEmailFallo, setDocEmailFallo] = useState(false);
 
   const fetchSolicitudes = useCallback(async () => {
     setLoading(true);
@@ -66,10 +67,12 @@ export default function SolicitudesPage() {
   const handleSolicitarDocs = async () => {
     if (!selected) return;
     setSolicitandoDocs(true);
+    setDocEmailFallo(false);
     const res = await fetch(`/api/admin/solicitudes/${selected.id}/solicitar-documentos`, { method: "POST" });
     const data = await res.json();
     if (res.ok) {
       setSelected(prev => prev ? { ...prev, status: "EN_REVISION", tokenDocumentos: data.uploadUrl.split("/documentos/")[1] } : null);
+      setDocEmailFallo(data.emailSent === false);
       fetchSolicitudes();
     }
     setSolicitandoDocs(false);
@@ -292,8 +295,12 @@ export default function SolicitudesPage() {
             )}
 
             {selected.tokenDocumentos && (!selected.documentos || selected.documentos.length === 0) && (
-              <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 text-xs text-slate-600">
-                <span>Enlace de carga enviado — esperando documentos</span>
+              <div className={`mb-4 p-3 border rounded-xl flex items-center justify-between gap-3 text-xs ${docEmailFallo ? "bg-red-50 border-red-200 text-red-700" : "bg-slate-50 border-slate-200 text-slate-600"}`}>
+                <span>
+                  {docEmailFallo
+                    ? "⚠️ El correo no pudo enviarse. Copia el enlace y compártelo por WhatsApp."
+                    : "Enlace de carga enviado — esperando documentos"}
+                </span>
                 <button
                   onClick={() => {
                     const url = `${window.location.origin}/documentos/${selected.tokenDocumentos}`;
@@ -301,7 +308,7 @@ export default function SolicitudesPage() {
                     setDocLinkCopiado(true);
                     setTimeout(() => setDocLinkCopiado(false), 2000);
                   }}
-                  className="flex items-center gap-1 font-semibold text-blue-700 hover:text-blue-900"
+                  className={`flex items-center gap-1 font-semibold shrink-0 ${docEmailFallo ? "text-red-700 hover:text-red-900" : "text-blue-700 hover:text-blue-900"}`}
                 >
                   <Copy className="h-3 w-3" /> {docLinkCopiado ? "Copiado" : "Copiar link"}
                 </button>

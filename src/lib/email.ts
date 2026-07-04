@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-const FROM = process.env.EMAIL_FROM || "Pekin Global Parts <pekinglobalparts@gmail.com>";
+const FROM = process.env.EMAIL_FROM || "Pekin Global Parts <noreply@pekinglobalparts.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
 
