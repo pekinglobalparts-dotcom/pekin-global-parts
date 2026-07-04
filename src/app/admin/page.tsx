@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
 import {
-  FileText, Users, Package, ShoppingCart, Receipt,
+  FileText, Users, ShoppingCart, Receipt,
   AlertCircle, TrendingUp, DollarSign, Clock,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +12,6 @@ async function getStats() {
   const [
     totalSocios,
     solicitudesPendientes,
-    totalProductos,
     cotizacionesPendientes,
     pedidosActivos,
     facturasPendientes,
@@ -22,7 +21,6 @@ async function getStats() {
   ] = await Promise.all([
     prisma.socio.count({ where: { status: "ACTIVO" } }),
     prisma.solicitud.count({ where: { status: "PENDIENTE" } }),
-    prisma.producto.count({ where: { activo: true } }),
     prisma.cotizacion.count({ where: { status: "PENDIENTE" } }),
     prisma.pedido.count({
       where: { status: { in: ["PENDIENTE", "CONFIRMADO", "EN_PROCESO"] } },
@@ -43,7 +41,7 @@ async function getStats() {
   ]);
 
   return {
-    totalSocios, solicitudesPendientes, totalProductos,
+    totalSocios, solicitudesPendientes,
     cotizacionesPendientes, pedidosActivos, facturasPendientes,
     solicitudesRecientes,
     totalFacturado: Number(totalFacturado._sum.total || 0),
@@ -150,15 +148,6 @@ export default async function AdminDashboard() {
             </CardContent>
           </Card>
         </a>
-        <Card className="border border-slate-100">
-          <CardContent className="p-5">
-            <div className="bg-slate-50 w-10 h-10 rounded-xl flex items-center justify-center mb-3">
-              <Package className="h-5 w-5 text-slate-500" />
-            </div>
-            <p className="text-2xl font-black text-slate-900">{stats.totalProductos}</p>
-            <p className="text-xs text-slate-500 mt-1">Productos en catálogo</p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Charts + recent */}

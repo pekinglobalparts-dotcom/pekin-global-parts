@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import {
-  LayoutDashboard, FileText, Users, Package,
+  LayoutDashboard, FileText, Users,
   ShoppingCart, Receipt, CreditCard, LogOut,
   ChevronRight, Database, UserCog, Search, Menu, X,
 } from "lucide-react";
@@ -16,7 +16,6 @@ const links = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/solicitudes", label: "Solicitudes", icon: FileText },
   { href: "/admin/socios", label: "Socios", icon: Users },
-  { href: "/admin/productos", label: "Productos", icon: Package },
   { href: "/admin/cotizaciones", label: "Cotizaciones", icon: ShoppingCart },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
   { href: "/admin/facturas", label: "Facturas", icon: Receipt },
