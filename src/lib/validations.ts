@@ -55,9 +55,12 @@ export const cotizacionItemSchema = z.object({
 });
 
 export const cotizacionSchema = z.object({
-  notas: z.string().max(1000).optional(),
-  items: z.array(cotizacionItemSchema).min(1, "Mínimo 1 producto"),
-});
+  notas: z.string().max(2000).optional(),
+  items: z.array(cotizacionItemSchema),
+}).refine(
+  (data) => data.items.length > 0 || (data.notas && data.notas.trim().length > 0),
+  { message: "Debe incluir al menos un producto o detalle de repuesto", path: ["items"] }
+);
 
 export type SolicitudInput = z.infer<typeof solicitudSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
