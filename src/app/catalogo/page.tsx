@@ -41,16 +41,30 @@ export default function CatalogoPage() {
     return ["TODAS", ...Array.from(new Set(src.map(e => e[0]))).sort()];
   }, [data, marca]);
 
-  const q = search.trim().toLowerCase();
+  const words = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+  // Agrupar códigos alternativos: una tarjeta por parte+marca+modelo
+  const grouped = useMemo(() => {
+    if (!data) return [];
+    const map = new Map<string, { p: string; m: string; mo: string; codes: string[] }>();
+    for (const [p, m, mo, c] of data.motores) {
+      const key = `${p}|${m}|${mo}`;
+      const g = map.get(key);
+      if (g) { if (!g.codes.includes(c)) g.codes.push(c); }
+      else map.set(key, { p, m, mo, codes: [c] });
+    }
+    return Array.from(map.values());
+  }, [data]);
 
   const results = useMemo(() => {
-    if (!data) return [];
-    return data.motores.filter(([p, m, mo, c]) =>
-      (marca === "TODAS" || m === marca) &&
-      (parte === "TODAS" || p === parte) &&
-      (!q || p.toLowerCase().includes(q) || mo.toLowerCase().includes(q) || c.toLowerCase().includes(q) || m.toLowerCase().includes(q))
-    );
-  }, [data, q, marca, parte]);
+    return grouped.filter(g => {
+      if (marca !== "TODAS" && g.m !== marca) return false;
+      if (parte !== "TODAS" && g.p !== parte) return false;
+      if (words.length === 0) return true;
+      const haystack = `${g.p} ${g.m} ${g.mo} ${g.codes.join(" ")}`.toLowerCase();
+      return words.every(w => haystack.includes(w));
+    });
+  }, [grouped, words, marca, parte]);
 
   const visible = results.slice(0, limit);
 
@@ -125,14 +139,21 @@ export default function CatalogoPage() {
         ) : (
           <>
             <div className="space-y-2">
-              {(visible as [string,string,string,string][]).map(([p, m, mo, c], i) => (
+              {visible.map((g, i) => (
                 <div key={i} className="bg-white rounded-xl border border-slate-200 p-3.5 sm:p-4 flex items-center gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-slate-900 leading-tight">{p}</p>
-                    <p className="text-xs text-slate-500 mt-0.5 truncate">{m} · {mo}</p>
-                    <p className="text-xs font-mono font-bold text-[#0f1f3d] mt-1 bg-slate-100 inline-block px-2 py-0.5 rounded">{c}</p>
+                    <p className="text-sm font-bold text-slate-900 leading-tight">{g.p}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{g.m} · {g.mo}</p>
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                      {g.codes.map(c => (
+                        <span key={c} className="text-xs font-mono font-bold text-[#0f1f3d] bg-slate-100 px-2 py-0.5 rounded">{c}</span>
+                      ))}
+                      {g.codes.length > 1 && (
+                        <span className="text-[10px] text-slate-400 self-center">({g.codes.length} alternativas)</span>
+                      )}
+                    </div>
                   </div>
-                  <a href={waLink(`Hola, quiero cotizar: ${p} para ${m} ${mo} — código ${c}`)} target="_blank" rel="noopener noreferrer"
+                  <a href={waLink(`Hola, quiero cotizar: ${g.p} para ${g.m} ${g.mo} — código(s): ${g.codes.join(", ")}`)} target="_blank" rel="noopener noreferrer"
                     className="shrink-0 bg-green-500 hover:bg-green-600 text-white text-xs font-bold px-3.5 py-2 rounded-full transition-colors">
                     Cotizar
                   </a>
