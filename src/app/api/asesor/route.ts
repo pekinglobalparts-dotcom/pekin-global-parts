@@ -119,8 +119,8 @@ export async function POST(req: NextRequest) {
     if (!res.ok) {
       const errText = await res.text();
       console.error("[asesor] gemini error", res.status, errText);
-      // Diagnóstico temporal: mostramos el código para depurar
-      return NextResponse.json({ reply: `Disculpa, tuve un problemita para responder (cód. ${res.status}). ¿Puedes escribirnos por WhatsApp? 🙌`, debug: errText.slice(0, 300) }, { status: 200 });
+      // Diagnóstico temporal: mostramos el detalle para depurar
+      return NextResponse.json({ reply: `DIAG ${res.status}: ${errText.slice(0, 400)}` }, { status: 200 });
     }
     const data = await res.json();
     const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
