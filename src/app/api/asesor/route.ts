@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import path from "path";
 
-// Modelo gratuito de Gemini
-const GEMINI_MODEL = "gemini-2.0-flash";
-const GEMINI_URL = (key: string) =>
-  `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`;
+// Groq: IA gratuita (modelos Llama), sin tarjeta. https://console.groq.com
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_MODEL = "llama-3.3-70b-versatile";
 
 type ChatMsg = { role: "user" | "model"; text: string };
 
@@ -61,9 +60,9 @@ const REGLAS_SOPORTE = `Eres "Asesor Pekín", el asistente de soporte del portal
 Ayudas a socios ya registrados con: cotizaciones, pedidos, facturas, línea de crédito y consultas generales. Si el socio necesita algo puntual (estado de pedido, precio, etc.), oriéntalo y motívalo a contactar a un asesor humano por WhatsApp (hay un botón verde en el chat). Respuestas breves (2-4 frases), una pregunta a la vez.`;
 
 export async function POST(req: NextRequest) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: "no_key", reply: "El asistente inteligente aún no está configurado. Escríbenos por WhatsApp y te atendemos al instante. 🙌" }, { status: 200 });
+    return NextResponse.json({ reply: "El asistente inteligente aún no está configurado. Escríbenos por WhatsApp y te atendemos al instante. 🙌" }, { status: 200 });
   }
 
   let body: { messages?: ChatMsg[]; mode?: string };
@@ -73,9 +72,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 
-  const messages = (body.messages || []).slice(-12); // últimos 12 turnos
+  const history = (body.messages || []).slice(-12);
   const mode = body.mode === "soporte" ? "soporte" : "ventas";
-  const lastUser = [...messages].reverse().find(m => m.role === "user")?.text || "";
+  const lastUser = [...history].reverse().find(m => m.role === "user")?.text || "";
 
   // Contexto de catálogo (solo modo ventas)
   let catalogHint = "";
@@ -83,7 +82,7 @@ export async function POST(req: NextRequest) {
     const cat = await getCatalog();
     const r = buscarCatalogo(lastUser, cat);
     if (r.found) {
-      catalogHint = `\n\nCONTEXTO DE CATÁLOGO (uso interno): Para la consulta del cliente SÍ hay coincidencias en nuestro catálogo. Partes relacionadas: ${r.partes.join(", ")}. Marcas disponibles: ${r.marcas.join(", ")}. Confírmale con naturalidad que es probable que lo tengamos y pide el vehículo si aún no lo dio.`;
+      catalogHint = `\n\nCONTEXTO DE CATÁLOGO (uso interno): Para la consulta del cliente SÍ hay coincidencias en nuestro catálogo. Partes relacionadas: ${r.partes.join(", ")}. Marcas: ${r.marcas.join(", ")}. Confírmale con naturalidad que es probable que lo tengamos y pide el vehículo si aún no lo dio.`;
     } else if (lastUser.length > 3) {
       catalogHint = `\n\nCONTEXTO DE CATÁLOGO (uso interno): No hubo coincidencia exacta en la búsqueda rápida, pero trabajamos con muchísimas marcas y modelos. No digas que "no lo tenemos"; di que lo confirmaremos y pide marca, modelo y año.`;
     }
@@ -91,43 +90,36 @@ export async function POST(req: NextRequest) {
 
   const systemText = (mode === "soporte" ? REGLAS_SOPORTE : REGLAS_VENTAS) + catalogHint;
 
-  const raw = messages.map(m => ({ role: m.role, parts: [{ text: m.text }] }));
-  // Gemini exige que la conversación empiece con "user" y que no haya turnos consecutivos del mismo rol.
-  while (raw.length && raw[0].role !== "user") raw.shift();
-  const contents: { role: string; parts: { text: string }[] }[] = [];
-  for (const c of raw) {
-    const last = contents[contents.length - 1];
-    if (last && last.role === c.role) last.parts.push(...c.parts);
-    else contents.push(c);
-  }
-  if (contents.length === 0) {
-    return NextResponse.json({ reply: "¡Hola! Cuéntame, ¿qué repuesto buscas y para qué vehículo? 🔧" });
-  }
-
-  const payload = {
-    system_instruction: { parts: [{ text: systemText }] },
-    contents,
-    generationConfig: { temperature: 0.7, maxOutputTokens: 300 },
-  };
+  // Formato OpenAI (Groq): system + turnos user/assistant
+  const messages = [
+    { role: "system", content: systemText },
+    ...history.map(m => ({ role: m.role === "model" ? "assistant" : "user", content: m.text })),
+  ];
 
   try {
-    const res = await fetch(GEMINI_URL(apiKey), {
+    const res = await fetch(GROQ_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        messages,
+        temperature: 0.7,
+        max_tokens: 300,
+      }),
     });
     if (!res.ok) {
       const errText = await res.text();
-      console.error("[asesor] gemini error", res.status, errText);
-      // Diagnóstico temporal: mostramos el detalle para depurar
-      return NextResponse.json({ reply: `DIAG ${res.status}: ${errText.slice(0, 400)}` }, { status: 200 });
+      console.error("[asesor] groq error", res.status, errText);
+      return NextResponse.json({ reply: "Disculpa, tuve un problemita para responder. ¿Puedes escribirnos por WhatsApp? Te atendemos al toque. 🙌" }, { status: 200 });
     }
     const data = await res.json();
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
-      || "Cuéntame un poco más, por favor. 🙂";
+    const reply = data?.choices?.[0]?.message?.content?.trim() || "Cuéntame un poco más, por favor. 🙂";
     return NextResponse.json({ reply });
   } catch (e) {
-    console.error("[asesor] fetch error", e);
+    console.error("[asesor] groq fetch error", e);
     return NextResponse.json({ reply: "Estamos con una intermitencia. Escríbenos por WhatsApp y te ayudamos de inmediato. 🙌" }, { status: 200 });
   }
 }
