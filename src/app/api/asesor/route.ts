@@ -92,6 +92,12 @@ export async function POST(req: NextRequest) {
   const systemText = (mode === "soporte" ? REGLAS_SOPORTE : REGLAS_VENTAS) + catalogHint;
 
   const contents = messages.map(m => ({ role: m.role, parts: [{ text: m.text }] }));
+  // Gemini exige que la conversación empiece con un turno de rol "user".
+  // Descartamos cualquier saludo/mensaje inicial del bot al frente.
+  while (contents.length && contents[0].role !== "user") contents.shift();
+  if (contents.length === 0) {
+    return NextResponse.json({ reply: "¡Hola! Cuéntame, ¿qué repuesto buscas y para qué vehículo? 🔧" });
+  }
 
   const payload = {
     system_instruction: { parts: [{ text: systemText }] },
