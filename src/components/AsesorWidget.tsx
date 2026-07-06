@@ -6,63 +6,29 @@ import { X, Send, Mic, Headset, RefreshCw, Volume2, VolumeX } from "lucide-react
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
 
-type Msg = { from: "bot" | "user"; text: string };
-type Phase = "part" | "vehicle" | "support" | "done";
-type CatalogData = { motores: [string, string, string, string][] };
+type Msg = { role: "user" | "model"; text: string };
 
-const GREETING_VENTAS =
-  "¡Hola! 👋 Gracias por visitar *Pekín Global Parts*.\n\n" +
-  "Somos *importadores directos B2B* de autopartes 🚚:\n" +
-  "• Trabajamos por delivery (no tenemos tienda física), así te damos mejor precio.\n" +
-  "• Envíos a todo Lima y a provincia por la agencia que elijas.\n" +
-  "• Pago fácil y seguro *antes del despacho*: transferencia, Yape/Plin o *link de pago* con tarjeta 💳.\n\n" +
-  "Cuéntame, ¿qué repuesto estás buscando? 🔧";
+const SALUDO_VENTAS =
+  "¡Hola! 👋 Soy el asistente de *Pekín Global Parts*, importadores directos de autopartes.\n\nTrabajamos por delivery (sin tienda física) con pago seguro antes del despacho. Cuéntame, ¿qué repuesto estás buscando y para qué vehículo? 🔧";
 
-const GREETING_SOPORTE =
-  "¡Hola! 👋 Soy el asistente de *Pekín Global Parts*.\n\n" +
-  "¿En qué puedo ayudarte hoy? Puedo apoyarte con una *cotización*, un *pedido*, una *factura*, tu *línea de crédito* o cualquier consulta. Cuéntame y te derivo con un asesor. 🙌";
-
-function normalize(s: string) {
-  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-}
-
-function buscarEnCatalogo(query: string, motores: CatalogData["motores"]) {
-  const qWords = normalize(query).split(/\s+/).filter(w => w.length >= 4);
-  if (qWords.length === 0) return { found: false, partes: [] as string[], marcas: [] as string[] };
-  const matches = motores.filter(([p]) => {
-    const np = normalize(p);
-    return qWords.some(w => np.includes(w) || w.includes(np));
-  });
-  const partes = [...new Set(matches.map(m => m[0]))].slice(0, 4);
-  const marcas = [...new Set(matches.map(m => m[1]))].slice(0, 6);
-  return { found: matches.length > 0, partes, marcas };
-}
+const SALUDO_SOPORTE =
+  "¡Hola! 👋 Soy el asistente de *Pekín Global Parts*. ¿En qué puedo ayudarte hoy? Puedo apoyarte con cotizaciones, pedidos, facturas o tu línea de crédito. 🙌";
 
 export function AsesorWidget() {
   const pathname = usePathname() || "";
   const isAdmin = pathname.startsWith("/admin");
   const isSocio = pathname.startsWith("/socio");
   const mode: "ventas" | "soporte" = isSocio ? "soporte" : "ventas";
-  const greeting = mode === "soporte" ? GREETING_SOPORTE : GREETING_VENTAS;
+  const saludo = mode === "soporte" ? SALUDO_SOPORTE : SALUDO_VENTAS;
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
-  const [phase, setPhase] = useState<Phase>(mode === "soporte" ? "support" : "part");
   const [input, setInput] = useState("");
-  const [answers, setAnswers] = useState<{ repuesto: string; vehiculo: string; disponible: boolean | null }>({ repuesto: "", vehiculo: "", disponible: null });
-  const [supportMsg, setSupportMsg] = useState("");
+  const [loading, setLoading] = useState(false);
   const [voiceOn, setVoiceOn] = useState(false);
   const [listening, setListening] = useState(false);
-  const [catalog, setCatalog] = useState<CatalogData | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<{ start: () => void; stop: () => void } | null>(null);
-
-  // Cargar catálogo al abrir (una sola vez, solo en modo ventas)
-  useEffect(() => {
-    if (open && mode === "ventas" && !catalog) {
-      fetch("/catalogo-data.json").then(r => r.json()).then(setCatalog).catch(() => setCatalog({ motores: [] }));
-    }
-  }, [open, mode, catalog]);
 
   const speak = useCallback((text: string) => {
     if (!voiceOn || typeof window === "undefined" || !window.speechSynthesis) return;
@@ -74,71 +40,49 @@ export function AsesorWidget() {
   }, [voiceOn]);
 
   const pushBot = useCallback((text: string) => {
-    setMessages(prev => [...prev, { from: "bot", text }]);
+    setMessages(prev => [...prev, { role: "model", text }]);
     speak(text);
   }, [speak]);
 
   useEffect(() => {
-    if (open && messages.length === 0) pushBot(greeting);
-  }, [open, messages.length, pushBot, greeting]);
+    if (open && messages.length === 0) pushBot(saludo);
+  }, [open, messages.length, pushBot, saludo]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+  }, [messages, loading]);
 
-  const buildResumen = () => {
-    if (mode === "soporte") {
-      return `Hola, soy socio de Pekín Global Parts y necesito apoyo:\n\n"${supportMsg}"\n\nQuedo atento. ¡Gracias!`;
+  const enviarAsesor = async (history: Msg[]) => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/asesor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history, mode }),
+      });
+      const data = await res.json();
+      pushBot(data.reply || "¿Me repites, por favor? 🙂");
+    } catch {
+      pushBot("Estamos con una intermitencia. Escríbenos por WhatsApp y te ayudamos de inmediato. 🙌");
+    } finally {
+      setLoading(false);
     }
-    const dispo = answers.disponible === true
-      ? "Disponibilidad: preliminarmente SÍ (a confirmar)"
-      : "Disponibilidad: a confirmar con asesor";
-    return `Hola, consulta desde la web:\n\n` +
-      `🔧 Repuesto: ${answers.repuesto || "-"}\n` +
-      `🚗 Vehículo: ${answers.vehiculo || "-"}\n` +
-      `📋 ${dispo}\n\n` +
-      `Entiendo la modalidad: pago antes del despacho y envío a domicilio/agencia. Quedo atento al precio. ¡Gracias!`;
   };
 
   const handleSend = () => {
     const val = input.trim();
-    if (!val || phase === "done") return;
-    setMessages(prev => [...prev, { from: "user", text: val }]);
+    if (!val || loading) return;
+    const nuevo: Msg = { role: "user", text: val };
+    const history = [...messages, nuevo];
+    setMessages(history);
     setInput("");
-
-    if (phase === "support") {
-      setSupportMsg(val);
-      setPhase("done");
-      setTimeout(() => pushBot("¡Entendido! 🙌 Toca el botón verde y te derivo con un asesor por WhatsApp para atenderte al instante."), 450);
-      return;
-    }
-
-    if (phase === "part") {
-      const res = catalog ? buscarEnCatalogo(val, catalog.motores) : { found: false, partes: [], marcas: [] };
-      setAnswers(a => ({ ...a, repuesto: val, disponible: res.found }));
-      setPhase("vehicle");
-      setTimeout(() => {
-        if (res.found) {
-          const marcasTxt = res.marcas.length ? ` (${res.marcas.slice(0, 4).join(", ")}${res.marcas.length > 4 ? "..." : ""})` : "";
-          pushBot(`¡Buenas noticias! ✅ *Sí manejamos ese tipo de repuesto*${marcasTxt}.\n\nPara confirmarte disponibilidad exacta y precio, ¿para qué vehículo es? Indícame *marca, modelo y año*.`);
-        } else {
-          pushBot(`Puede que lo tengamos aunque no aparezca en mi lista rápida — trabajamos con muchas marcas. 👍\n\n¿Para qué vehículo es? Indícame *marca, modelo y año* y un asesor te confirma disponibilidad y precio.`);
-        }
-      }, 450);
-    } else if (phase === "vehicle") {
-      setAnswers(a => ({ ...a, vehiculo: val }));
-      setPhase("done");
-      setTimeout(() => {
-        pushBot(`¡Perfecto! 📦 Ya tengo tu consulta. Haz clic en el botón verde para enviarla por WhatsApp y un asesor te dará el precio de inmediato. 🚚`);
-      }, 450);
-    }
+    enviarAsesor(history);
   };
 
   const resetChat = () => {
-    setMessages([]); setPhase(mode === "soporte" ? "support" : "part"); setInput("");
-    setAnswers({ repuesto: "", vehiculo: "", disponible: null });
-    setSupportMsg("");
-    setTimeout(() => pushBot(greeting), 200);
+    setMessages([]);
+    setInput("");
+    setTimeout(() => pushBot(saludo), 150);
   };
 
   const toggleListen = () => {
@@ -158,12 +102,18 @@ export function AsesorWidget() {
     rec.start(); setListening(true);
   };
 
-  const placeholder = phase === "support" ? "Escribe tu consulta..."
-    : phase === "part" ? "Ej: pastillas de freno, amortiguador..."
-    : "Ej: Toyota Hilux 2020";
-  const waHref = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(buildResumen())}`;
+  // Mensaje para WhatsApp: resumen de la conversación del cliente
+  const buildWa = () => {
+    const userMsgs = messages.filter(m => m.role === "user").map(m => m.text);
+    const cuerpo = userMsgs.length
+      ? `Mi consulta:\n${userMsgs.map(t => `• ${t}`).join("\n")}`
+      : "Quiero hacer una consulta sobre un repuesto.";
+    const rol = mode === "soporte" ? "Soy socio y necesito apoyo." : "Consulta desde la web.";
+    return `Hola, ${rol}\n\n${cuerpo}\n\nQuedo atento. ¡Gracias!`;
+  };
+  const waHref = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(buildWa())}`;
+  const yaConverso = messages.filter(m => m.role === "user").length > 0;
 
-  // No mostrar el asesor en el panel admin (uso interno)
   if (isAdmin) return null;
 
   return (
@@ -203,46 +153,53 @@ export function AsesorWidget() {
 
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-2.5 bg-slate-50">
             {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.from === "user" ? "justify-end" : "justify-start"}`}>
+              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-sm whitespace-pre-line leading-relaxed ${
-                  m.from === "user" ? "bg-[#e8121a] text-white rounded-br-md" : "bg-white text-slate-700 border border-slate-200 rounded-bl-md"
+                  m.role === "user" ? "bg-[#e8121a] text-white rounded-br-md" : "bg-white text-slate-700 border border-slate-200 rounded-bl-md"
                 }`}>{m.text}</div>
               </div>
             ))}
 
-            {phase === "done" && (
-              <div className="flex flex-col gap-2 pt-1">
+            {loading && (
+              <div className="flex justify-start">
+                <div className="bg-white text-slate-400 border border-slate-200 rounded-2xl rounded-bl-md px-4 py-3 text-sm">
+                  <span className="inline-flex gap-1">
+                    <span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {yaConverso && !loading && (
+              <div className="pt-1">
                 <a href={waHref} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition-colors text-sm">
+                  className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-2.5 rounded-xl transition-colors text-sm">
                   <Send className="h-4 w-4" /> Enviar mi consulta por WhatsApp
-                </a>
-                <a href="/catalogo" className="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-semibold py-2.5 rounded-xl transition-colors text-sm">
-                  Ver catálogo de repuestos
                 </a>
               </div>
             )}
           </div>
 
-          {phase !== "done" && (
-            <div className="p-3 border-t border-slate-100 bg-white">
-              <div className="flex items-end gap-2">
-                <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSend()}
-                  placeholder={placeholder}
-                  className="flex-1 border border-slate-200 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]" />
-                <button onClick={toggleListen} title="Hablar"
-                  className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center transition-colors ${listening ? "bg-red-100 text-red-600 animate-pulse" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
-                  <Mic className="h-4 w-4" />
-                </button>
-                <button onClick={handleSend} disabled={!input.trim()}
-                  className="shrink-0 h-10 w-10 rounded-full bg-[#0f1f3d] hover:bg-[#16294f] disabled:opacity-40 text-white flex items-center justify-center transition-colors">
-                  <Send className="h-4 w-4" />
-                </button>
-              </div>
-              <p className="text-[10px] text-slate-400 text-center mt-1.5">
-                {listening ? "🎤 Escuchando... habla ahora" : "Responde o toca el micrófono 🎤 para hablar"}
-              </p>
+          <div className="p-3 border-t border-slate-100 bg-white">
+            <div className="flex items-end gap-2">
+              <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSend()}
+                placeholder="Escribe tu mensaje..."
+                className="flex-1 border border-slate-200 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]" />
+              <button onClick={toggleListen} title="Hablar"
+                className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center transition-colors ${listening ? "bg-red-100 text-red-600 animate-pulse" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+                <Mic className="h-4 w-4" />
+              </button>
+              <button onClick={handleSend} disabled={!input.trim() || loading}
+                className="shrink-0 h-10 w-10 rounded-full bg-[#0f1f3d] hover:bg-[#16294f] disabled:opacity-40 text-white flex items-center justify-center transition-colors">
+                <Send className="h-4 w-4" />
+              </button>
             </div>
-          )}
+            <p className="text-[10px] text-slate-400 text-center mt-1.5">
+              {listening ? "🎤 Escuchando... habla ahora" : "Escribe o toca el micrófono 🎤 para hablar"}
+            </p>
+          </div>
         </div>
       )}
     </>
