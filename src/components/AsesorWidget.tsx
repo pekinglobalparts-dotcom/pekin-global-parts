@@ -170,7 +170,7 @@ export function AsesorWidget() {
     <>
       {!open && (
         <button onClick={() => setOpen(true)}
-          className="fixed bottom-24 right-5 z-40 flex items-center gap-2 bg-[#0f1f3d] hover:bg-[#16294f] text-white pl-4 pr-5 py-3 rounded-full shadow-2xl transition-all hover:-translate-y-0.5"
+          className="fixed bottom-6 right-5 z-40 flex items-center gap-2 bg-[#0f1f3d] hover:bg-[#16294f] text-white pl-4 pr-5 py-3 rounded-full shadow-2xl transition-all hover:-translate-y-0.5"
           aria-label="Abrir asesor">
           <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#e8121a]">
             <Headset className="h-5 w-5" />

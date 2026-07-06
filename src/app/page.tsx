@@ -796,7 +796,7 @@ function Footer({ onOpenReclamacion }: { onOpenReclamacion: () => void }) {
 function WhatsAppFAB() {
   return (
     <a href={waLink("Hola, quiero consultar sobre repuestos")} target="_blank" rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-xl hover:shadow-2xl transition-all hover:scale-110"
+      className="fixed bottom-6 left-6 z-50 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-xl hover:shadow-2xl transition-all hover:scale-110"
       aria-label="Contactar por WhatsApp">
       {WA_ICON}
     </a>
