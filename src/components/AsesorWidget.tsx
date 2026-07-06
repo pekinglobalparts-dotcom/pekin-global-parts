@@ -6,24 +6,23 @@ import { X, Send, Mic, Headset, RefreshCw, Volume2, VolumeX } from "lucide-react
 const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
 
 type Msg = { from: "bot" | "user"; text: string };
+type Phase = "intro" | "asking" | "done" | "declined";
 
-// Pasos del asesor: cada uno pregunta y guarda una respuesta
-type StepKey = "repuesto" | "vehiculo" | "zona" | "nombre" | "done";
+const INTRO = "¡Hola! 👋 Soy el asistente de *Pekín Global Parts*.\n\nAntes de empezar, así trabajamos:\n\n• Somos *importadores directos* de autopartes.\n• *No contamos con tienda física.*\n• Trabajamos con *entrega a domicilio* (pago contra entrega en Lima o pago previo).\n• Para provincia: envío por agencia (previo pago).\n\n¿Estás de acuerdo en continuar con esta modalidad?";
 
-const STEPS: { key: StepKey; pregunta: string; placeholder: string }[] = [
-  { key: "repuesto", pregunta: "¡Hola! 👋 Soy el asistente de Pekín Global Parts. Te ayudo a cotizar en 1 minuto.\n\n¿Qué repuesto necesitas?", placeholder: "Ej: corona y piñón, pastillas de freno..." },
-  { key: "vehiculo", pregunta: "Perfecto 🔧 ¿Para qué vehículo es? Indícame marca, modelo y año.", placeholder: "Ej: Toyota Hilux 2020" },
-  { key: "zona", pregunta: "Somos importadores directos con *entrega a domicilio* en Lima y envíos a provincia (no tenemos tienda física, así te damos mejor precio 💪).\n\n¿A qué distrito o ciudad sería la entrega?", placeholder: "Ej: San Isidro, Lima / Arequipa" },
-  { key: "nombre", pregunta: "¡Genial! Por último, ¿a nombre de quién registro la consulta?", placeholder: "Tu nombre" },
+// Preguntas tras aceptar la modalidad
+const STEPS: { key: string; pregunta: string; placeholder: string }[] = [
+  { key: "repuesto", pregunta: "¡Perfecto! 🔧 ¿Qué repuesto necesitas?", placeholder: "Ej: corona y piñón, pastillas de freno..." },
+  { key: "vehiculo", pregunta: "¿Para qué vehículo es? Indícame *marca, modelo y año*.", placeholder: "Ej: Toyota Hilux 2020" },
 ];
 
 export function AsesorWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
+  const [phase, setPhase] = useState<Phase>("intro");
   const [stepIndex, setStepIndex] = useState(0);
   const [input, setInput] = useState("");
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [finished, setFinished] = useState(false);
   const [voiceOn, setVoiceOn] = useState(false);
   const [listening, setListening] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -31,7 +30,7 @@ export function AsesorWidget() {
 
   const speak = useCallback((text: string) => {
     if (!voiceOn || typeof window === "undefined" || !window.speechSynthesis) return;
-    const clean = text.replace(/[*_🔧👋💪📦🚚✅]/g, "");
+    const clean = text.replace(/[*_🔧👋💪📦🚚✅•]/g, "");
     const u = new SpeechSynthesisUtterance(clean);
     u.lang = "es-PE";
     u.rate = 1.05;
@@ -44,10 +43,10 @@ export function AsesorWidget() {
     speak(text);
   }, [speak]);
 
-  // Al abrir por primera vez, saludar
+  // Al abrir por primera vez, mostrar intro
   useEffect(() => {
     if (open && messages.length === 0) {
-      pushBot(STEPS[0].pregunta);
+      pushBot(INTRO);
     }
   }, [open, messages.length, pushBot]);
 
@@ -58,15 +57,26 @@ export function AsesorWidget() {
   const buildResumen = (a: Record<string, string>) => {
     return `Hola, quiero cotizar un repuesto (consulta desde la web):\n\n` +
       `🔧 Repuesto: ${a.repuesto || "-"}\n` +
-      `🚗 Vehículo: ${a.vehiculo || "-"}\n` +
-      `📍 Entrega en: ${a.zona || "-"}\n` +
-      `👤 Nombre: ${a.nombre || "-"}\n\n` +
-      `Quedo atento a la cotización. ¡Gracias!`;
+      `🚗 Vehículo: ${a.vehiculo || "-"}\n\n` +
+      `Ya conozco la modalidad de entrega a domicilio. Quedo atento a la cotización. ¡Gracias!`;
+  };
+
+  // El usuario acepta o rechaza la modalidad
+  const responderIntro = (acepta: boolean) => {
+    setMessages(prev => [...prev, { from: "user", text: acepta ? "Sí, continúo" : "No, gracias" }]);
+    if (acepta) {
+      setPhase("asking");
+      setStepIndex(0);
+      setTimeout(() => pushBot(STEPS[0].pregunta), 400);
+    } else {
+      setPhase("declined");
+      setTimeout(() => pushBot("Entiendo 🙏 Si en algún momento te acomoda la entrega a domicilio, aquí estaremos. También puedes revisar nuestro catálogo cuando gustes. ¡Gracias por tu visita!"), 400);
+    }
   };
 
   const handleSend = () => {
     const val = input.trim();
-    if (!val || finished) return;
+    if (!val || phase !== "asking") return;
     setMessages(prev => [...prev, { from: "user", text: val }]);
     const currentKey = STEPS[stepIndex].key;
     const newAnswers = { ...answers, [currentKey]: val };
@@ -78,21 +88,20 @@ export function AsesorWidget() {
       setStepIndex(next);
       setTimeout(() => pushBot(STEPS[next].pregunta), 400);
     } else {
-      // Terminado
-      setFinished(true);
+      setPhase("done");
       setTimeout(() => {
-        pushBot("¡Listo! 📦 Preparé tu consulta. Haz clic en el botón verde para enviarla por WhatsApp y te cotizamos de inmediato. Si prefieres, también puedes revisar nuestro catálogo.");
+        pushBot("¡Listo! 📦 Ya tengo tu consulta. Haz clic en el botón verde para enviarla por WhatsApp y te damos el precio de inmediato. 🚚");
       }, 400);
     }
   };
 
   const resetChat = () => {
     setMessages([]);
+    setPhase("intro");
     setStepIndex(0);
     setAnswers({});
-    setFinished(false);
     setInput("");
-    setTimeout(() => pushBot(STEPS[0].pregunta), 200);
+    setTimeout(() => pushBot(INTRO), 200);
   };
 
   // Reconocimiento de voz (navegador, gratis)
@@ -176,7 +185,7 @@ export function AsesorWidget() {
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-2.5 bg-slate-50">
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.from === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[80%] px-3.5 py-2.5 rounded-2xl text-sm whitespace-pre-line leading-relaxed ${
+                <div className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-sm whitespace-pre-line leading-relaxed ${
                   m.from === "user"
                     ? "bg-[#e8121a] text-white rounded-br-md"
                     : "bg-white text-slate-700 border border-slate-200 rounded-bl-md"
@@ -186,8 +195,22 @@ export function AsesorWidget() {
               </div>
             ))}
 
+            {/* Botones Sí / No de la intro */}
+            {phase === "intro" && (
+              <div className="flex gap-2 pt-1">
+                <button onClick={() => responderIntro(true)}
+                  className="flex-1 bg-[#0f1f3d] hover:bg-[#16294f] text-white font-bold py-2.5 rounded-xl text-sm transition-colors">
+                  ✅ Sí, continúo
+                </button>
+                <button onClick={() => responderIntro(false)}
+                  className="flex-1 bg-white border border-slate-200 hover:border-slate-300 text-slate-600 font-semibold py-2.5 rounded-xl text-sm transition-colors">
+                  No, gracias
+                </button>
+              </div>
+            )}
+
             {/* CTA final */}
-            {finished && (
+            {phase === "done" && (
               <div className="flex flex-col gap-2 pt-1">
                 <a href={waHref} target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition-colors text-sm">
@@ -199,10 +222,22 @@ export function AsesorWidget() {
                 </a>
               </div>
             )}
+
+            {/* Rechazó: dar opción de catálogo */}
+            {phase === "declined" && (
+              <div className="flex flex-col gap-2 pt-1">
+                <a href="/catalogo"
+                  className="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-semibold py-2.5 rounded-xl transition-colors text-sm">
+                  Ver catálogo de repuestos
+                </a>
+                <button onClick={resetChat}
+                  className="text-xs text-slate-400 hover:text-slate-600 py-1">Volver a empezar</button>
+              </div>
+            )}
           </div>
 
-          {/* Input */}
-          {!finished && (
+          {/* Input (solo mientras hace preguntas) */}
+          {phase === "asking" && (
             <div className="p-3 border-t border-slate-100 bg-white">
               <div className="flex items-end gap-2">
                 <input
