@@ -9,10 +9,10 @@ const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
 type Msg = { role: "user" | "model"; text: string };
 
 const SALUDO_VENTAS =
-  "¡Hola! 👋 Soy el asistente de *Pekín Global Parts*, importadores directos de autopartes.\n\nTrabajamos por delivery (sin tienda física) con pago seguro antes del despacho. Cuéntame, ¿qué repuesto estás buscando y para qué vehículo? 🔧";
+  "¡Hola! 👋 Bienvenido a *Pekín S&A*, tu aliado en importación de autopartes. 🚗\n\nCuéntame, ¿qué repuesto estás buscando y para qué vehículo? Con gusto te ayudo. 🔧";
 
 const SALUDO_SOPORTE =
-  "¡Hola! 👋 Soy el asistente de *Pekín Global Parts*. ¿En qué puedo ayudarte hoy? Puedo apoyarte con cotizaciones, pedidos, facturas o tu línea de crédito. 🙌";
+  "¡Hola! 👋 Soy el asistente de *Pekín S&A*. ¿En qué puedo ayudarte hoy? Puedo apoyarte con cotizaciones, pedidos, facturas o tu línea de crédito. 🙌";
 
 export function AsesorWidget() {
   const pathname = usePathname() || "";
