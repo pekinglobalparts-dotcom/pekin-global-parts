@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Logo, LogoWhite } from "@/components/Logo";
+import { AsesorWidget } from "@/components/AsesorWidget";
 import { X } from "lucide-react";
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
@@ -818,6 +819,7 @@ export default function HomePage() {
       </main>
       <Footer onOpenReclamacion={() => setShowReclamacion(true)} />
       <WhatsAppFAB />
+      <AsesorWidget />
       {showReclamacion && <ReclamacionModal onClose={() => setShowReclamacion(false)} />}
     </>
   );
