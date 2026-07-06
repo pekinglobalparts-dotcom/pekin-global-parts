@@ -9,10 +9,10 @@ const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
 type Msg = { role: "user" | "model"; text: string };
 
 const SALUDO_VENTAS =
-  "¡Hola! 👋 Bienvenido a *Pekín S&A*, tu aliado en importación de autopartes. 🚗\n\nCuéntame, ¿qué repuesto estás buscando y para qué vehículo? Con gusto te ayudo. 🔧";
+  "¡Hola! 👋 Bienvenido a *Pekín S&A* — *tu aliado en movimiento*. 🚗\n\nSomos importadores directos de autopartes. Cuéntame, ¿qué repuesto estás buscando y para qué vehículo? 🔧";
 
 const SALUDO_SOPORTE =
-  "¡Hola! 👋 Soy el asistente de *Pekín S&A*. ¿En qué puedo ayudarte hoy? Puedo apoyarte con cotizaciones, pedidos, facturas o tu línea de crédito. 🙌";
+  "¡Hola! 👋 Soy el asistente de *Pekín S&A* — *tu aliado en movimiento*. ¿En qué puedo ayudarte hoy? Puedo apoyarte con cotizaciones, pedidos, facturas o tu línea de crédito. 🙌";
 
 export function AsesorWidget() {
   const pathname = usePathname() || "";
@@ -23,6 +23,7 @@ export function AsesorWidget() {
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
+  const [greeted, setGreeted] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [voiceOn, setVoiceOn] = useState(false);
@@ -44,9 +45,7 @@ export function AsesorWidget() {
     speak(text);
   }, [speak]);
 
-  useEffect(() => {
-    if (open && messages.length === 0) pushBot(saludo);
-  }, [open, messages.length, pushBot, saludo]);
+  // El saludo se muestra recién tras el primer mensaje del cliente (no antes).
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -69,6 +68,8 @@ export function AsesorWidget() {
     }
   };
 
+  const GREETING_RE = /^(hola|holi|ola|buenas|buenos dias|buenos días|buenas tardes|buenas noches|hi|hey|hello|que tal|qué tal|saludos|buen dia|buen día)\b/i;
+
   const handleSend = () => {
     const val = input.trim();
     if (!val || loading) return;
@@ -76,13 +77,24 @@ export function AsesorWidget() {
     const history = [...messages, nuevo];
     setMessages(history);
     setInput("");
+
+    // Primer mensaje del cliente → mostramos nuestro saludo de marca (fijo)
+    if (!greeted) {
+      setGreeted(true);
+      setTimeout(() => pushBot(saludo), 300);
+      // Si el primer mensaje NO fue solo un saludo, además lo respondemos con IA
+      if (!GREETING_RE.test(val)) {
+        setTimeout(() => enviarAsesor(history), 900);
+      }
+      return;
+    }
     enviarAsesor(history);
   };
 
   const resetChat = () => {
     setMessages([]);
+    setGreeted(false);
     setInput("");
-    setTimeout(() => pushBot(saludo), 150);
   };
 
   const toggleListen = () => {
@@ -152,6 +164,15 @@ export function AsesorWidget() {
           </div>
 
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-2.5 bg-slate-50">
+            {messages.length === 0 && (
+              <div className="h-full flex flex-col items-center justify-center text-center px-4 text-slate-400">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#0f1f3d] mb-3">
+                  <Headset className="h-7 w-7 text-white" />
+                </span>
+                <p className="text-sm font-bold text-slate-600">¡Hola! 👋 Escríbeme para empezar</p>
+                <p className="text-xs mt-1">Cuéntame qué repuesto buscas y te ayudo al instante.</p>
+              </div>
+            )}
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-sm whitespace-pre-line leading-relaxed ${
