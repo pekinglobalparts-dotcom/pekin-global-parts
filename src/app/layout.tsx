@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { AsesorWidget } from "@/components/AsesorWidget";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -62,6 +65,9 @@ export default function RootLayout({
     <html lang="es" className={inter.variable} style={{ scrollBehavior: "smooth" }}>
       <body className="min-h-screen bg-white font-sans antialiased">
         {children}
+        <AsesorWidget />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
