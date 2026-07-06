@@ -91,10 +91,15 @@ export async function POST(req: NextRequest) {
 
   const systemText = (mode === "soporte" ? REGLAS_SOPORTE : REGLAS_VENTAS) + catalogHint;
 
-  const contents = messages.map(m => ({ role: m.role, parts: [{ text: m.text }] }));
-  // Gemini exige que la conversación empiece con un turno de rol "user".
-  // Descartamos cualquier saludo/mensaje inicial del bot al frente.
-  while (contents.length && contents[0].role !== "user") contents.shift();
+  const raw = messages.map(m => ({ role: m.role, parts: [{ text: m.text }] }));
+  // Gemini exige que la conversación empiece con "user" y que no haya turnos consecutivos del mismo rol.
+  while (raw.length && raw[0].role !== "user") raw.shift();
+  const contents: { role: string; parts: { text: string }[] }[] = [];
+  for (const c of raw) {
+    const last = contents[contents.length - 1];
+    if (last && last.role === c.role) last.parts.push(...c.parts);
+    else contents.push(c);
+  }
   if (contents.length === 0) {
     return NextResponse.json({ reply: "¡Hola! Cuéntame, ¿qué repuesto buscas y para qué vehículo? 🔧" });
   }
@@ -114,7 +119,8 @@ export async function POST(req: NextRequest) {
     if (!res.ok) {
       const errText = await res.text();
       console.error("[asesor] gemini error", res.status, errText);
-      return NextResponse.json({ reply: "Disculpa, tuve un problemita para responder. ¿Puedes escribirnos por WhatsApp? Te atendemos al toque. 🙌" }, { status: 200 });
+      // Diagnóstico temporal: mostramos el código para depurar
+      return NextResponse.json({ reply: `Disculpa, tuve un problemita para responder (cód. ${res.status}). ¿Puedes escribirnos por WhatsApp? 🙌`, debug: errText.slice(0, 300) }, { status: 200 });
     }
     const data = await res.json();
     const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
