@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Fredoka, Nunito, Pacifico } from "next/font/google";
+import { Cinzel, Cormorant_Garamond, Great_Vibes, Jost } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
-const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito" });
-const fredoka = Fredoka({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-fredoka" });
-const pacifico = Pacifico({ subsets: ["latin"], weight: "400", variable: "--font-pacifico" });
+const jost = Jost({ subsets: ["latin"], weight: ["300", "400", "500", "600"], variable: "--font-jost" });
+const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-cormorant" });
+const cinzel = Cinzel({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-cinzel" });
+const greatvibes = Great_Vibes({ subsets: ["latin"], weight: "400", variable: "--font-greatvibes" });
 
 export const metadata: Metadata = {
   title: {
@@ -47,10 +48,10 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${nunito.variable} ${fredoka.variable} ${pacifico.variable}`}
+      className={`${jost.variable} ${cormorant.variable} ${cinzel.variable} ${greatvibes.variable}`}
       style={{ scrollBehavior: "smooth" }}
     >
-      <body className="min-h-screen bg-[#faf5ff] font-sans antialiased">
+      <body className="min-h-screen antialiased">
         {children}
         <Analytics />
         <SpeedInsights />
