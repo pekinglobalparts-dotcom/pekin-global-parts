@@ -1,57 +1,39 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Baloo_2, Nunito } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { AsesorWidget } from "@/components/AsesorWidget";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito" });
+const baloo = Baloo_2({ subsets: ["latin"], variable: "--font-baloo" });
 
 export const metadata: Metadata = {
   title: {
-    default: "Pekin Global Parts | Importadora de Autopartes B2B",
-    template: "%s | Pekin Global Parts",
+    default: "SOV DECO PARTHY | Decoración para tus eventos y celebraciones",
+    template: "%s | SOV DECO PARTHY",
   },
   description:
-    "Plataforma B2B exclusiva para empresas. Importadora especializada en autopartes de alta calidad para flotas corporativas, concesionarias y talleres en Perú.",
+    "SOV DECO PARTHY — Decoración y arreglos decorativos para cumpleaños, baby shower, 15 y 18 años, bautizos y toda celebración. Cotiza por WhatsApp y hacemos realidad la decoración de tus sueños.",
   keywords: [
-    "autopartes",
-    "repuestos",
-    "importadora",
-    "B2B",
-    "flotas",
-    "concesionarias",
-    "Perú",
-    "Pekin",
+    "decoración",
+    "decoraciones",
+    "cumpleaños",
+    "baby shower",
+    "15 años",
+    "18 años",
+    "bautizo",
+    "eventos",
+    "fiestas",
+    "globos",
+    "SOV DECO PARTHY",
   ],
   openGraph: {
     type: "website",
     locale: "es_PE",
-    url: "https://www.pekinglobalparts.com",
-    siteName: "Pekin Global Parts",
-    title: "Pekin Global Parts | Importadora de Autopartes B2B",
+    siteName: "SOV DECO PARTHY",
+    title: "SOV DECO PARTHY | Decoración para tus eventos y celebraciones",
     description:
-      "Plataforma B2B exclusiva para empresas. Importadora especializada en autopartes de alta calidad.",
-    images: [
-      {
-        url: "https://www.pekinglobalparts.com/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Pekín S&A — Tu aliado en movimiento",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Pekin Global Parts | Importadora de Autopartes B2B",
-    description: "Plataforma B2B exclusiva para empresas automotrices en Perú.",
-    images: ["https://www.pekinglobalparts.com/og-image.jpg"],
-  },
-  icons: {
-    icon: [
-      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
-    ],
-    apple: "/icon-512.png",
+      "Decoración y arreglos decorativos para cumpleaños, baby shower, 15 y 18 años, bautizos y más. Cotiza por WhatsApp.",
   },
   robots: { index: true, follow: true },
 };
@@ -62,10 +44,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={inter.variable} style={{ scrollBehavior: "smooth" }}>
-      <body className="min-h-screen bg-white font-sans antialiased">
+    <html
+      lang="es"
+      className={`${nunito.variable} ${baloo.variable}`}
+      style={{ scrollBehavior: "smooth" }}
+    >
+      <body className="min-h-screen bg-[#faf5ff] font-sans antialiased">
         {children}
-        <AsesorWidget />
         <Analytics />
         <SpeedInsights />
       </body>

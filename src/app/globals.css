@@ -1,7 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-nunito);
+  --font-display: var(--font-baloo);
+}
+
+.font-display {
+  font-family: var(--font-display, var(--font-sans, system-ui, sans-serif));
 }
 
 * {
@@ -29,4 +34,38 @@ body {
 }
 .animate-marquee-reverse {
   animation: marquee-reverse 22s linear infinite;
+}
+
+/* ===== SOV DECO PARTHY — animaciones de globos y detalles ===== */
+@keyframes sov-float {
+  0%   { transform: translateY(0) rotate(-3deg); }
+  50%  { transform: translateY(-22px) rotate(3deg); }
+  100% { transform: translateY(0) rotate(-3deg); }
+}
+@keyframes sov-float-slow {
+  0%   { transform: translateY(0) rotate(2deg); }
+  50%  { transform: translateY(-14px) rotate(-2deg); }
+  100% { transform: translateY(0) rotate(2deg); }
+}
+@keyframes sov-rise {
+  0%   { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes sov-gradient {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes sov-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37,211,102,0.55); }
+  50%      { transform: scale(1.06); box-shadow: 0 0 0 16px rgba(37,211,102,0); }
+}
+.sov-float      { animation: sov-float 6s ease-in-out infinite; }
+.sov-float-slow { animation: sov-float-slow 8s ease-in-out infinite; }
+.sov-rise       { animation: sov-rise 0.8s ease-out both; }
+.sov-gradient   { background-size: 200% 200%; animation: sov-gradient 12s ease infinite; }
+.sov-wa-pulse   { animation: sov-pulse 2.4s ease-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sov-float, .sov-float-slow, .sov-rise, .sov-gradient, .sov-wa-pulse { animation: none; }
 }
