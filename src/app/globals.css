@@ -2,11 +2,66 @@
 
 :root {
   --font-sans: var(--font-nunito);
-  --font-display: var(--font-baloo);
+  --font-display: var(--font-fredoka);
+  --font-script: var(--font-pacifico);
 }
 
 .font-display {
   font-family: var(--font-display, var(--font-sans, system-ui, sans-serif));
+}
+.font-script {
+  font-family: var(--font-script, cursive);
+}
+
+/* ===== Logotipo SOV DECO PARTHY ===== */
+.sov-logo { display: inline-flex; align-items: center; gap: 12px; line-height: 1; }
+.sov-logo .sov-balloons { flex: none; filter: drop-shadow(0 6px 6px rgba(120, 70, 160, 0.18)); }
+.sov-logo-tx { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.sov-logo-top {
+  font-family: var(--font-display, sans-serif);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.92em;
+  line-height: 1;
+  background: linear-gradient(90deg, #7c2fbf, #a021d6, #d946ef);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.sov-logo-script {
+  font-family: var(--font-script, cursive);
+  position: relative;
+  display: inline-block;
+  font-size: 2.15em;
+  line-height: 0.9;
+  padding: 0 0.12em 0.1em 0;
+  background: linear-gradient(95deg, #ec4899, #d946ef 55%, #fb7185);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  transform: rotate(-4deg);
+  transform-origin: left center;
+  filter: drop-shadow(0 2px 1px rgba(217, 70, 239, 0.15));
+}
+.sov-logo-script .sov-swash {
+  position: absolute;
+  left: 2%;
+  bottom: -0.05em;
+  width: 96%;
+  height: 0.32em;
+  overflow: visible;
+}
+.sov-logo--hero { flex-direction: column; gap: 4px; font-size: 30px; }
+.sov-logo--hero .sov-logo-tx { align-items: center; gap: 2px; }
+.sov-logo--hero .sov-logo-top { letter-spacing: 0.28em; font-size: 0.8em; }
+.sov-logo--hero .sov-logo-script { font-size: 2.7em; transform: rotate(-3deg); }
+.sov-logo--header { font-size: 15px; }
+.sov-logo--footer { font-size: 16px; }
+@media (min-width: 640px) { .sov-logo--hero { font-size: 40px; } }
+@media (max-width: 560px) {
+  .sov-logo--header { font-size: 12.5px; }
+  .sov-logo--header .sov-balloons { width: 26px; height: auto; }
 }
 
 * {

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Baloo_2, Nunito } from "next/font/google";
+import { Fredoka, Nunito, Pacifico } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"], variable: "--font-nunito" });
-const baloo = Baloo_2({ subsets: ["latin"], variable: "--font-baloo" });
+const fredoka = Fredoka({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-fredoka" });
+const pacifico = Pacifico({ subsets: ["latin"], weight: "400", variable: "--font-pacifico" });
 
 export const metadata: Metadata = {
   title: {
@@ -46,7 +47,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${nunito.variable} ${baloo.variable}`}
+      className={`${nunito.variable} ${fredoka.variable} ${pacifico.variable}`}
       style={{ scrollBehavior: "smooth" }}
     >
       <body className="min-h-screen bg-[#faf5ff] font-sans antialiased">

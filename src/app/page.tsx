@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SovLogo } from "@/components/SovLogo";
 
 /* ============================================================
    SOV DECO PARTHY — Página informativa (una sola vista)
@@ -93,11 +94,8 @@ export default function Home() {
       {/* ===== Barra superior (sin otras pestañas) ===== */}
       <header className="sticky top-0 z-40 border-b border-white/50 bg-white/70 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
-          <a href="#inicio" className="flex items-center gap-2" aria-label="SOV DECO PARTHY inicio">
-            <span className="text-2xl">🎈</span>
-            <span className="font-display text-xl font-extrabold tracking-tight text-purple-700 sm:text-2xl">
-              SOV <span className="text-pink-500">DECO</span> PARTHY
-            </span>
+          <a href="#inicio" aria-label="SOV DECO PARTHY inicio">
+            <SovLogo variant="header" />
           </a>
           <a
             href={WA_DEFAULT}
@@ -126,8 +124,8 @@ export default function Home() {
           <span className="sov-rise inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-1.5 text-sm font-bold text-purple-600 shadow-sm ring-1 ring-white">
             ✨ Decoraciones que enamoran ✨
           </span>
-          <h1 className="sov-rise mt-6 font-display text-4xl font-extrabold leading-tight text-purple-800 sm:text-6xl">
-            SOV <span className="text-pink-500">DECO</span> PARTHY
+          <h1 className="sov-rise mt-6 flex justify-center">
+            <SovLogo variant="hero" />
           </h1>
           <p className="sov-rise mx-auto mt-5 max-w-xl text-lg font-semibold text-slate-600 sm:text-xl">
             Decoración y arreglos decorativos para{" "}
@@ -299,12 +297,7 @@ export default function Home() {
       {/* ===== FOOTER ===== */}
       <footer className="border-t border-purple-100 bg-white px-5 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 text-center">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🎈</span>
-            <span className="font-display text-xl font-extrabold text-purple-700">
-              SOV <span className="text-pink-500">DECO</span> PARTHY
-            </span>
-          </div>
+          <SovLogo variant="footer" />
           <p className="max-w-md text-sm font-medium text-slate-500">
             Decoración y arreglos decorativos para cumpleaños, baby shower, 15 y 18 años,
             bautizos y toda celebración especial. 💜
