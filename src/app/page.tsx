@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SovLogo } from "@/components/SovLogo";
+import { SovGaleria, type GalItem } from "@/components/SovGaleria";
 
 /* ============================================================
    SOV DECO PARTHY — Página informativa (una sola vista)
@@ -60,15 +61,21 @@ const servicios = [
   { t: "Eventos especiales", d: "¿Otra ocasión? La ambientamos a la altura del momento.", p: "M12 3l2 5 5 .5-3.8 3.3L16.5 17 12 14.3 7.5 17l1.3-5.2L5 8.5 10 8z" },
 ];
 
-const galeria = ["Cumpleaños", "Baby Shower", "15 años", "Bautizo", "Aniversario", "Evento"];
+// Cuando lleguen las fotos, se agrega `src` a cada una (ej. src: "/sov/galeria/1.jpg")
+const galeria: GalItem[] = [
+  { label: "Cumpleaños" },
+  { label: "Baby Shower" },
+  { label: "15 años" },
+  { label: "Bautizo" },
+  { label: "Aniversario" },
+  { label: "Evento" },
+];
 
 const pasos = [
   { n: "01", t: "Escríbenos", d: "Cuéntanos qué celebras y para qué fecha, por WhatsApp." },
   { n: "02", t: "Comparte tu idea", d: "Envíanos la foto o el modelo de decoración que deseas." },
   { n: "03", t: "Recibe tu cotización", d: "Te preparamos una propuesta a tu medida, sin compromiso." },
 ];
-
-const camPath = "M3 8a2 2 0 012-2h2l1.5-2h7L17 6h2a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z";
 
 export default function Home() {
   return (
@@ -153,14 +160,7 @@ export default function Home() {
               Algunas de nuestras creaciones. ¿Te inspira alguna o tienes tu propio modelo? Lo hacemos realidad para ti.
             </p>
           </div>
-          <div className="gal-grid">
-            {galeria.map((label) => (
-              <div className="frame" key={label}>
-                <svg className="cam" viewBox="0 0 24 24"><path d={camPath} /><circle cx="12" cy="12.5" r="3.2" /></svg>
-                <span className="cap">{label}</span>
-              </div>
-            ))}
-          </div>
+          <SovGaleria items={galeria} waNumber={WA_NUMBER} />
           <p className="gal-note">Pronto agregaremos fotografías reales de nuestras decoraciones.</p>
         </div>
       </section>
