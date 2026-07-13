@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-export type GalItem = { label: string; src?: string };
+export type GalItem = { label: string; src?: string; full?: string };
 
 const camPath = "M3 8a2 2 0 012-2h2l1.5-2h7L17 6h2a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z";
 
@@ -107,7 +107,7 @@ export function SovGaleria({ items, waNumber }: { items: GalItem[]; waNumber: st
             <div className="lb-frame">
               <div className="lb-pic">
                 {current.src ? (
-                  <img src={current.src} alt={`Decoración de ${current.label}`} />
+                  <img src={current.full || current.src} alt={`Decoración de ${current.label}`} />
                 ) : (
                   <div className="lb-ph">
                     <svg className="cam" viewBox="0 0 24 24"><path d={camPath} /><circle cx="12" cy="12.5" r="3.2" /></svg>

@@ -130,11 +130,12 @@ html { scroll-behavior: smooth; }
 /* ---- Visor ampliado (lightbox) ---- */
 .sovpage .lb-ov { position: fixed; inset: 0; z-index: 60; background: rgba(40, 28, 50, .8); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 20px; animation: sov-fade .25s ease; }
 @keyframes sov-fade { from { opacity: 0; } to { opacity: 1; } }
-.sovpage .lb-card { position: relative; width: 100%; max-width: 560px; background: var(--paper); border-radius: 4px; overflow: hidden; box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .55); animation: sov-pop .3s cubic-bezier(.2, .8, .2, 1); }
+.sovpage .lb-card { position: relative; width: auto; max-width: 94vw; background: var(--paper); border-radius: 4px; overflow: hidden; box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .55); animation: sov-pop .3s cubic-bezier(.2, .8, .2, 1); }
 @keyframes sov-pop { from { transform: scale(.94); opacity: .4; } to { transform: none; opacity: 1; } }
 .sovpage .lb-frame { padding: 12px; background: linear-gradient(135deg, #e9cf95, #f8eed2, #d8b46a, #f3e3bd, #cda65e); }
-.sovpage .lb-pic { position: relative; aspect-ratio: 4/5; background: var(--lav); overflow: hidden; border: 1px solid rgba(120, 80, 20, .35); display: flex; align-items: center; justify-content: center; }
-.sovpage .lb-pic img { width: 100%; height: 100%; object-fit: cover; }
+.sovpage .lb-pic { position: relative; background: var(--lav); overflow: hidden; border: 1px solid rgba(120, 80, 20, .35); display: flex; align-items: center; justify-content: center; }
+.sovpage .lb-pic img { display: block; width: auto; height: auto; max-width: min(86vw, 1100px); max-height: 74vh; object-fit: contain; }
+.sovpage .lb-pic .lb-ph { aspect-ratio: 4/5; width: min(70vw, 380px); }
 .sovpage .lb-ph { display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--mauve); font-family: var(--serif); font-style: italic; font-size: 17px; }
 .sovpage .lb-ph .cam { width: 40px; height: 40px; stroke: var(--violet); fill: none; stroke-width: 1.2; opacity: .6; }
 .sovpage .lb-body { padding: 22px; text-align: center; display: flex; flex-direction: column; gap: 14px; align-items: center; }

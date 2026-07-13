@@ -62,14 +62,14 @@ const servicios = [
 ];
 
 const galeria: GalItem[] = [
-  { label: "Cumpleaños", src: "/sov/galeria/g1.jpg" },
-  { label: "50 Años", src: "/sov/galeria/g2.jpg" },
-  { label: "Baby Shower Safari", src: "/sov/galeria/g3.jpg" },
-  { label: "Cumpleaños Elegante", src: "/sov/galeria/g4.jpg" },
-  { label: "Baby Shower", src: "/sov/galeria/g5.jpg" },
-  { label: "Cumpleaños Hot Wheels", src: "/sov/galeria/g6.jpg" },
-  { label: "Juegos Inflables", src: "/sov/galeria/g7.jpg" },
-  { label: "Bodas de Oro", src: "/sov/galeria/g8.jpg" },
+  { label: "Cumpleaños", src: "/sov/galeria/g1.jpg", full: "/sov/galeria/g1f.jpg" },
+  { label: "50 Años", src: "/sov/galeria/g2.jpg", full: "/sov/galeria/g2f.jpg" },
+  { label: "Baby Shower Safari", src: "/sov/galeria/g3.jpg", full: "/sov/galeria/g3f.jpg" },
+  { label: "Cumpleaños Elegante", src: "/sov/galeria/g4.jpg", full: "/sov/galeria/g4f.jpg" },
+  { label: "Baby Shower", src: "/sov/galeria/g5.jpg", full: "/sov/galeria/g5f.jpg" },
+  { label: "Cumpleaños Hot Wheels", src: "/sov/galeria/g6.jpg", full: "/sov/galeria/g6f.jpg" },
+  { label: "Juegos Inflables", src: "/sov/galeria/g7.jpg", full: "/sov/galeria/g7f.jpg" },
+  { label: "Bodas de Oro", src: "/sov/galeria/g8.jpg", full: "/sov/galeria/g8f.jpg" },
 ];
 
 const pasos = [
