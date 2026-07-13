@@ -4,8 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 
 export type GalItem = { label: string; src?: string; full?: string };
 
-const camPath = "M3 8a2 2 0 012-2h2l1.5-2h7L17 6h2a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z";
-
 function WhatsAppIcon() {
   return (
     <svg viewBox="0 0 24 24" className="ico" aria-hidden="true">
@@ -14,118 +12,73 @@ function WhatsAppIcon() {
   );
 }
 
-function Placeholder({ label }: { label: string }) {
-  return (
-    <>
-      <svg className="cam" viewBox="0 0 24 24">
-        <path d={camPath} />
-        <circle cx="12" cy="12.5" r="3.2" />
-      </svg>
-      <span className="cap">{label}</span>
-    </>
-  );
-}
-
 export function SovGaleria({ items, waNumber }: { items: GalItem[]; waNumber: string }) {
-  const [open, setOpen] = useState<number | null>(null);
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
 
-  const close = useCallback(() => setOpen(null), []);
   const go = useCallback(
-    (dir: number) => setOpen((i) => (i === null ? null : (i + dir + items.length) % items.length)),
+    (dir: number) => setI((p) => (p + dir + items.length) % items.length),
     [items.length]
   );
 
-  // Enlace profundo opcional (?foto=N) para abrir una foto directa
+  // Auto-avance con fade (respeta "reduce motion")
   useEffect(() => {
-    const n = new URLSearchParams(window.location.search).get("foto");
-    if (n !== null) {
-      const idx = Number(n);
-      if (Number.isInteger(idx) && idx >= 0 && idx < items.length) setOpen(idx);
-    }
-  }, [items.length]);
-
-  // Teclado + bloqueo de scroll cuando el visor está abierto
-  useEffect(() => {
-    if (open === null) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-      if (e.key === "ArrowRight") go(1);
-      if (e.key === "ArrowLeft") go(-1);
-    };
-    window.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [open, close, go]);
+    if (paused) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    const t = setInterval(() => setI((p) => (p + 1) % items.length), 4200);
+    return () => clearInterval(t);
+  }, [paused, items.length]);
 
   const waFor = (label: string) =>
     `https://wa.me/${waNumber}?text=${encodeURIComponent(
       `¡Hola SOV DECO PARTHY! Me encantó la decoración de ${label} que vi en su página. Me gustaría una así, ¿me pueden cotizar?`
     )}`;
 
-  const current = open === null ? null : items[open];
+  const cur = items[i];
 
   return (
-    <>
-      <div className="gal-grid">
-        {items.map((it, i) => (
-          <button className="gitem" key={it.label + i} onClick={() => setOpen(i)} aria-label={`Ver ${it.label} en grande`}>
-            <span className="gframe">
-              <span className="inner">
-                {it.src ? <img src={it.src} alt={`Decoración de ${it.label}`} /> : <Placeholder label={it.label} />}
-                <span className="hint">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="11" cy="11" r="7" />
-                    <path d="M16 16l4 4M11 8v6M8 11h6" />
-                  </svg>
-                </span>
-              </span>
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {current && (
-        <div className="lb-ov" role="dialog" aria-modal="true" aria-label={current.label} onClick={close}>
-          <div className="lb-card" onClick={(e) => e.stopPropagation()}>
-            <button className="lb-close" onClick={close} aria-label="Cerrar">
-              <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
-            </button>
-            {items.length > 1 && (
-              <>
-                <button className="lb-nav lb-prev" onClick={() => go(-1)} aria-label="Anterior">
-                  <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="2" /></svg>
-                </button>
-                <button className="lb-nav lb-next" onClick={() => go(1)} aria-label="Siguiente">
-                  <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2" /></svg>
-                </button>
-              </>
-            )}
-            <div className="lb-frame">
-              <div className="lb-pic">
-                {current.src ? (
-                  <img src={current.full || current.src} alt={`Decoración de ${current.label}`} />
-                ) : (
-                  <div className="lb-ph">
-                    <svg className="cam" viewBox="0 0 24 24"><path d={camPath} /><circle cx="12" cy="12.5" r="3.2" /></svg>
-                    <span>Foto próximamente</span>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="lb-body">
-              <span className="lb-title">{current.label}</span>
-              <a className="btn-wa" href={waFor(current.label)} target="_blank" rel="noopener noreferrer">
-                <WhatsAppIcon />
-                Quiero una decoración así
-              </a>
+    <div
+      className="carousel"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div className="car-stage">
+        {items.map((it, idx) => (
+          <div className={`car-slide${idx === i ? " active" : ""}`} key={idx} aria-hidden={idx !== i}>
+            <div className="car-frame">
+              <img src={it.full || it.src} alt={`Decoración de ${it.label}`} loading={idx === 0 ? "eager" : "lazy"} />
             </div>
           </div>
-        </div>
-      )}
-    </>
+        ))}
+
+        <button className="car-nav car-prev" onClick={() => go(-1)} aria-label="Anterior">
+          <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="2" /></svg>
+        </button>
+        <button className="car-nav car-next" onClick={() => go(1)} aria-label="Siguiente">
+          <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2" /></svg>
+        </button>
+      </div>
+
+      <div className="car-caption">
+        <span className="car-title">{cur.label}</span>
+        <a className="btn-wa" href={waFor(cur.label)} target="_blank" rel="noopener noreferrer">
+          <WhatsAppIcon />
+          Quiero una decoración así
+        </a>
+      </div>
+
+      <div className="car-dots" role="tablist" aria-label="Trabajos">
+        {items.map((_, idx) => (
+          <button
+            key={idx}
+            className={idx === i ? "on" : ""}
+            aria-label={`Ver trabajo ${idx + 1}`}
+            aria-selected={idx === i}
+            onClick={() => setI(idx)}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
