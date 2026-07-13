@@ -63,11 +63,18 @@ const servicios = [
 
 const galeria: GalItem[] = [
   { label: "Cumpleaños", src: "/sov/galeria/g1.jpg", full: "/sov/galeria/g1f.jpg" },
-  { label: "50 Años", src: "/sov/galeria/g2.jpg", full: "/sov/galeria/g2f.jpg" },
   { label: "Baby Shower Safari", src: "/sov/galeria/g3.jpg", full: "/sov/galeria/g3f.jpg" },
-  { label: "Cumpleaños Elegante", src: "/sov/galeria/g4.jpg", full: "/sov/galeria/g4f.jpg" },
+  { label: "50 Años", src: "/sov/galeria/g2.jpg", full: "/sov/galeria/g2f.jpg" },
+  { label: "Cumpleaños KPOP", src: "/sov/galeria/g9.jpg", full: "/sov/galeria/g9f.jpg" },
+  { label: "Bautizo", src: "/sov/galeria/g10.jpg", full: "/sov/galeria/g10f.jpg" },
   { label: "Baby Shower", src: "/sov/galeria/g5.jpg", full: "/sov/galeria/g5f.jpg" },
+  { label: "Cumpleaños Elegante", src: "/sov/galeria/g4.jpg", full: "/sov/galeria/g4f.jpg" },
+  { label: "Mesa de Dulces", src: "/sov/galeria/g11.jpg", full: "/sov/galeria/g11f.jpg" },
+  { label: "Cumpleaños", src: "/sov/galeria/g14.jpg", full: "/sov/galeria/g14f.jpg" },
+  { label: "Torta de Graduación", src: "/sov/galeria/g12.jpg", full: "/sov/galeria/g12f.jpg" },
   { label: "Cumpleaños Hot Wheels", src: "/sov/galeria/g6.jpg", full: "/sov/galeria/g6f.jpg" },
+  { label: "Cumpleaños Jurassic", src: "/sov/galeria/g15.jpg", full: "/sov/galeria/g15f.jpg" },
+  { label: "Torta de Cumpleaños", src: "/sov/galeria/g13.jpg", full: "/sov/galeria/g13f.jpg" },
   { label: "Juegos Inflables", src: "/sov/galeria/g7.jpg", full: "/sov/galeria/g7f.jpg" },
   { label: "Bodas de Oro", src: "/sov/galeria/g8.jpg", full: "/sov/galeria/g8f.jpg" },
 ];
