@@ -75,6 +75,7 @@ const galeria: GalItem[] = [
   { label: "Cumpleaños Hot Wheels", src: "/sov/galeria/g6.jpg", full: "/sov/galeria/g6f.jpg" },
   { label: "Cumpleaños Jurassic", src: "/sov/galeria/g15.jpg", full: "/sov/galeria/g15f.jpg" },
   { label: "Torta de Cumpleaños", src: "/sov/galeria/g13.jpg", full: "/sov/galeria/g13f.jpg" },
+  { label: "Cumpleaños", src: "/sov/galeria/g16.jpg", full: "/sov/galeria/g16f.jpg" },
   { label: "Juegos Inflables", src: "/sov/galeria/g7.jpg", full: "/sov/galeria/g7f.jpg" },
   { label: "Bodas de Oro", src: "/sov/galeria/g8.jpg", full: "/sov/galeria/g8f.jpg" },
 ];
