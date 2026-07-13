@@ -61,14 +61,15 @@ const servicios = [
   { t: "Eventos especiales", d: "¿Otra ocasión? La ambientamos a la altura del momento.", p: "M12 3l2 5 5 .5-3.8 3.3L16.5 17 12 14.3 7.5 17l1.3-5.2L5 8.5 10 8z" },
 ];
 
-// Cuando lleguen las fotos, se agrega `src` a cada una (ej. src: "/sov/galeria/1.jpg")
 const galeria: GalItem[] = [
-  { label: "Cumpleaños" },
-  { label: "Baby Shower" },
-  { label: "15 años" },
-  { label: "Bautizo" },
-  { label: "Aniversario" },
-  { label: "Evento" },
+  { label: "Cumpleaños", src: "/sov/galeria/g1.jpg" },
+  { label: "50 Años", src: "/sov/galeria/g2.jpg" },
+  { label: "Baby Shower Safari", src: "/sov/galeria/g3.jpg" },
+  { label: "Cumpleaños Elegante", src: "/sov/galeria/g4.jpg" },
+  { label: "Baby Shower", src: "/sov/galeria/g5.jpg" },
+  { label: "Cumpleaños Hot Wheels", src: "/sov/galeria/g6.jpg" },
+  { label: "Juegos Inflables", src: "/sov/galeria/g7.jpg" },
+  { label: "Bodas de Oro", src: "/sov/galeria/g8.jpg" },
 ];
 
 const pasos = [
@@ -161,7 +162,7 @@ export default function Home() {
             </p>
           </div>
           <SovGaleria items={galeria} waNumber={WA_NUMBER} />
-          <p className="gal-note">Pronto agregaremos fotografías reales de nuestras decoraciones.</p>
+          <p className="gal-note">Cada evento es único y hecho a tu medida. Iremos sumando más de nuestros trabajos.</p>
         </div>
       </section>
 
