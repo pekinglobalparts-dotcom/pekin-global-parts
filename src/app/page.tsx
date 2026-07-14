@@ -159,7 +159,9 @@ export default function Home() {
           <div className="svc-grid">
             {servicios.map((s) => (
               <div className="svc" key={s.t}>
-                <svg className="ic" viewBox="0 0 24 24"><path d={s.p} /></svg>
+                <span className="ic-badge">
+                  <svg className="ic" viewBox="0 0 24 24"><path d={s.p} /></svg>
+                </span>
                 <h3>{s.t}</h3>
                 <p>{s.d}</p>
               </div>
@@ -193,7 +195,7 @@ export default function Home() {
           <div className="steps">
             {pasos.map((p) => (
               <div className="step" key={p.n}>
-                <span className="num">{p.n}</span>
+                <span className="num-badge"><span className="num">{p.n}</span></span>
                 <h3>{p.t}</h3>
                 <p>{p.d}</p>
               </div>
