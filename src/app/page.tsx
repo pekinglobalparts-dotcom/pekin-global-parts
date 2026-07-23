@@ -14,6 +14,30 @@ const waLink = (msg: string) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComp
 const WA_DEFAULT = waLink("¡Hola SOV DECO PARTHY! Quisiera cotizar una decoración. Les cuento: ");
 const WA_GALERIA = waLink("¡Hola SOV DECO PARTHY! Vi sus trabajos y me gustaría una decoración. ¿Me pueden cotizar?");
 
+const SITE_URL = "https://www.sovdecoparthy.com";
+
+// Datos estructurados (Schema.org) — ayudan a Google a mostrar la marca y el logo
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": `${SITE_URL}/#business`,
+  name: "SOV DECO PARTHY",
+  alternateName: "SOV DECO",
+  url: SITE_URL,
+  logo: `${SITE_URL}/icon.png`,
+  image: `${SITE_URL}/opengraph-image.png`,
+  description:
+    "Decoración y arreglos decorativos para cumpleaños, baby shower, 15 y 18 años, bautizos, aniversarios y toda celebración.",
+  telephone: "+51942392029",
+  email: EMAIL,
+  priceRange: "$$",
+  founder: { "@type": "Person", name: "Alexandra Mercado" },
+  areaServed: { "@type": "Country", name: "Perú" },
+  sameAs: [`https://wa.me/${WA_NUMBER}`],
+  knowsLanguage: "es",
+  slogan: "Cada celebración, una obra a tu medida",
+} as const;
+
 export const metadata: Metadata = {
   title: { absolute: "SOV DECO PARTHY | Decoración para tus eventos y celebraciones" },
 };
@@ -98,6 +122,10 @@ const pasos = [
 export default function Home() {
   return (
     <div className="sovpage">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* ===== Header ===== */}
       <header className="site-header">
         <div className="hrow">
