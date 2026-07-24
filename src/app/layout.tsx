@@ -12,12 +12,12 @@ const greatvibes = Great_Vibes({ subsets: ["latin"], weight: "400", variable: "-
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.sovdecoparthy.com"),
   title: {
-    default: "SOV DECO PARTHY | Decoración para tus eventos y celebraciones",
-    template: "%s | SOV DECO PARTHY",
+    default: "SOV DECO PARTY | Decoración para tus eventos y celebraciones",
+    template: "%s | SOV DECO PARTY",
   },
   description:
-    "SOV DECO PARTHY — Decoración y arreglos decorativos para cumpleaños, baby shower, 15 y 18 años, bautizos y toda celebración. Cotiza por WhatsApp y hacemos realidad la decoración de tus sueños.",
-  applicationName: "SOV DECO PARTHY",
+    "SOV DECO PARTY — Decoración y arreglos decorativos para cumpleaños, baby shower, 15 y 18 años, bautizos y toda celebración. Cotiza por WhatsApp y hacemos realidad la decoración de tus sueños.",
+  applicationName: "SOV DECO PARTY",
   keywords: [
     "decoración",
     "decoraciones",
@@ -31,21 +31,21 @@ export const metadata: Metadata = {
     "eventos",
     "fiestas",
     "globos",
-    "SOV DECO PARTHY",
+    "SOV DECO PARTY",
   ],
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "es_PE",
     url: "https://www.sovdecoparthy.com",
-    siteName: "SOV DECO PARTHY",
-    title: "SOV DECO PARTHY | Decoración para tus eventos y celebraciones",
+    siteName: "SOV DECO PARTY",
+    title: "SOV DECO PARTY | Decoración para tus eventos y celebraciones",
     description:
       "Decoración y arreglos decorativos para cumpleaños, baby shower, 15 y 18 años, bautizos y más. Cotiza por WhatsApp.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "SOV DECO PARTHY | Decoración para tus eventos y celebraciones",
+    title: "SOV DECO PARTY | Decoración para tus eventos y celebraciones",
     description:
       "Decoración y arreglos decorativos para cumpleaños, baby shower, 15 y 18 años, bautizos y más. Cotiza por WhatsApp.",
   },

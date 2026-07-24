@@ -3,7 +3,7 @@ import { SovLogo } from "@/components/SovLogo";
 import { SovGaleria, type GalItem } from "@/components/SovGaleria";
 
 /* ============================================================
-   SOV DECO PARTHY — Página informativa (una sola vista)
+   SOV DECO PARTY — Página informativa (una sola vista)
    Contacto: WhatsApp 942392029 · alexandramercadovargas@gmail.com
    ============================================================ */
 
@@ -11,9 +11,9 @@ const WA_NUMBER = "51942392029"; // Perú (+51) 942392029
 const EMAIL = "alexandramercadovargas@gmail.com";
 
 const waLink = (msg: string) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
-const WA_DEFAULT = waLink("¡Hola SOV DECO PARTHY! Quisiera cotizar una decoración. Les cuento: ");
-const WA_GALERIA = waLink("¡Hola SOV DECO PARTHY! Vi sus trabajos y me gustaría una decoración. ¿Me pueden cotizar?");
-const WA_RESENA = waLink("¡Hola SOV DECO PARTHY! Quiero dejarles una reseña de mi experiencia: ");
+const WA_DEFAULT = waLink("¡Hola SOV DECO PARTY! Quisiera cotizar una decoración. Les cuento: ");
+const WA_GALERIA = waLink("¡Hola SOV DECO PARTY! Vi sus trabajos y me gustaría una decoración. ¿Me pueden cotizar?");
+const WA_RESENA = waLink("¡Hola SOV DECO PARTY! Quiero dejarles una reseña de mi experiencia: ");
 
 // 👉 Cuando crees el Perfil de Empresa de Google, pega aquí tu enlace para dejar reseña
 //    (ej. https://g.page/r/XXXXXXXX/review). Mientras esté vacío, el botón abre WhatsApp.
@@ -26,7 +26,7 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   "@id": `${SITE_URL}/#business`,
-  name: "SOV DECO PARTHY",
+  name: "SOV DECO PARTY",
   alternateName: "SOV DECO",
   url: SITE_URL,
   logo: `${SITE_URL}/icon.png`,
@@ -44,7 +44,7 @@ const jsonLd = {
 } as const;
 
 export const metadata: Metadata = {
-  title: { absolute: "SOV DECO PARTHY | Decoración para tus eventos y celebraciones" },
+  title: { absolute: "SOV DECO PARTY | Decoración para tus eventos y celebraciones" },
 };
 
 function WhatsAppIcon({ className = "ico" }: { className?: string }) {
@@ -155,7 +155,7 @@ export default function Home() {
       {/* ===== Header ===== */}
       <header className="site-header">
         <div className="hrow">
-          <a href="#inicio" aria-label="SOV DECO PARTHY inicio">
+          <a href="#inicio" aria-label="SOV DECO PARTY inicio">
             <SovLogo variant="header" />
           </a>
           <a className="nav-cta" href={WA_DEFAULT} target="_blank" rel="noopener noreferrer">
@@ -322,7 +322,7 @@ export default function Home() {
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h11a3 3 0 013 3v13H7a3 3 0 01-3-3V4z" fill="none" stroke="currentColor" strokeWidth="1.6"/><path d="M8 8h7M8 12h7M8 16h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
             Libro de Reclamaciones
           </a>
-          <p className="copy">© {new Date().getFullYear()} SOV DECO PARTHY — Todos los derechos reservados</p>
+          <p className="copy">© {new Date().getFullYear()} SOV DECO PARTY — Todos los derechos reservados</p>
         </div>
       </footer>
 

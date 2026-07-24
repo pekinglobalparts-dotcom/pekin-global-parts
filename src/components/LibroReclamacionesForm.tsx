@@ -26,7 +26,7 @@ export function LibroReclamacionesForm() {
 
     data.append("Código de la hoja", cod);
     data.append("Fecha y hora", now.toLocaleString("es-PE"));
-    data.append("_subject", `Libro de Reclamaciones ${cod} — SOV DECO PARTHY`);
+    data.append("_subject", `Libro de Reclamaciones ${cod} — SOV DECO PARTY`);
     data.append("_captcha", "false");
     data.append("_template", "table");
 

@@ -5,7 +5,7 @@ import { LibroReclamacionesForm } from "@/components/LibroReclamacionesForm";
 export const metadata: Metadata = {
   title: "Libro de Reclamaciones",
   description:
-    "Libro de Reclamaciones virtual de SOV DECO PARTHY, conforme al Código de Protección y Defensa del Consumidor (Ley N° 29571 - INDECOPI).",
+    "Libro de Reclamaciones virtual de SOV DECO PARTY, conforme al Código de Protección y Defensa del Consumidor (Ley N° 29571 - INDECOPI).",
   robots: { index: false, follow: true },
 };
 
@@ -14,7 +14,7 @@ export default function LibroDeReclamacionesPage() {
     <div className="sovpage">
       <header className="site-header">
         <div className="hrow">
-          <a href="/" aria-label="SOV DECO PARTHY inicio">
+          <a href="/" aria-label="SOV DECO PARTY inicio">
             <SovLogo variant="header" />
           </a>
           <a className="nav-cta" href="/">Volver al inicio</a>

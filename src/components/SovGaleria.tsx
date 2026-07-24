@@ -32,7 +32,7 @@ export function SovGaleria({ items, waNumber }: { items: GalItem[]; waNumber: st
 
   const waFor = (label: string) =>
     `https://wa.me/${waNumber}?text=${encodeURIComponent(
-      `¡Hola SOV DECO PARTHY! Me encantó la decoración de ${label} que vi en su página. Me gustaría una así, ¿me pueden cotizar?`
+      `¡Hola SOV DECO PARTY! Me encantó la decoración de ${label} que vi en su página. Me gustaría una así, ¿me pueden cotizar?`
     )}`;
 
   const cur = items[i];
