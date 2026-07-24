@@ -15,9 +15,9 @@ const WA_DEFAULT = waLink("¡Hola SOV DECO PARTY! Quisiera cotizar una decoraci�
 const WA_GALERIA = waLink("¡Hola SOV DECO PARTY! Vi sus trabajos y me gustaría una decoración. ¿Me pueden cotizar?");
 const WA_RESENA = waLink("¡Hola SOV DECO PARTY! Quiero dejarles una reseña de mi experiencia: ");
 
-// 👉 Cuando crees el Perfil de Empresa de Google, pega aquí tu enlace para dejar reseña
-//    (ej. https://g.page/r/XXXXXXXX/review). Mientras esté vacío, el botón abre WhatsApp.
-const GOOGLE_REVIEW_URL = "";
+// Enlace de reseñas del Perfil de Empresa de Google. El botón "Déjanos tu reseña"
+// lleva directo aquí (si se vacía, cae a WhatsApp como respaldo).
+const GOOGLE_REVIEW_URL = "https://g.page/r/CW978lArUf7pEBM/review";
 
 const SITE_URL = "https://www.sovdecoparthy.com";
 
