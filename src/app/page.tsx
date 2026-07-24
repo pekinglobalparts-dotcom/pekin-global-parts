@@ -13,6 +13,11 @@ const EMAIL = "alexandramercadovargas@gmail.com";
 const waLink = (msg: string) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
 const WA_DEFAULT = waLink("¡Hola SOV DECO PARTHY! Quisiera cotizar una decoración. Les cuento: ");
 const WA_GALERIA = waLink("¡Hola SOV DECO PARTHY! Vi sus trabajos y me gustaría una decoración. ¿Me pueden cotizar?");
+const WA_RESENA = waLink("¡Hola SOV DECO PARTHY! Quiero dejarles una reseña de mi experiencia: ");
+
+// 👉 Cuando crees el Perfil de Empresa de Google, pega aquí tu enlace para dejar reseña
+//    (ej. https://g.page/r/XXXXXXXX/review). Mientras esté vacío, el botón abre WhatsApp.
+const GOOGLE_REVIEW_URL = "";
 
 const SITE_URL = "https://www.sovdecoparthy.com";
 
@@ -118,6 +123,27 @@ const pasos = [
   { n: "02", t: "Comparte tu idea", d: "Envíanos la foto o el modelo de decoración que deseas." },
   { n: "03", t: "Recibe tu cotización", d: "Te preparamos una propuesta a tu medida, sin compromiso." },
 ];
+
+/* Reseñas de EJEMPLO — reemplázalas por comentarios reales de tus clientes.
+   (Puedes ir agregando/quitando objetos de esta lista.) */
+const resenas = [
+  { n: "María Fernández", e: "Baby Shower", r: 5, t: "Todo quedó hermoso, superó mis expectativas. Muy atentos y puntuales. ¡Mil gracias!" },
+  { n: "Carla Ramírez", e: "Mis 15 Años", r: 5, t: "La decoración fue elegante y justo como la soñé. Mi hija feliz. 100% recomendados." },
+  { n: "José Gutiérrez", e: "Cumpleaños infantil", r: 5, t: "Excelente trabajo, los globos y la temática quedaron increíbles. Volveré a contratarlos." },
+  { n: "Lucía Torres", e: "Bautizo", r: 5, t: "Muy profesionales y creativos. El ambiente quedó precioso y delicado. Gracias por todo." },
+];
+
+function RatingStars({ r }: { r: number }) {
+  return (
+    <span className="stars" aria-label={`${r} de 5 estrellas`}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <svg key={i} viewBox="0 0 24 24" className={i <= r ? "on" : ""} aria-hidden="true">
+          <path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 7.1-1.01z" />
+        </svg>
+      ))}
+    </span>
+  );
+}
 
 export default function Home() {
   return (
@@ -232,6 +258,36 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ===== Reseñas ===== */}
+      <section className="block reviews" id="resenas">
+        <div className="wrap">
+          <div className="sec-head">
+            <span className="eyebrow">Reseñas</span>
+            <h2 className="h">Lo que dicen nuestros clientes</h2>
+            <p className="lede">La confianza de quienes ya celebraron con nosotros es nuestro mejor respaldo.</p>
+          </div>
+          <div className="review-grid">
+            {resenas.map((rv, i) => (
+              <figure className="review-card" key={i}>
+                <RatingStars r={rv.r} />
+                <blockquote>“{rv.t}”</blockquote>
+                <figcaption>
+                  <span className="rv-name">{rv.n}</span>
+                  <span className="rv-event">{rv.e}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <div className="review-cta">
+            <p>¿Celebraste con nosotros? ¡Cuéntale a todos tu experiencia!</p>
+            <a className="btn-gold" href={GOOGLE_REVIEW_URL || WA_RESENA} target="_blank" rel="noopener noreferrer">
+              <Star />
+              Déjanos tu reseña
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* ===== Contacto ===== */}
       <section className="contact" id="contacto">
         <div className="contact-panel">
@@ -262,6 +318,10 @@ export default function Home() {
               <svg className="ico" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM3 6l9 7 9-7" fill="none" stroke="#e7dced" strokeWidth="1.6" /></svg>
             </a>
           </div>
+          <a className="lr-link" href="/libro-de-reclamaciones">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h11a3 3 0 013 3v13H7a3 3 0 01-3-3V4z" fill="none" stroke="currentColor" strokeWidth="1.6"/><path d="M8 8h7M8 12h7M8 16h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+            Libro de Reclamaciones
+          </a>
           <p className="copy">© {new Date().getFullYear()} SOV DECO PARTHY — Todos los derechos reservados</p>
         </div>
       </footer>
