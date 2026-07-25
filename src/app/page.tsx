@@ -11,8 +11,8 @@ const WA_NUMBER = "51942392029"; // Perú (+51) 942392029
 const EMAIL = "alexandramercadovargas@gmail.com";
 
 const waLink = (msg: string) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
-const WA_DEFAULT = waLink("¡Hola SOV DECO PARTY! Quisiera cotizar una decoración. Les cuento: ");
-const WA_GALERIA = waLink("¡Hola SOV DECO PARTY! Vi sus trabajos y me gustaría una decoración. ¿Me pueden cotizar?");
+const WA_DEFAULT = waLink("¡Hola SOV DECO PARTY! 👋 Vi su página web y quisiera cotizar una decoración. Les cuento: ");
+const WA_GALERIA = waLink("¡Hola SOV DECO PARTY! 👋 Vi sus trabajos en su página web y me gustaría una decoración. ¿Me pueden cotizar?");
 const WA_RESENA = waLink("¡Hola SOV DECO PARTY! Quiero dejarles una reseña de mi experiencia: ");
 
 // Enlace de reseñas del Perfil de Empresa de Google. El botón "Déjanos tu reseña"
