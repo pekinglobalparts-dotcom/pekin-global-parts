@@ -23,9 +23,13 @@ export function formatDate(date: Date | string): string {
 export function generatePassword(length = 12): string {
   const chars =
     "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+  // Uso un generador criptográficamente seguro (Web Crypto), disponible tanto
+  // en el servidor como en el navegador, en lugar de Math.random (predecible).
+  const bytes = new Uint32Array(length);
+  globalThis.crypto.getRandomValues(bytes);
   let password = "";
   for (let i = 0; i < length; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
+    password += chars.charAt(bytes[i] % chars.length);
   }
   return password;
 }
