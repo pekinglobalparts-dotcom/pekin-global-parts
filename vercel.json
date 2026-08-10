@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npx prisma generate && npx prisma db push --skip-generate && npm run build",
+  "buildCommand": "npx prisma generate && node scripts/ensure-schema.mjs && npm run build",
   "installCommand": "npm install",
   "regions": ["iad1"],
   "env": {
