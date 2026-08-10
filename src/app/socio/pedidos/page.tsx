@@ -11,7 +11,8 @@ interface PedidoItem {
   cantidad: number;
   precioUnit: number;
   subtotal: number;
-  producto: { nombre: string; codigo: string; imagenUrl: string | null };
+  descripcion?: string | null;
+  producto?: { nombre: string; codigo: string; imagenUrl: string | null } | null;
 }
 
 interface Pedido {
@@ -225,7 +226,7 @@ export default function PedidosPage() {
                           {pedido.items.map(item => (
                             <div key={item.id} className="flex items-center gap-3 bg-slate-50 rounded-lg p-3">
                               <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 overflow-hidden shrink-0">
-                                {item.producto.imagenUrl ? (
+                                {item.producto?.imagenUrl ? (
                                   // eslint-disable-next-line @next/next/no-img-element
                                   <img src={item.producto.imagenUrl} alt="" className="w-full h-full object-cover" />
                                 ) : (
@@ -235,8 +236,8 @@ export default function PedidosPage() {
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-slate-900 truncate">{item.producto.nombre}</p>
-                                <p className="text-xs text-slate-400">{item.producto.codigo} · ×{item.cantidad}</p>
+                                <p className="text-sm font-medium text-slate-900 truncate">{item.producto?.nombre ?? item.descripcion ?? "Ítem"}</p>
+                                <p className="text-xs text-slate-400">{item.producto ? `${item.producto.codigo} · ` : ""}×{item.cantidad}</p>
                               </div>
                               <p className="text-sm font-bold text-slate-700 shrink-0">{formatCurrency(item.subtotal)}</p>
                             </div>
@@ -263,6 +264,13 @@ export default function PedidosPage() {
                           <p className="text-xs text-slate-500">
                             Entrega estimada: <strong>{formatDate(pedido.fechaEntrega)}</strong>
                           </p>
+                        )}
+
+                        {pedido.notas && (
+                          <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+                            <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">Condiciones del pedido</p>
+                            <p className="text-sm text-slate-700 whitespace-pre-wrap">{pedido.notas}</p>
+                          </div>
                         )}
                       </div>
                     </motion.div>
