@@ -1,27 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+// El PDF ya se subió a UploadThing (nube). Aquí solo guardamos el enlace,
+// no el archivo — así la base de datos se mantiene liviana.
+const schema = z.object({
+  facturaId: z.string().min(1),
+  url: z.string().url().max(2000),
+  numeroReal: z.string().max(100).optional(),
+});
 
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (session?.user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const formData = await req.formData();
-  const file = formData.get("file") as File | null;
-  const facturaId = formData.get("facturaId") as string | null;
-  const numeroReal = formData.get("numeroReal") as string | null;
+  const body = await req.json();
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: "Faltan datos" }, { status: 400 });
 
-  if (!file || !facturaId) return NextResponse.json({ error: "Faltan datos" }, { status: 400 });
+  const { facturaId, url, numeroReal } = parsed.data;
 
-  // Convert to base64 data URL — stored directly in DB, no filesystem needed
-  const bytes = await file.arrayBuffer();
-  const base64 = Buffer.from(bytes).toString("base64");
-  const pdfUrl = `data:application/pdf;base64,${base64}`;
-
-  const data: Record<string, unknown> = { pdfUrl };
+  const data: Record<string, unknown> = { pdfUrl: url };
   if (numeroReal) data.numeroReal = numeroReal;
 
   const factura = await prisma.factura.update({ where: { id: facturaId }, data });
-  // Don't return the base64 blob in the response — just confirm success
   return NextResponse.json({ factura: { ...factura, pdfUrl: "[guardado]" }, ok: true });
 }
