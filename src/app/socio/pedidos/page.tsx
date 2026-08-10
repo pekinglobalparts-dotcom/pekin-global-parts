@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, Package, ChevronDown, ChevronUp, Truck, CheckCircle, Clock, XCircle } from "lucide-react";
+import { ShoppingCart, Package, ChevronDown, ChevronUp, Truck, CheckCircle, Clock, XCircle, FileText } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -25,6 +25,8 @@ interface Pedido {
   direccionEntrega: string | null;
   fechaEntrega: string | null;
   notas: string | null;
+  ocUrl?: string | null;
+  ocNumero?: string | null;
   createdAt: string;
   items: PedidoItem[];
 }
@@ -271,6 +273,21 @@ export default function PedidosPage() {
                             <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">Condiciones del pedido</p>
                             <p className="text-sm text-slate-700 whitespace-pre-wrap">{pedido.notas}</p>
                           </div>
+                        )}
+
+                        {pedido.ocUrl && (
+                          <a
+                            href={pedido.ocUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 hover:border-blue-300 hover:bg-blue-50/40 transition-colors"
+                          >
+                            <FileText className="h-4 w-4 text-blue-600 shrink-0" />
+                            <span className="text-sm font-medium text-slate-800 flex-1">
+                              Orden de compra{pedido.ocNumero ? ` N° ${pedido.ocNumero}` : ""}
+                            </span>
+                            <span className="text-xs font-semibold text-blue-600">Descargar</span>
+                          </a>
                         )}
                       </div>
                     </motion.div>

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Receipt, ChevronDown, ChevronUp, CheckCircle, Clock, X, Upload, Download, ExternalLink } from "lucide-react";
+import { Receipt, ChevronDown, ChevronUp, CheckCircle, Clock, X, Download } from "lucide-react";
+import { UploadDropzone } from "@uploadthing/react";
+import type { OurFileRouter } from "@/lib/uploadthing";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,8 +39,6 @@ export default function AdminFacturasPage() {
   const [totalPendiente, setTotalPendiente] = useState(0);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [numeroRealInput, setNumeroRealInput] = useState<Record<string, string>>({});
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [pendingUploadId, setPendingUploadId] = useState<string | null>(null);
 
   const fetch_ = useCallback(async () => {
     setLoading(true);
@@ -66,28 +66,19 @@ export default function AdminFacturasPage() {
     setUpdating(null);
   };
 
-  const handleFileSelect = (facturaId: string) => {
-    setPendingUploadId(facturaId);
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !pendingUploadId) return;
-    setUploadingId(pendingUploadId);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("facturaId", pendingUploadId);
-    const numReal = numeroRealInput[pendingUploadId] || "";
-    if (numReal) formData.append("numeroReal", numReal);
-    const res = await fetch("/api/admin/facturas/upload", { method: "POST", body: formData });
+  // El PDF se sube directo a la nube (UploadThing); luego guardamos el enlace.
+  const registerFacturaPdf = async (facturaId: string, url: string) => {
+    const numeroReal = numeroRealInput[facturaId] || "";
+    const res = await fetch("/api/admin/facturas/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ facturaId, url, numeroReal: numeroReal || undefined }),
+    });
     const data = await res.json();
     if (data.ok) {
-      // Mark as having PDF without storing base64 in state
-      setFacturas(prev => prev.map(f => f.id === pendingUploadId ? { ...f, pdfUrl: "uploaded", numeroReal: data.factura.numeroReal } : f));
+      setFacturas(prev => prev.map(f => f.id === facturaId ? { ...f, pdfUrl: url, numeroReal: data.factura.numeroReal ?? f.numeroReal } : f));
     }
     setUploadingId(null);
-    e.target.value = "";
   };
 
   const saveNumeroReal = async (id: string) => {
@@ -101,8 +92,6 @@ export default function AdminFacturasPage() {
 
   return (
     <div className="p-6 lg:p-8">
-      <input ref={fileInputRef} type="file" accept=".pdf" className="hidden" onChange={handleFileChange} />
-
       <div className="mb-6">
         <h1 className="text-2xl font-black text-slate-900">Facturas</h1>
         <p className="text-slate-500 text-sm mt-0.5">Control de facturación y cobros</p>
@@ -213,21 +202,41 @@ export default function AdminFacturasPage() {
                             </Button>
                           </div>
 
-                          {/* Subir PDF */}
-                          <div className="flex gap-2 flex-wrap">
-                            <Button size="sm" variant="outline" loading={uploadingId === factura.id}
-                              onClick={() => handleFileSelect(factura.id)}
-                              className="text-blue-700 border-blue-200 hover:bg-blue-50">
-                              <Upload className="h-3.5 w-3.5" />
-                              {factura.pdfUrl ? "Reemplazar PDF" : "Subir factura PDF"}
-                            </Button>
+                          {/* Subir PDF de factura (a la nube) */}
+                          <div className="space-y-2">
                             {factura.pdfUrl && (
-                              <a href={`/api/facturas/${factura.id}/pdf`} target="_blank" rel="noopener noreferrer">
-                                <Button size="sm" variant="outline" className="text-green-700 border-green-200 hover:bg-green-50">
-                                  <Download className="h-3.5 w-3.5" /> Descargar PDF
-                                </Button>
-                              </a>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <a href={`/api/facturas/${factura.id}/pdf`} target="_blank" rel="noopener noreferrer">
+                                  <Button size="sm" variant="outline" className="text-green-700 border-green-200 hover:bg-green-50">
+                                    <Download className="h-3.5 w-3.5" /> Descargar PDF
+                                  </Button>
+                                </a>
+                                <span className="text-xs text-green-600 font-semibold">PDF guardado ✓</span>
+                              </div>
                             )}
+                            <UploadDropzone<OurFileRouter, "facturaPdf">
+                              endpoint="facturaPdf"
+                              onUploadBegin={() => setUploadingId(factura.id)}
+                              onClientUploadComplete={async (files) => {
+                                const url = files?.[0]?.ufsUrl ?? files?.[0]?.url;
+                                if (url) await registerFacturaPdf(factura.id, url);
+                                else setUploadingId(null);
+                              }}
+                              onUploadError={() => setUploadingId(null)}
+                              appearance={{
+                                container: "border-2 border-dashed border-slate-200 rounded-xl p-3 cursor-pointer hover:border-[#0f1f3d] transition-colors ut-uploading:opacity-70",
+                                uploadIcon: "hidden",
+                                label: "text-xs text-slate-500",
+                                allowedContent: "text-[11px] text-slate-400",
+                                button: "bg-[#0f1f3d] text-white text-xs font-bold px-3 py-1.5 rounded-lg after:bg-blue-400",
+                              }}
+                              content={{
+                                label: uploadingId === factura.id
+                                  ? "Subiendo…"
+                                  : (factura.pdfUrl ? "Reemplazar: arrastra el PDF o haz clic" : "Arrastra el PDF de la factura o haz clic"),
+                                button: ({ isUploading }) => (isUploading ? "Subiendo…" : (factura.pdfUrl ? "Reemplazar PDF" : "Subir PDF")),
+                              }}
+                            />
                           </div>
                         </div>
 

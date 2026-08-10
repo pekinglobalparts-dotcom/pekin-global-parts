@@ -275,6 +275,8 @@ model Pedido {
   direccionEntrega String?
   fechaEntrega     DateTime?
   notas            String?
+  ocUrl            String?
+  ocNumero         String?
   subtotal         Decimal      @db.Decimal(12, 2)
   igv              Decimal      @db.Decimal(12, 2)
   total            Decimal      @db.Decimal(12, 2)

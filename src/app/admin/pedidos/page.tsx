@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, ChevronDown, ChevronUp, Truck, Package, Check, Plus, X, Trash2 } from "lucide-react";
+import { ShoppingCart, ChevronDown, ChevronUp, Truck, Package, Check, Plus, X, Trash2, FileText, Download } from "lucide-react";
+import { UploadDropzone } from "@uploadthing/react";
+import type { OurFileRouter } from "@/lib/uploadthing";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,8 @@ interface Pedido {
   subtotal: number;
   igv: number;
   notas: string | null;
+  ocUrl?: string | null;
+  ocNumero?: string | null;
   createdAt: string;
   socio: { razonSocial: string; ruc: string; emailCorporativo: string };
   items: PedidoItem[];
@@ -59,6 +63,10 @@ export default function AdminPedidosPage() {
   const [filter, setFilter] = useState("TODOS");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
+
+  // --- Orden de compra (por pedido) ---
+  const [uploadingOc, setUploadingOc] = useState<string | null>(null);
+  const [ocNumeroInput, setOcNumeroInput] = useState<Record<string, string>>({});
 
   // --- Modal "Crear pedido manual" ---
   const [modalOpen, setModalOpen] = useState(false);
@@ -101,6 +109,26 @@ export default function AdminPedidosPage() {
     const idx = STATUSES.indexOf(current);
     if (idx < 0 || idx >= STATUSES.length - 2) return null;
     return STATUSES[idx + 1];
+  };
+
+  // Guarda el enlace de la O.C. (y su número) en el pedido
+  const saveOc = async (id: string, ocUrl: string | null, ocNumero?: string) => {
+    const res = await fetch(`/api/admin/pedidos/${id}/oc`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ocUrl, ocNumero: ocNumero ?? null }),
+    });
+    if (res.ok) {
+      setPedidos(prev => prev.map(p => p.id === id ? { ...p, ocUrl, ocNumero: ocNumero ?? p.ocNumero } : p));
+    }
+    return res.ok;
+  };
+
+  const saveOcNumero = async (id: string) => {
+    const num = ocNumeroInput[id];
+    if (num === undefined) return;
+    const pedido = pedidos.find(p => p.id === id);
+    await saveOc(id, pedido?.ocUrl ?? null, num);
   };
 
   // --- Lógica del modal ---
@@ -287,6 +315,66 @@ export default function AdminPedidosPage() {
                               <p className="text-sm text-slate-700 whitespace-pre-wrap">{pedido.notas}</p>
                             </div>
                           )}
+
+                          {/* Orden de compra (O.C.) del cliente */}
+                          <div className="bg-white rounded-lg px-4 py-3">
+                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                              <FileText className="h-3.5 w-3.5" /> Orden de compra (O.C.) del cliente
+                            </p>
+
+                            <div className="flex gap-2 mb-2">
+                              <input
+                                type="text"
+                                placeholder={pedido.ocNumero || "N° de O.C. (ej: 0000012791)"}
+                                defaultValue={pedido.ocNumero || ""}
+                                onChange={e => setOcNumeroInput(prev => ({ ...prev, [pedido.id]: e.target.value }))}
+                                className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+                              />
+                              <Button size="sm" variant="outline" onClick={() => saveOcNumero(pedido.id)}>
+                                Guardar N°
+                              </Button>
+                            </div>
+
+                            {pedido.ocUrl ? (
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <a href={pedido.ocUrl} target="_blank" rel="noopener noreferrer">
+                                  <Button size="sm" variant="outline" className="text-green-700 border-green-200 hover:bg-green-50">
+                                    <Download className="h-3.5 w-3.5" /> Ver / descargar O.C.
+                                  </Button>
+                                </a>
+                                <button
+                                  onClick={() => saveOc(pedido.id, null)}
+                                  className="text-xs text-slate-400 hover:text-red-500 font-medium"
+                                >
+                                  Quitar
+                                </button>
+                                <span className="text-xs text-green-600 font-semibold">O.C. adjunta ✓</span>
+                              </div>
+                            ) : (
+                              <UploadDropzone<OurFileRouter, "ordenCompra">
+                                endpoint="ordenCompra"
+                                onUploadBegin={() => setUploadingOc(pedido.id)}
+                                onClientUploadComplete={async (files) => {
+                                  const url = files?.[0]?.ufsUrl ?? files?.[0]?.url;
+                                  if (url) await saveOc(pedido.id, url, ocNumeroInput[pedido.id]);
+                                  setUploadingOc(null);
+                                }}
+                                onUploadError={() => setUploadingOc(null)}
+                                appearance={{
+                                  container: "border-2 border-dashed border-slate-200 rounded-xl p-3 cursor-pointer hover:border-[#0f1f3d] transition-colors ut-uploading:opacity-70",
+                                  uploadIcon: "hidden",
+                                  label: "text-xs text-slate-500",
+                                  allowedContent: "text-[11px] text-slate-400",
+                                  button: "bg-[#0f1f3d] text-white text-xs font-bold px-3 py-1.5 rounded-lg ut-ready:bg-[#0f1f3d] after:bg-blue-400",
+                                }}
+                                content={{
+                                  label: uploadingOc === pedido.id ? "Subiendo…" : "Arrastra el PDF de la O.C. o haz clic",
+                                  button: ({ isUploading }) => (isUploading ? "Subiendo…" : "Subir O.C."),
+                                }}
+                              />
+                            )}
+                            <p className="text-[11px] text-slate-400 mt-2">Recibes la O.C. por WhatsApp y la adjuntas aquí. Queda guardada en la nube y el socio también podrá descargarla.</p>
+                          </div>
 
                           {/* Status flow */}
                           <div className="bg-white rounded-lg px-4 py-3">
