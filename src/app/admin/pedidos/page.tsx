@@ -67,6 +67,7 @@ export default function AdminPedidosPage() {
   // --- Orden de compra (por pedido) ---
   const [uploadingOc, setUploadingOc] = useState<string | null>(null);
   const [ocNumeroInput, setOcNumeroInput] = useState<Record<string, string>>({});
+  const [ocError, setOcError] = useState<Record<string, string>>({});
 
   // --- Modal "Crear pedido manual" ---
   const [modalOpen, setModalOpen] = useState(false);
@@ -351,27 +352,37 @@ export default function AdminPedidosPage() {
                                 <span className="text-xs text-green-600 font-semibold">O.C. adjunta ✓</span>
                               </div>
                             ) : (
-                              <UploadDropzone<OurFileRouter, "ordenCompra">
-                                endpoint="ordenCompra"
-                                onUploadBegin={() => setUploadingOc(pedido.id)}
-                                onClientUploadComplete={async (files) => {
-                                  const url = files?.[0]?.ufsUrl ?? files?.[0]?.url;
-                                  if (url) await saveOc(pedido.id, url, ocNumeroInput[pedido.id]);
-                                  setUploadingOc(null);
-                                }}
-                                onUploadError={() => setUploadingOc(null)}
-                                appearance={{
-                                  container: "border-2 border-dashed border-slate-200 rounded-xl p-3 cursor-pointer hover:border-[#0f1f3d] transition-colors ut-uploading:opacity-70",
-                                  uploadIcon: "hidden",
-                                  label: "text-xs text-slate-500",
-                                  allowedContent: "text-[11px] text-slate-400",
-                                  button: "bg-[#0f1f3d] text-white text-xs font-bold px-3 py-1.5 rounded-lg ut-ready:bg-[#0f1f3d] after:bg-blue-400",
-                                }}
-                                content={{
-                                  label: uploadingOc === pedido.id ? "Subiendo…" : "Arrastra el PDF de la O.C. o haz clic",
-                                  button: ({ isUploading }) => (isUploading ? "Subiendo…" : "Subir O.C."),
-                                }}
-                              />
+                              <>
+                                <UploadDropzone<OurFileRouter, "ordenCompra">
+                                  endpoint="ordenCompra"
+                                  onUploadBegin={() => { setOcError(prev => ({ ...prev, [pedido.id]: "" })); setUploadingOc(pedido.id); }}
+                                  onClientUploadComplete={async (files) => {
+                                    const url = files?.[0]?.ufsUrl ?? files?.[0]?.url;
+                                    if (url) await saveOc(pedido.id, url, ocNumeroInput[pedido.id]);
+                                    setUploadingOc(null);
+                                  }}
+                                  onUploadError={(err) => {
+                                    setUploadingOc(null);
+                                    setOcError(prev => ({ ...prev, [pedido.id]: err?.message || "No se pudo subir el archivo." }));
+                                  }}
+                                  appearance={{
+                                    container: "border-2 border-dashed border-slate-200 rounded-xl p-3 cursor-pointer hover:border-[#0f1f3d] transition-colors ut-uploading:opacity-70",
+                                    uploadIcon: "hidden",
+                                    label: "text-xs text-slate-500",
+                                    allowedContent: "text-[11px] text-slate-400",
+                                    button: "bg-[#0f1f3d] text-white text-xs font-bold px-3 py-1.5 rounded-lg ut-ready:bg-[#0f1f3d] after:bg-blue-400",
+                                  }}
+                                  content={{
+                                    label: uploadingOc === pedido.id ? "Subiendo…" : "Arrastra el PDF de la O.C. o haz clic",
+                                    button: ({ isUploading }) => (isUploading ? "Subiendo…" : "Subir O.C."),
+                                  }}
+                                />
+                                {ocError[pedido.id] && (
+                                  <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2 mt-2">
+                                    Error al subir: {ocError[pedido.id]}
+                                  </p>
+                                )}
+                              </>
                             )}
                             <p className="text-[11px] text-slate-400 mt-2">Recibes la O.C. por WhatsApp y la adjuntas aquí. Queda guardada en la nube y el socio también podrá descargarla.</p>
                           </div>

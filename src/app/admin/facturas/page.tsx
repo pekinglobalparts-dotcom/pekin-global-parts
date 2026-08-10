@@ -39,6 +39,7 @@ export default function AdminFacturasPage() {
   const [totalPendiente, setTotalPendiente] = useState(0);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [numeroRealInput, setNumeroRealInput] = useState<Record<string, string>>({});
+  const [uploadError, setUploadError] = useState<Record<string, string>>({});
 
   const fetch_ = useCallback(async () => {
     setLoading(true);
@@ -216,13 +217,16 @@ export default function AdminFacturasPage() {
                             )}
                             <UploadDropzone<OurFileRouter, "facturaPdf">
                               endpoint="facturaPdf"
-                              onUploadBegin={() => setUploadingId(factura.id)}
+                              onUploadBegin={() => { setUploadError(prev => ({ ...prev, [factura.id]: "" })); setUploadingId(factura.id); }}
                               onClientUploadComplete={async (files) => {
                                 const url = files?.[0]?.ufsUrl ?? files?.[0]?.url;
                                 if (url) await registerFacturaPdf(factura.id, url);
                                 else setUploadingId(null);
                               }}
-                              onUploadError={() => setUploadingId(null)}
+                              onUploadError={(err) => {
+                                setUploadingId(null);
+                                setUploadError(prev => ({ ...prev, [factura.id]: err?.message || "No se pudo subir el archivo." }));
+                              }}
                               appearance={{
                                 container: "border-2 border-dashed border-slate-200 rounded-xl p-3 cursor-pointer hover:border-[#0f1f3d] transition-colors ut-uploading:opacity-70",
                                 uploadIcon: "hidden",
@@ -237,6 +241,11 @@ export default function AdminFacturasPage() {
                                 button: ({ isUploading }) => (isUploading ? "Subiendo…" : (factura.pdfUrl ? "Reemplazar PDF" : "Subir PDF")),
                               }}
                             />
+                            {uploadError[factura.id] && (
+                              <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                                Error al subir: {uploadError[factura.id]}
+                              </p>
+                            )}
                           </div>
                         </div>
 
