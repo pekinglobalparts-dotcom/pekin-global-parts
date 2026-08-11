@@ -164,6 +164,8 @@ model Socio {
   logoUrl            String?
   direccion          String?
   ciudad             String?
+  ultimoAcceso       DateTime?
+  passwordCambiado   Boolean     @default(false)
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
 

@@ -20,7 +20,25 @@ interface Socio {
   tipoPago: string;
   plazoCredito: number;
   createdAt: string;
+  ultimoAcceso?: string | null;
+  passwordCambiado?: boolean;
   _count: { pedidos: number; cotizaciones: number };
+}
+
+// "hace X" legible para el último acceso
+function tiempoRelativo(iso?: string | null): string {
+  if (!iso) return "Nunca ha ingresado";
+  const d = new Date(iso);
+  const diff = Date.now() - d.getTime();
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return "Hace un momento";
+  if (min < 60) return `Hace ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `Hace ${h} h`;
+  const dias = Math.floor(h / 24);
+  if (dias === 1) return "Ayer";
+  if (dias < 30) return `Hace ${dias} días`;
+  return d.toLocaleDateString("es-PE");
 }
 
 const statusVariant: Record<string, "success" | "warning" | "secondary"> = {
@@ -195,6 +213,23 @@ export default function AdminSociosPage() {
                         <span className="mx-1.5 text-slate-300">·</span>
                         <span>{socio._count.cotizaciones} cotizaciones</span>
                       </div>
+                      <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+                        <span
+                          className={`inline-flex items-center gap-1 text-[11px] font-semibold ${
+                            socio.ultimoAcceso ? "text-slate-500" : "text-red-500"
+                          }`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${socio.ultimoAcceso ? "bg-green-500" : "bg-red-400"}`} />
+                          {tiempoRelativo(socio.ultimoAcceso)}
+                        </span>
+                        {socio.ultimoAcceso && (
+                          socio.passwordCambiado ? (
+                            <span className="text-[11px] font-semibold text-green-600">· clave cambiada ✓</span>
+                          ) : (
+                            <span className="text-[11px] font-semibold text-amber-600">· clave sin cambiar</span>
+                          )
+                        )}
+                      </div>
                     </td>
                     <td className="px-5 py-4">
                       <Badge variant={statusVariant[socio.status] || "secondary"}>{socio.status}</Badge>
@@ -357,6 +392,24 @@ export default function AdminSociosPage() {
                         <p className="text-xs mt-0.5 font-medium opacity-80">{stat.label}</p>
                       </div>
                     ))}
+                  </div>
+                  <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 p-3 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-slate-500">Acceso al portal</span>
+                      <span className={`text-xs font-bold ${selected.ultimoAcceso ? "text-slate-700" : "text-red-500"}`}>
+                        {tiempoRelativo(selected.ultimoAcceso)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-slate-500">Contraseña inicial</span>
+                      {!selected.ultimoAcceso ? (
+                        <span className="text-xs font-bold text-slate-400">—</span>
+                      ) : selected.passwordCambiado ? (
+                        <span className="text-xs font-bold text-green-600">Ya la cambió ✓</span>
+                      ) : (
+                        <span className="text-xs font-bold text-amber-600">Aún sin cambiar</span>
+                      )}
+                    </div>
                   </div>
                   <p className="text-xs text-slate-400 mt-3">
                     Registrado el {formatDate(selected.createdAt)}
