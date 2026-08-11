@@ -55,6 +55,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (!socio || socio.status !== "ACTIVO") return null;
           const valid = await bcrypt.compare(password, socio.passwordHash);
           if (!valid) return null;
+          // Registrar el último acceso del socio (no bloquea el login si falla)
+          prisma.socio
+            .update({ where: { id: socio.id }, data: { ultimoAcceso: new Date() } })
+            .catch(() => {});
           return {
             id: socio.id,
             email: socio.emailCorporativo,

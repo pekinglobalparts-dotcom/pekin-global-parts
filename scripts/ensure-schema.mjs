@@ -13,6 +13,8 @@ import pg from "pg";
 const STATEMENTS = [
   `ALTER TABLE "pedidos" ADD COLUMN IF NOT EXISTS "ocUrl" TEXT;`,
   `ALTER TABLE "pedidos" ADD COLUMN IF NOT EXISTS "ocNumero" TEXT;`,
+  `ALTER TABLE "socios" ADD COLUMN IF NOT EXISTS "ultimoAcceso" TIMESTAMP(3);`,
+  `ALTER TABLE "socios" ADD COLUMN IF NOT EXISTS "passwordCambiado" BOOLEAN NOT NULL DEFAULT false;`,
 ];
 
 async function main() {

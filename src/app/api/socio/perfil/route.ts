@@ -52,6 +52,7 @@ export async function PATCH(req: NextRequest) {
     const valid = await bcrypt.compare(currentPassword, socio.passwordHash);
     if (!valid) return NextResponse.json({ error: "Contraseña actual incorrecta" }, { status: 400 });
     updateData.passwordHash = await bcrypt.hash(newPassword, 12);
+    updateData.passwordCambiado = true;
   }
 
   const socio = await prisma.socio.update({

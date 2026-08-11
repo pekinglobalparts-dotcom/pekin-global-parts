@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
         id: true, razonSocial: true, ruc: true, emailCorporativo: true,
         telefono: true, sector: true, status: true,
         lineaCredito: true, creditoUtilizado: true,
-        createdAt: true,
+        createdAt: true, ultimoAcceso: true, passwordCambiado: true,
         _count: { select: { pedidos: true, cotizaciones: true } },
       },
     }),
