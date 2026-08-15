@@ -239,14 +239,14 @@ export default function AdminPedidosPage() {
               return (
                 <div key={pedido.id}>
                   <div
-                    className="flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors cursor-pointer"
+                    className="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-2 p-4 hover:bg-slate-50 transition-colors cursor-pointer"
                     onClick={() => setExpanded(expanded === pedido.id ? null : pedido.id)}
                   >
                     <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center shrink-0">
                       <ShoppingCart className="h-4 w-4 text-orange-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-slate-900 text-sm">{pedido.numero}</span>
                         <Badge variant={statusVariant[pedido.status] || "default"}>
                           {pedido.status.replace(/_/g, " ")}
@@ -256,24 +256,27 @@ export default function AdminPedidosPage() {
                         {pedido.socio.razonSocial} · {pedido.items.length} productos · {formatDate(pedido.createdAt)}
                       </p>
                     </div>
-                    <span className="font-bold text-blue-900 text-sm shrink-0">{formatCurrency(pedido.total)}</span>
 
-                    {next && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        loading={updating === pedido.id}
-                        onClick={e => { e.stopPropagation(); updateStatus(pedido.id, next); }}
-                        className="shrink-0"
-                      >
-                        {next === "ENVIADO" ? <Truck className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
-                        {next.replace(/_/g, " ")}
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto justify-end">
+                      <span className="font-bold text-blue-900 text-sm">{formatCurrency(pedido.total)}</span>
 
-                    {expanded === pedido.id
-                      ? <ChevronUp className="h-4 w-4 text-slate-400 shrink-0" />
-                      : <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />}
+                      {next && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          loading={updating === pedido.id}
+                          onClick={e => { e.stopPropagation(); updateStatus(pedido.id, next); }}
+                          className="shrink-0"
+                        >
+                          {next === "ENVIADO" ? <Truck className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
+                          {next.replace(/_/g, " ")}
+                        </Button>
+                      )}
+
+                      {expanded === pedido.id
+                        ? <ChevronUp className="h-4 w-4 text-slate-400 shrink-0" />
+                        : <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />}
+                    </div>
                   </div>
 
                   <AnimatePresence>
