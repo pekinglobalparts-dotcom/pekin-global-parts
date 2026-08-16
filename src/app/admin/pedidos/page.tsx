@@ -13,6 +13,7 @@ interface PedidoItem {
   id: string;
   cantidad: number;
   precioUnit: number;
+  costoUnit?: number | null;
   subtotal: number;
   descripcion?: string | null;
   producto?: { nombre: string; codigo: string } | null;
@@ -69,6 +70,11 @@ export default function AdminPedidosPage() {
   const [uploadingOc, setUploadingOc] = useState<string | null>(null);
   const [ocNumeroInput, setOcNumeroInput] = useState<Record<string, string>>({});
   const [ocError, setOcError] = useState<Record<string, string>>({});
+
+  // --- Costos por línea (para calcular ganancia) ---
+  const [costoInput, setCostoInput] = useState<Record<string, string>>({});
+  const [savingCostos, setSavingCostos] = useState<string | null>(null);
+  const [costosOk, setCostosOk] = useState<string | null>(null);
 
   // --- Modal "Crear pedido manual" ---
   const [modalOpen, setModalOpen] = useState(false);
@@ -131,6 +137,34 @@ export default function AdminPedidosPage() {
     if (num === undefined) return;
     const pedido = pedidos.find(p => p.id === id);
     await saveOc(id, pedido?.ocUrl ?? null, num);
+  };
+
+  // Guarda el costo de cada línea del pedido (para calcular ganancia)
+  const costoValor = (item: PedidoItem): number => {
+    const raw = costoInput[item.id];
+    if (raw !== undefined) return parseFloat(raw) || 0;
+    return item.costoUnit != null ? Number(item.costoUnit) : 0;
+  };
+
+  const saveCostos = async (pedido: Pedido) => {
+    setSavingCostos(pedido.id);
+    setCostosOk(null);
+    const costos = pedido.items.map(it => ({
+      itemId: it.id,
+      costoUnit: costoValor(it) > 0 ? costoValor(it) : null,
+    }));
+    const res = await fetch(`/api/admin/pedidos/${pedido.id}/costos`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ costos }),
+    });
+    if (res.ok) {
+      setPedidos(prev => prev.map(p => p.id === pedido.id
+        ? { ...p, items: p.items.map(it => ({ ...it, costoUnit: costoValor(it) > 0 ? costoValor(it) : null })) }
+        : p));
+      setCostosOk(pedido.id);
+    }
+    setSavingCostos(null);
   };
 
   // --- Lógica del modal ---
@@ -313,6 +347,55 @@ export default function AdminPedidosPage() {
                               <span className="text-slate-400 text-xs block">(IGV: {formatCurrency(pedido.igv)})</span>
                             </div>
                           </div>
+
+                          {/* Costo y ganancia (privado — el socio nunca lo ve) */}
+                          {(() => {
+                            const ventaSinIgv = Number(pedido.subtotal);
+                            const costoTotal = pedido.items.reduce((s, it) => s + costoValor(it) * it.cantidad, 0);
+                            const ganancia = ventaSinIgv - costoTotal;
+                            const hayCosto = pedido.items.some(it => costoValor(it) > 0);
+                            return (
+                              <div className="bg-emerald-50/50 border border-emerald-100 rounded-lg px-4 py-3">
+                                <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-2">
+                                  Costo y ganancia · privado
+                                </p>
+                                <div className="space-y-2">
+                                  {pedido.items.map(it => (
+                                    <div key={it.id} className="flex items-center gap-2">
+                                      <span className="flex-1 text-xs text-slate-600 truncate">
+                                        {it.producto?.nombre ?? it.descripcion ?? "Ítem"} <span className="text-slate-400">×{it.cantidad}</span>
+                                      </span>
+                                      <div className="relative w-32 shrink-0">
+                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">S/</span>
+                                        <input
+                                          type="number" min={0} step="0.01"
+                                          value={costoInput[it.id] ?? (it.costoUnit != null ? String(Number(it.costoUnit)) : "")}
+                                          onChange={e => { setCostoInput(prev => ({ ...prev, [it.id]: e.target.value })); setCostosOk(null); }}
+                                          placeholder="Costo unit."
+                                          className="w-full border border-emerald-200 rounded-lg pl-6 pr-2 py-1.5 text-xs"
+                                        />
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="flex items-center justify-between mt-3 pt-2 border-t border-emerald-100">
+                                  <div className="text-xs text-slate-500">
+                                    Venta (s/IGV): <b className="text-slate-700">{formatCurrency(ventaSinIgv)}</b>
+                                    {hayCosto && <> · Costo: <b className="text-slate-700">{formatCurrency(costoTotal)}</b></>}
+                                    {hayCosto && <> · Ganancia: <b className="text-emerald-700">{formatCurrency(ganancia)}</b></>}
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    {costosOk === pedido.id && <span className="text-xs text-emerald-600 font-semibold">Guardado ✓</span>}
+                                    <Button size="sm" variant="outline" loading={savingCostos === pedido.id}
+                                      onClick={() => saveCostos(pedido)}>
+                                      Guardar costo
+                                    </Button>
+                                  </div>
+                                </div>
+                                <p className="text-[11px] text-slate-400 mt-2">Pon lo que te costó cada repuesto (sin IGV, de la factura de tu proveedor). Solo lo ves tú — alimenta el tablero de Finanzas.</p>
+                              </div>
+                            );
+                          })()}
 
                           {pedido.notas && (
                             <div className="bg-white rounded-lg px-4 py-3">
