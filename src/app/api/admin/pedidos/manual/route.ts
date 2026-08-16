@@ -8,6 +8,7 @@ const itemSchema = z.object({
   descripcion: z.string().min(1),
   cantidad: z.coerce.number().int().min(1),
   precioUnit: z.coerce.number().min(0),
+  costoUnit: z.coerce.number().min(0).optional(),
 });
 
 const createSchema = z.object({
@@ -61,6 +62,7 @@ export async function POST(req: NextRequest) {
             descripcion: item.descripcion,
             cantidad: item.cantidad,
             precioUnit: item.precioUnit,
+            costoUnit: item.costoUnit ?? null,
             subtotal: item.subtotal,
           })) as never[],
         },

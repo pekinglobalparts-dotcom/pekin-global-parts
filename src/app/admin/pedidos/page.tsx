@@ -43,6 +43,7 @@ interface LineaItem {
   descripcion: string;
   cantidad: number;
   precioUnit: number;
+  costoUnit: number;
 }
 
 const STATUSES = ["PENDIENTE", "CONFIRMADO", "EN_PROCESO", "ENVIADO", "ENTREGADO", "CANCELADO"];
@@ -73,7 +74,7 @@ export default function AdminPedidosPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [socios, setSocios] = useState<SocioOpcion[]>([]);
   const [socioId, setSocioId] = useState("");
-  const [items, setItems] = useState<LineaItem[]>([{ descripcion: "", cantidad: 1, precioUnit: 0 }]);
+  const [items, setItems] = useState<LineaItem[]>([{ descripcion: "", cantidad: 1, precioUnit: 0, costoUnit: 0 }]);
   const [modalidad, setModalidad] = useState<"CREDITO" | "CONTADO">("CREDITO");
   const [plazoDias, setPlazoDias] = useState(30);
   const [notas, setNotas] = useState("");
@@ -135,7 +136,7 @@ export default function AdminPedidosPage() {
   // --- Lógica del modal ---
   const openModal = async () => {
     setSocioId("");
-    setItems([{ descripcion: "", cantidad: 1, precioUnit: 0 }]);
+    setItems([{ descripcion: "", cantidad: 1, precioUnit: 0, costoUnit: 0 }]);
     setModalidad("CREDITO");
     setPlazoDias(30);
     setNotas("");
@@ -156,7 +157,7 @@ export default function AdminPedidosPage() {
     }
   };
 
-  const addItem = () => setItems(p => [...p, { descripcion: "", cantidad: 1, precioUnit: 0 }]);
+  const addItem = () => setItems(p => [...p, { descripcion: "", cantidad: 1, precioUnit: 0, costoUnit: 0 }]);
   const removeItem = (i: number) => setItems(p => p.filter((_, idx) => idx !== i));
   const updateItem = (i: number, field: keyof LineaItem, val: string | number) =>
     setItems(p => p.map((item, idx) => idx === i ? { ...item, [field]: val } : item));
@@ -489,8 +490,8 @@ export default function AdminPedidosPage() {
                     </div>
                     <div className="space-y-2">
                       {items.map((item, i) => (
-                        <div key={i} className="grid grid-cols-12 gap-2 items-center">
-                          <div className="col-span-6">
+                        <div key={i} className="grid grid-cols-12 gap-2 items-center border border-slate-100 rounded-xl p-2">
+                          <div className="col-span-12">
                             <input
                               value={item.descripcion}
                               onChange={e => updateItem(i, "descripcion", e.target.value)}
@@ -498,15 +499,16 @@ export default function AdminPedidosPage() {
                               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
                             />
                           </div>
-                          <div className="col-span-2">
+                          <div className="col-span-3">
+                            <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Cant.</label>
                             <input
                               type="number" min={1} value={item.cantidad}
                               onChange={e => updateItem(i, "cantidad", parseInt(e.target.value) || 1)}
-                              placeholder="Cant."
                               className="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm text-center"
                             />
                           </div>
-                          <div className="col-span-3">
+                          <div className="col-span-4">
+                            <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Precio venta (c/IGV)</label>
                             <div className="relative">
                               <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">S/</span>
                               <input
@@ -517,7 +519,19 @@ export default function AdminPedidosPage() {
                               />
                             </div>
                           </div>
-                          <div className="col-span-1 flex justify-center">
+                          <div className="col-span-4">
+                            <label className="block text-[10px] font-semibold text-emerald-600 uppercase mb-0.5">Costo (s/IGV)</label>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">S/</span>
+                              <input
+                                type="number" min={0} step="0.01" value={item.costoUnit}
+                                onChange={e => updateItem(i, "costoUnit", parseFloat(e.target.value) || 0)}
+                                placeholder="Costo"
+                                className="w-full border border-emerald-200 bg-emerald-50/40 rounded-lg pl-7 pr-2 py-2 text-sm"
+                              />
+                            </div>
+                          </div>
+                          <div className="col-span-1 flex items-end justify-center pb-1.5">
                             {items.length > 1 && (
                               <button onClick={() => removeItem(i)} className="text-slate-300 hover:text-red-500 transition-colors">
                                 <Trash2 className="h-4 w-4" />
@@ -527,7 +541,7 @@ export default function AdminPedidosPage() {
                         </div>
                       ))}
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-2">El precio unitario debe incluir el IGV (18%); el sistema lo desglosa solo.</p>
+                    <p className="text-[11px] text-slate-400 mt-2">El precio de venta incluye IGV (18%); el sistema lo desglosa solo. El <b className="text-emerald-600">costo</b> (lo que te costó el repuesto, sin IGV) es opcional y solo se usa para calcular tu ganancia en Finanzas — el socio nunca lo ve.</p>
                   </div>
 
                   {/* Modalidad de pago */}

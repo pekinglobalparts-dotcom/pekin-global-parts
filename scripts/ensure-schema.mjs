@@ -15,6 +15,19 @@ const STATEMENTS = [
   `ALTER TABLE "pedidos" ADD COLUMN IF NOT EXISTS "ocNumero" TEXT;`,
   `ALTER TABLE "socios" ADD COLUMN IF NOT EXISTS "ultimoAcceso" TIMESTAMP(3);`,
   `ALTER TABLE "socios" ADD COLUMN IF NOT EXISTS "passwordCambiado" BOOLEAN NOT NULL DEFAULT false;`,
+  `ALTER TABLE "pedido_items" ADD COLUMN IF NOT EXISTS "costoUnit" DECIMAL(10,2);`,
+  `CREATE TABLE IF NOT EXISTS "ventas_mostrador" (
+     "id" TEXT PRIMARY KEY,
+     "numero" TEXT NOT NULL UNIQUE,
+     "cliente" TEXT,
+     "fecha" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     "total" DECIMAL(12,2) NOT NULL,
+     "costoTotal" DECIMAL(12,2) NOT NULL DEFAULT 0,
+     "ganancia" DECIMAL(12,2) NOT NULL DEFAULT 0,
+     "items" JSONB NOT NULL,
+     "notas" TEXT,
+     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+   );`,
 ];
 
 async function main() {
