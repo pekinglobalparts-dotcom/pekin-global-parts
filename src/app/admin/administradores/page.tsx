@@ -131,8 +131,10 @@ export default function AdministradoresPage() {
             <li>✓ Todo lo de ADMIN</li>
             <li>✓ Crear/gestionar administradores</li>
             <li>✓ Editar líneas de crédito</li>
+            <li>✓ Editar precios y productos del catálogo</li>
+            <li>✓ Registrar/ver costos y ganancias (Finanzas)</li>
             <li>✓ Cambiar modalidad de pago</li>
-            <li>✓ Eliminar socios y facturas</li>
+            <li>✓ Eliminar socios, facturas y productos</li>
             <li>✓ Gestión y limpieza de datos</li>
           </ul>
         </div>
@@ -145,7 +147,9 @@ export default function AdministradoresPage() {
             <li>✓ Ver y aprobar solicitudes</li>
             <li>✓ Gestionar pedidos y cotizaciones</li>
             <li>✓ Emitir y ver facturas</li>
-            <li>✓ Ver productos y socios</li>
+            <li>✓ Ver productos y socios (solo lectura)</li>
+            <li>✗ No puede editar precios ni el catálogo</li>
+            <li>✗ No ve costos ni ganancias</li>
             <li>✗ No puede editar crédito</li>
             <li>✗ No puede eliminar registros</li>
           </ul>

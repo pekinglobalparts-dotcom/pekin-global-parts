@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const session = await auth();
-  if (!session || session.user.role !== "admin") {
+  if (!session || session.user.role !== "admin" || session.user.adminRole !== "SUPER_ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

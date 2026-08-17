@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 // Bulk import endpoint — upserts categorias/marcas by name, then creates products
 export async function POST(req: NextRequest) {
   const session = await auth();
-  if (!session || session.user.role !== "admin") {
+  if (!session || session.user.role !== "admin" || session.user.adminRole !== "SUPER_ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
