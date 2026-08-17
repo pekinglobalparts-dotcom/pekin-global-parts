@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { TrendingUp, DollarSign, Percent, Wallet, Trophy, Plus, AlertTriangle } from "lucide-react";
+import { TrendingUp, DollarSign, Percent, Wallet, Trophy, Plus, AlertTriangle, Receipt, PiggyBank, Landmark } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface Finanzas {
-  mes: { ventas: number; ganancia: number; margen: number; pedidosSinCosto: number };
+  mes: { ventas: number; ganancia: number; margen: number; gastos: number; utilidadNeta: number; impuestoEstimado: number; pedidosSinCosto: number };
   cobros: { porCobrar: number; cobradoMes: number };
+  gastosPorCategoria: Record<string, number>;
   serie: { mes: string; ventas: number; ganancia: number }[];
   topProductos: { nombre: string; cantidad: number; venta: number }[];
 }
@@ -56,12 +57,20 @@ export default function FinanzasPage() {
           <h1 className="text-2xl font-black text-slate-900">Finanzas</h1>
           <p className="text-slate-500 text-sm mt-0.5">Control del negocio · montos reales (lo que cobras y lo que pagas)</p>
         </div>
-        <Link
-          href="/admin/ventas"
-          className="flex items-center gap-2 bg-[#0f1f3d] hover:bg-[#16294f] text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors shrink-0"
-        >
-          <Plus className="h-4 w-4" /> Registrar venta de mostrador
-        </Link>
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          <Link
+            href="/admin/gastos"
+            className="flex items-center gap-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
+          >
+            <Receipt className="h-4 w-4" /> Registrar gasto
+          </Link>
+          <Link
+            href="/admin/ventas"
+            className="flex items-center gap-2 bg-[#0f1f3d] hover:bg-[#16294f] text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
+          >
+            <Plus className="h-4 w-4" /> Registrar venta
+          </Link>
+        </div>
       </div>
 
       {/* KPIs del mes */}
@@ -91,6 +100,35 @@ export default function FinanzasPage() {
           <span>Hay <b>{data.mes.pedidosSinCosto}</b> venta(s) de socios este mes sin costo registrado — su ganancia no se está contando. Registra el costo en el pedido para verla reflejada.</span>
         </div>
       )}
+
+      {/* Resultado del mes: ganancia − gastos = utilidad neta */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5">
+        <h2 className="font-bold text-slate-900 text-sm mb-4 flex items-center gap-2"><PiggyBank className="h-4 w-4 text-emerald-600" /> Resultado del mes</h2>
+        <div className="flex items-center justify-center gap-3 sm:gap-5 flex-wrap text-center">
+          <div>
+            <p className="text-[11px] text-slate-400 uppercase font-semibold">Ganancia (repuestos)</p>
+            <p className="text-xl font-black text-emerald-700">{formatCurrency(data.mes.ganancia)}</p>
+          </div>
+          <span className="text-2xl text-slate-300 font-light">−</span>
+          <div>
+            <p className="text-[11px] text-slate-400 uppercase font-semibold">Gastos</p>
+            <p className="text-xl font-black text-slate-500">{formatCurrency(data.mes.gastos)}</p>
+          </div>
+          <span className="text-2xl text-slate-300 font-light">=</span>
+          <div className={`px-4 py-2 rounded-xl ${data.mes.utilidadNeta >= 0 ? "bg-emerald-50" : "bg-red-50"}`}>
+            <p className="text-[11px] text-slate-500 uppercase font-semibold">Utilidad neta</p>
+            <p className={`text-2xl font-black ${data.mes.utilidadNeta >= 0 ? "text-emerald-700" : "text-red-600"}`}>{formatCurrency(data.mes.utilidadNeta)}</p>
+          </div>
+        </div>
+
+        <div className="mt-4 pt-3 border-t border-slate-100 flex items-start gap-2 text-xs text-slate-500">
+          <Landmark className="h-4 w-4 shrink-0 mt-0.5 text-blue-500" />
+          <span>
+            <b>Recordatorio SUNAT (RER 1.5%):</b> por tus ventas de este mes deberías declarar aprox.
+            <b className="text-blue-700"> {formatCurrency(data.mes.impuestoEstimado)}</b>. Cuando lo pagues, regístralo como gasto en la categoría <b>Impuestos</b> para que se descuente de tu utilidad.
+          </span>
+        </div>
+      </div>
 
       {/* Gráfico 6 meses */}
       <div className="bg-white border border-slate-200 rounded-2xl p-5">

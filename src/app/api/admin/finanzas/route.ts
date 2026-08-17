@@ -21,7 +21,7 @@ export async function GET() {
   const desde = new Date(now.getFullYear(), now.getMonth() - 5, 1); // ventana de 6 meses
   const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [pedidos, ventas, facturas] = await Promise.all([
+  const [pedidos, ventas, facturas, gastos] = await Promise.all([
     prisma.pedido.findMany({
       where: { status: "ENTREGADO", createdAt: { gte: desde } },
       select: { id: true, total: true, createdAt: true, items: true },
@@ -31,6 +31,10 @@ export async function GET() {
     }),
     prisma.factura.findMany({
       select: { total: true, status: true, pagadoAt: true },
+    }),
+    prisma.gasto.findMany({
+      where: { fecha: { gte: desde } },
+      select: { monto: true, fecha: true, categoria: true },
     }),
   ]);
 
@@ -111,20 +115,36 @@ export async function GET() {
     if (f.status === "PAGADA" && f.pagadoAt && new Date(f.pagadoAt) >= inicioMes) cobradoMes += num(f.total);
   }
 
+  // --- Gastos del negocio ---
+  let gastosMes = 0;
+  const gastosPorCategoria: Record<string, number> = {};
+  for (const g of gastos) {
+    if (new Date(g.fecha) >= inicioMes) {
+      gastosMes += num(g.monto);
+      gastosPorCategoria[g.categoria] = (gastosPorCategoria[g.categoria] || 0) + num(g.monto);
+    }
+  }
+
   const topProductos = Array.from(ranking.values())
     .sort((a, b) => b.cantidad - a.cantidad)
     .slice(0, 10);
 
   const margenMes = ventasMes > 0 ? (gananciaMes / ventasMes) * 100 : 0;
+  const utilidadNeta = gananciaMes - gastosMes;
+  const impuestoEstimado = ventasMes * 0.015; // SUNAT RER 1.5% de lo facturado
 
   return NextResponse.json({
     mes: {
       ventas: ventasMes,
       ganancia: gananciaMes,
       margen: margenMes,
+      gastos: gastosMes,
+      utilidadNeta,
+      impuestoEstimado,
       pedidosSinCosto,
     },
     cobros: { porCobrar, cobradoMes },
+    gastosPorCategoria,
     serie: meses.map(m => ({ mes: m, ...serie[m] })),
     topProductos,
   });

@@ -28,6 +28,14 @@ const STATEMENTS = [
      "notas" TEXT,
      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
    );`,
+  `CREATE TABLE IF NOT EXISTS "gastos" (
+     "id" TEXT PRIMARY KEY,
+     "fecha" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     "categoria" TEXT NOT NULL,
+     "monto" DECIMAL(12,2) NOT NULL,
+     "descripcion" TEXT,
+     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+   );`,
 ];
 
 async function main() {
