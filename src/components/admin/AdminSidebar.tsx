@@ -9,7 +9,7 @@ import {
   LayoutDashboard, FileText, Users,
   ShoppingCart, Receipt, CreditCard, LogOut,
   ChevronRight, Database, UserCog, Search, Menu, X,
-  TrendingUp, Store,
+  TrendingUp, Store, Banknote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +41,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     ...(isSuperAdmin ? [
       { href: "/admin/finanzas", label: "Finanzas", icon: TrendingUp },
       { href: "/admin/ventas", label: "Ventas mostrador", icon: Store },
+      { href: "/admin/gastos", label: "Gastos", icon: Banknote },
       { href: "/admin/administradores", label: "Administradores", icon: UserCog },
     ] : []),
   ];

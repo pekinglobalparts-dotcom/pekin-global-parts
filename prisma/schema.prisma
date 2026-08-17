@@ -327,6 +327,18 @@ model VentaMostrador {
   @@map("ventas_mostrador")
 }
 
+// Gastos del negocio — solo Super Admin. Alimenta la utilidad neta.
+model Gasto {
+  id          String   @id @default(cuid())
+  fecha       DateTime @default(now())
+  categoria   String
+  monto       Decimal  @db.Decimal(12, 2)
+  descripcion String?
+  createdAt   DateTime @default(now())
+
+  @@map("gastos")
+}
+
 model SolicitudRepuesto {
   id          String                  @id @default(cuid())
   numero      String                  @unique
