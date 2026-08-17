@@ -350,9 +350,9 @@ export default function AdminPedidosPage() {
 
                           {/* Costo y ganancia (privado — el socio nunca lo ve) */}
                           {(() => {
-                            const ventaSinIgv = Number(pedido.subtotal);
+                            const ventaReal = Number(pedido.total);
                             const costoTotal = pedido.items.reduce((s, it) => s + costoValor(it) * it.cantidad, 0);
-                            const ganancia = ventaSinIgv - costoTotal;
+                            const ganancia = ventaReal - costoTotal;
                             const hayCosto = pedido.items.some(it => costoValor(it) > 0);
                             return (
                               <div className="bg-emerald-50/50 border border-emerald-100 rounded-lg px-4 py-3">
@@ -380,7 +380,7 @@ export default function AdminPedidosPage() {
                                 </div>
                                 <div className="flex items-center justify-between mt-3 pt-2 border-t border-emerald-100">
                                   <div className="text-xs text-slate-500">
-                                    Venta (s/IGV): <b className="text-slate-700">{formatCurrency(ventaSinIgv)}</b>
+                                    Venta: <b className="text-slate-700">{formatCurrency(ventaReal)}</b>
                                     {hayCosto && <> · Costo: <b className="text-slate-700">{formatCurrency(costoTotal)}</b></>}
                                     {hayCosto && <> · Ganancia: <b className="text-emerald-700">{formatCurrency(ganancia)}</b></>}
                                   </div>
@@ -392,7 +392,7 @@ export default function AdminPedidosPage() {
                                     </Button>
                                   </div>
                                 </div>
-                                <p className="text-[11px] text-slate-400 mt-2">Pon lo que te costó cada repuesto (sin IGV, de la factura de tu proveedor). Solo lo ves tú — alimenta el tablero de Finanzas.</p>
+                                <p className="text-[11px] text-slate-400 mt-2">Pon lo que te costó cada repuesto (el monto real que pagaste a tu proveedor). Solo lo ves tú — alimenta el tablero de Finanzas.</p>
                               </div>
                             );
                           })()}
@@ -603,7 +603,7 @@ export default function AdminPedidosPage() {
                             </div>
                           </div>
                           <div className="col-span-4">
-                            <label className="block text-[10px] font-semibold text-emerald-600 uppercase mb-0.5">Costo (s/IGV)</label>
+                            <label className="block text-[10px] font-semibold text-emerald-600 uppercase mb-0.5">Costo (lo que pagaste)</label>
                             <div className="relative">
                               <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">S/</span>
                               <input
@@ -624,7 +624,7 @@ export default function AdminPedidosPage() {
                         </div>
                       ))}
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-2">El precio de venta incluye IGV (18%); el sistema lo desglosa solo. El <b className="text-emerald-600">costo</b> (lo que te costó el repuesto, sin IGV) es opcional y solo se usa para calcular tu ganancia en Finanzas — el socio nunca lo ve.</p>
+                    <p className="text-[11px] text-slate-400 mt-2">El <b>precio de venta</b> es lo que le cobras al socio (con IGV, para la factura). El <b className="text-emerald-600">costo</b> es lo que TÚ pagaste por el repuesto — opcional, solo se usa para tu ganancia en Finanzas. El socio nunca lo ve. Tu ganancia = venta − costo.</p>
                   </div>
 
                   {/* Modalidad de pago */}
