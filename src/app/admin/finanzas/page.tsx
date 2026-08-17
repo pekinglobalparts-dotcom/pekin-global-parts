@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { TrendingUp, DollarSign, Percent, Wallet, Trophy, Plus, AlertTriangle, Receipt, PiggyBank, Landmark } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { TrendingUp, DollarSign, Percent, Wallet, Trophy, Plus, AlertTriangle, Receipt, PiggyBank, Landmark, ShoppingBag, ListChecks } from "lucide-react";
+import { formatCurrency, formatDate } from "@/lib/utils";
+
+interface Operacion { fecha: string; tipo: string; ref: string; venta: number; costo: number; ganancia: number; sinCosto: boolean }
 
 interface Finanzas {
-  mes: { ventas: number; ganancia: number; margen: number; gastos: number; utilidadNeta: number; impuestoEstimado: number; pedidosSinCosto: number };
+  mes: { ventas: number; costo: number; ganancia: number; margen: number; gastos: number; utilidadNeta: number; impuestoEstimado: number; pedidosSinCosto: number };
   cobros: { porCobrar: number; cobradoMes: number };
   gastosPorCategoria: Record<string, number>;
+  operaciones: Operacion[];
   serie: { mes: string; ventas: number; ganancia: number }[];
   topProductos: { nombre: string; cantidad: number; venta: number }[];
 }
@@ -74,25 +77,31 @@ export default function FinanzasPage() {
       </div>
 
       {/* KPIs del mes */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white border border-slate-200 rounded-2xl p-5">
-          <div className="flex items-center gap-2 text-slate-400 text-xs mb-1"><TrendingUp className="h-4 w-4" /> Ventas del mes</div>
+          <div className="flex items-center gap-2 text-slate-400 text-xs mb-1"><TrendingUp className="h-4 w-4" /> Ventas</div>
           <p className="text-2xl font-black text-slate-900">{formatCurrency(data.mes.ventas)}</p>
         </div>
+        <div className="bg-white border border-slate-200 rounded-2xl p-5">
+          <div className="flex items-center gap-2 text-slate-400 text-xs mb-1"><ShoppingBag className="h-4 w-4" /> Costo (compras)</div>
+          <p className="text-2xl font-black text-slate-500">{formatCurrency(data.mes.costo)}</p>
+        </div>
         <div className="bg-white border border-emerald-200 rounded-2xl p-5">
-          <div className="flex items-center gap-2 text-emerald-600 text-xs mb-1"><DollarSign className="h-4 w-4" /> Ganancia del mes</div>
+          <div className="flex items-center gap-2 text-emerald-600 text-xs mb-1"><DollarSign className="h-4 w-4" /> Ganancia</div>
           <p className="text-2xl font-black text-emerald-700">{formatCurrency(data.mes.ganancia)}</p>
         </div>
         <div className="bg-white border border-slate-200 rounded-2xl p-5">
-          <div className="flex items-center gap-2 text-slate-400 text-xs mb-1"><Percent className="h-4 w-4" /> Margen del mes</div>
+          <div className="flex items-center gap-2 text-slate-400 text-xs mb-1"><Percent className="h-4 w-4" /> Margen</div>
           <p className="text-2xl font-black text-slate-900">{data.mes.margen.toFixed(1)}%</p>
         </div>
         <div className="bg-white border border-amber-200 rounded-2xl p-5">
-          <div className="flex items-center gap-2 text-amber-600 text-xs mb-1"><Wallet className="h-4 w-4" /> Por cobrar (deuda)</div>
+          <div className="flex items-center gap-2 text-amber-600 text-xs mb-1"><Wallet className="h-4 w-4" /> Por cobrar</div>
           <p className="text-2xl font-black text-amber-700">{formatCurrency(data.cobros.porCobrar)}</p>
-          <p className="text-[11px] text-slate-400 mt-1">Cobrado este mes: {formatCurrency(data.cobros.cobradoMes)}</p>
+          <p className="text-[11px] text-slate-400 mt-1">Cobrado: {formatCurrency(data.cobros.cobradoMes)}</p>
         </div>
       </div>
+
+      <p className="text-xs text-slate-400 -mt-2">Ventas − Costo (compras) = Ganancia. Todo en montos reales (lo que cobras y lo que pagas).</p>
 
       {data.mes.pedidosSinCosto > 0 && (
         <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex items-start gap-2 text-sm text-amber-800">
@@ -128,6 +137,59 @@ export default function FinanzasPage() {
             <b className="text-blue-700"> {formatCurrency(data.mes.impuestoEstimado)}</b>. Cuando lo pagues, regístralo como gasto en la categoría <b>Impuestos</b> para que se descuente de tu utilidad.
           </span>
         </div>
+      </div>
+
+      {/* Detalle de operaciones del mes */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5">
+        <h2 className="font-bold text-slate-900 text-sm flex items-center gap-2 mb-1">
+          <ListChecks className="h-4 w-4 text-[#0f1f3d]" /> Detalle de operaciones del mes
+        </h2>
+        <p className="text-[11px] text-slate-400 mb-4">Cada venta con su costo y ganancia. El &quot;Costo (compras)&quot; de arriba es la suma del costo de lo vendido aquí — no incluye stock que compraste pero aún no vendes (eso va en Gastos → Compra de stock).</p>
+        {data.operaciones.length === 0 ? (
+          <p className="text-sm text-slate-400 text-center py-6">No hay operaciones este mes.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[560px]">
+              <thead>
+                <tr className="text-left text-[11px] text-slate-400 uppercase border-b border-slate-100">
+                  <th className="py-2 pr-2 font-semibold">Fecha</th>
+                  <th className="py-2 px-2 font-semibold">Cliente / Ref.</th>
+                  <th className="py-2 px-2 font-semibold">Tipo</th>
+                  <th className="py-2 px-2 font-semibold text-right">Venta</th>
+                  <th className="py-2 px-2 font-semibold text-right">Costo</th>
+                  <th className="py-2 pl-2 font-semibold text-right">Ganancia</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {data.operaciones.map((o, i) => {
+                  const margen = o.venta > 0 && !o.sinCosto ? (o.ganancia / o.venta) * 100 : 0;
+                  return (
+                    <tr key={i}>
+                      <td className="py-2 pr-2 text-slate-500 whitespace-nowrap">{formatDate(o.fecha)}</td>
+                      <td className="py-2 px-2 text-slate-800 truncate max-w-[160px]">{o.ref}</td>
+                      <td className="py-2 px-2">
+                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${o.tipo === "Socio" ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-600"}`}>{o.tipo}</span>
+                      </td>
+                      <td className="py-2 px-2 text-right font-semibold text-slate-900">{formatCurrency(o.venta)}</td>
+                      <td className="py-2 px-2 text-right text-slate-500">{o.sinCosto ? <span className="text-amber-500 text-xs">sin costo</span> : formatCurrency(o.costo)}</td>
+                      <td className="py-2 pl-2 text-right font-bold text-emerald-700">
+                        {o.sinCosto ? "—" : <>{formatCurrency(o.ganancia)} <span className="text-[10px] text-slate-400 font-normal">({margen.toFixed(0)}%)</span></>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-slate-100 font-black">
+                  <td className="py-2 pr-2 text-slate-500 text-xs uppercase" colSpan={3}>Total del mes</td>
+                  <td className="py-2 px-2 text-right text-slate-900">{formatCurrency(data.mes.ventas)}</td>
+                  <td className="py-2 px-2 text-right text-slate-500">{formatCurrency(data.mes.costo)}</td>
+                  <td className="py-2 pl-2 text-right text-emerald-700">{formatCurrency(data.mes.ganancia)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Gráfico 6 meses */}
