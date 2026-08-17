@@ -24,7 +24,7 @@ export async function GET() {
   const [pedidos, ventas, facturas, gastos] = await Promise.all([
     prisma.pedido.findMany({
       where: { status: "ENTREGADO", createdAt: { gte: desde } },
-      select: { id: true, total: true, createdAt: true, items: true },
+      select: { id: true, numero: true, total: true, createdAt: true, items: true, socio: { select: { razonSocial: true } } },
     }),
     prisma.ventaMostrador.findMany({
       where: { fecha: { gte: desde } },
@@ -59,8 +59,12 @@ export async function GET() {
   };
 
   let ventasMes = 0;
+  let costoMes = 0;
   let gananciaMes = 0;
   let pedidosSinCosto = 0;
+
+  type Operacion = { fecha: string; tipo: string; ref: string; venta: number; costo: number; ganancia: number; sinCosto: boolean };
+  const operaciones: Operacion[] = [];
 
   // --- Pedidos de socios (entregados) ---
   for (const p of pedidos) {
@@ -77,8 +81,15 @@ export async function GET() {
     }
     if (new Date(p.createdAt) >= inicioMes) {
       ventasMes += venta;
+      costoMes += costo;
       gananciaMes += ganancia;
       if (!tieneCosto) pedidosSinCosto++;
+      operaciones.push({
+        fecha: new Date(p.createdAt).toISOString(),
+        tipo: "Socio",
+        ref: (p as unknown as { socio?: { razonSocial?: string } }).socio?.razonSocial || p.numero,
+        venta, costo, ganancia, sinCosto: !tieneCosto,
+      });
     }
     // ranking: reparte venta del pedido entre sus líneas por proporción de subtotal
     const totalLineas = items.reduce((s, it) => s + num(it.precioUnit) * it.cantidad, 0) || 1;
@@ -91,6 +102,7 @@ export async function GET() {
   // --- Ventas de mostrador ---
   for (const v of ventas) {
     const venta = num(v.total);
+    const costo = num(v.costoTotal);
     const ganancia = num(v.ganancia);
     const mk = monthKey(new Date(v.fecha));
     if (serie[mk]) {
@@ -99,7 +111,14 @@ export async function GET() {
     }
     if (new Date(v.fecha) >= inicioMes) {
       ventasMes += venta;
+      costoMes += costo;
       gananciaMes += ganancia;
+      operaciones.push({
+        fecha: new Date(v.fecha).toISOString(),
+        tipo: "Mostrador",
+        ref: v.cliente || v.numero,
+        venta, costo, ganancia, sinCosto: costo <= 0,
+      });
     }
     const items = (v.items as unknown as VMItem[]) || [];
     for (const it of items) {
@@ -133,9 +152,12 @@ export async function GET() {
   const utilidadNeta = gananciaMes - gastosMes;
   const impuestoEstimado = ventasMes * 0.015; // SUNAT RER 1.5% de lo facturado
 
+  operaciones.sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
+
   return NextResponse.json({
     mes: {
       ventas: ventasMes,
+      costo: costoMes,
       ganancia: gananciaMes,
       margen: margenMes,
       gastos: gastosMes,
@@ -145,6 +167,7 @@ export async function GET() {
     },
     cobros: { porCobrar, cobradoMes },
     gastosPorCategoria,
+    operaciones,
     serie: meses.map(m => ({ mes: m, ...serie[m] })),
     topProductos,
   });
