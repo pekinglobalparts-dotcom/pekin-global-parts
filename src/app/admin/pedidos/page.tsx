@@ -65,6 +65,7 @@ export default function AdminPedidosPage() {
   const [filter, setFilter] = useState("TODOS");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [esSuperAdmin, setEsSuperAdmin] = useState(false);
 
   // --- Orden de compra (por pedido) ---
   const [uploadingOc, setUploadingOc] = useState<string | null>(null);
@@ -95,6 +96,7 @@ export default function AdminPedidosPage() {
     const res = await fetch(`/api/admin/pedidos${params}`);
     const data = await res.json();
     setPedidos(data.pedidos || []);
+    setEsSuperAdmin(!!data.esSuperAdmin);
     setLoading(false);
   }, [filter]);
 
@@ -348,8 +350,8 @@ export default function AdminPedidosPage() {
                             </div>
                           </div>
 
-                          {/* Costo y ganancia (privado — el socio nunca lo ve) */}
-                          {(() => {
+                          {/* Costo y ganancia — solo Super Admin (el socio y otros admin nunca lo ven) */}
+                          {esSuperAdmin && (() => {
                             const ventaReal = Number(pedido.total);
                             const costoTotal = pedido.items.reduce((s, it) => s + costoValor(it) * it.cantidad, 0);
                             const ganancia = ventaReal - costoTotal;

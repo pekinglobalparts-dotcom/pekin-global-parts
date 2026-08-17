@@ -32,5 +32,15 @@ export async function GET(req: NextRequest) {
     prisma.pedido.count({ where }),
   ]);
 
-  return NextResponse.json({ pedidos, total });
+  // El costo (y por ende la ganancia) es información privada del dueño.
+  // Un ADMIN normal no debe verlo: se elimina de la respuesta.
+  const esSuperAdmin = session.user.adminRole === "SUPER_ADMIN";
+  const pedidosSalida = esSuperAdmin
+    ? pedidos
+    : pedidos.map(p => ({
+        ...p,
+        items: (p.items as Array<Record<string, unknown>>).map(({ costoUnit, ...resto }) => { void costoUnit; return resto; }),
+      }));
+
+  return NextResponse.json({ pedidos: pedidosSalida, total, esSuperAdmin });
 }
