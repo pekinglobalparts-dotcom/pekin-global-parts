@@ -54,7 +54,7 @@ export default function FinanzasPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-black text-slate-900">Finanzas</h1>
-          <p className="text-slate-500 text-sm mt-0.5">Control del negocio · montos sin IGV (valor real de venta y costo)</p>
+          <p className="text-slate-500 text-sm mt-0.5">Control del negocio · montos reales (lo que cobras y lo que pagas)</p>
         </div>
         <Link
           href="/admin/ventas"

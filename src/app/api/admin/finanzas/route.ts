@@ -3,7 +3,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // Tablero financiero — solo Super Admin.
-// Convención: todos los montos se manejan SIN IGV (valor real de venta y costo).
+// Convención: montos reales tal como se cobran/pagan (con IGV). La ganancia es
+// la resta directa venta − costo. El IGV lo maneja la contabilidad aparte.
 
 type VMItem = { descripcion: string; codigo?: string | null; cantidad: number; precioUnit: number; costoUnit: number };
 
@@ -23,7 +24,7 @@ export async function GET() {
   const [pedidos, ventas, facturas] = await Promise.all([
     prisma.pedido.findMany({
       where: { status: "ENTREGADO", createdAt: { gte: desde } },
-      select: { id: true, subtotal: true, createdAt: true, items: true },
+      select: { id: true, total: true, createdAt: true, items: true },
     }),
     prisma.ventaMostrador.findMany({
       where: { fecha: { gte: desde } },
@@ -59,7 +60,7 @@ export async function GET() {
 
   // --- Pedidos de socios (entregados) ---
   for (const p of pedidos) {
-    const venta = num(p.subtotal); // sin IGV
+    const venta = num(p.total); // monto real cobrado (con IGV)
     const items = (p.items as unknown as { descripcion?: string | null; cantidad: number; costoUnit?: unknown; precioUnit: unknown }[]) || [];
     const costo = items.reduce((s, it) => s + num(it.costoUnit) * it.cantidad, 0);
     const tieneCosto = items.some(it => it.costoUnit != null && num(it.costoUnit) > 0);
