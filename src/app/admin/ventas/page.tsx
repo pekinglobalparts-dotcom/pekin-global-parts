@@ -95,7 +95,7 @@ export default function VentasPage() {
     <div className="p-6 lg:p-8 space-y-6">
       <div>
         <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2"><Store className="h-6 w-6 text-[#0f1f3d]" /> Ventas de mostrador</h1>
-        <p className="text-slate-500 text-sm mt-0.5">Registra las ventas de contado / clientes finales que no están en el sistema. Pon los <b>montos reales</b>: lo que cobras y lo que pagas. Ganancia = venta − costo.</p>
+        <p className="text-slate-500 text-sm mt-0.5">Registra las ventas de contado / clientes finales que no están en el sistema. Pon los montos <b>con IGV incluido</b> (lo que cobras y lo que pagas, tal cual). Ganancia = venta − costo.</p>
       </div>
 
       {/* Formulario */}
@@ -139,12 +139,12 @@ export default function VentasPage() {
                     className="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm text-center" />
                 </div>
                 <div className="col-span-6 sm:col-span-2">
-                  <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Precio venta</label>
+                  <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Precio venta (con IGV)</label>
                   <input type="number" min={0} step="0.01" value={it.precioUnit} onChange={e => updateItem(i, "precioUnit", parseFloat(e.target.value) || 0)}
                     className="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm" />
                 </div>
                 <div className="col-span-5 sm:col-span-1">
-                  <label className="block text-[10px] font-semibold text-emerald-600 uppercase mb-0.5">Costo</label>
+                  <label className="block text-[10px] font-semibold text-emerald-600 uppercase mb-0.5">Costo (con IGV)</label>
                   <input type="number" min={0} step="0.01" value={it.costoUnit} onChange={e => updateItem(i, "costoUnit", parseFloat(e.target.value) || 0)}
                     className="w-full border border-emerald-200 bg-emerald-50/40 rounded-lg px-2 py-2 text-sm" />
                 </div>

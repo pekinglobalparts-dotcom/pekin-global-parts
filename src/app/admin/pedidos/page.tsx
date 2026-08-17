@@ -392,7 +392,7 @@ export default function AdminPedidosPage() {
                                     </Button>
                                   </div>
                                 </div>
-                                <p className="text-[11px] text-slate-400 mt-2">Pon lo que te costó cada repuesto (el monto real que pagaste a tu proveedor). Solo lo ves tú — alimenta el tablero de Finanzas.</p>
+                                <p className="text-[11px] text-slate-400 mt-2">Pon el <b>total que pagaste</b> a tu proveedor por cada repuesto, <b>con IGV incluido</b> (igual que el precio de venta, para que la ganancia sea real). Solo lo ves tú.</p>
                               </div>
                             );
                           })()}
@@ -591,7 +591,7 @@ export default function AdminPedidosPage() {
                             />
                           </div>
                           <div className="col-span-4">
-                            <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Precio venta (c/IGV)</label>
+                            <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Precio venta (con IGV)</label>
                             <div className="relative">
                               <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">S/</span>
                               <input
@@ -603,7 +603,7 @@ export default function AdminPedidosPage() {
                             </div>
                           </div>
                           <div className="col-span-4">
-                            <label className="block text-[10px] font-semibold text-emerald-600 uppercase mb-0.5">Costo (lo que pagaste)</label>
+                            <label className="block text-[10px] font-semibold text-emerald-600 uppercase mb-0.5">Costo (con IGV)</label>
                             <div className="relative">
                               <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">S/</span>
                               <input
@@ -624,7 +624,7 @@ export default function AdminPedidosPage() {
                         </div>
                       ))}
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-2">El <b>precio de venta</b> es lo que le cobras al socio (con IGV, para la factura). El <b className="text-emerald-600">costo</b> es lo que TÚ pagaste por el repuesto — opcional, solo se usa para tu ganancia en Finanzas. El socio nunca lo ve. Tu ganancia = venta − costo.</p>
+                    <p className="text-[11px] text-slate-400 mt-2">Importante: <b>ambos montos van CON IGV</b>. El <b>precio de venta</b> es lo que le cobras al socio (con IGV). El <b className="text-emerald-600">costo</b> es el total que TÚ pagaste al proveedor (el de su factura, que ya incluye IGV) — opcional, solo para tu ganancia; el socio nunca lo ve. Ganancia = venta − costo.</p>
                   </div>
 
                   {/* Modalidad de pago */}
