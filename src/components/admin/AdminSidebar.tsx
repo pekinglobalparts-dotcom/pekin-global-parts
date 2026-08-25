@@ -9,7 +9,7 @@ import {
   LayoutDashboard, FileText, Users,
   ShoppingCart, Receipt, CreditCard, LogOut,
   ChevronRight, Database, UserCog, Search, Menu, X,
-  TrendingUp, Store, Banknote,
+  TrendingUp, Store, Banknote, Boxes,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +22,7 @@ const links = [
   { href: "/admin/facturas", label: "Facturas", icon: Receipt },
   { href: "/admin/creditos", label: "Créditos", icon: CreditCard },
   { href: "/admin/solicitudes-repuesto", label: "Rep. específicos", icon: Search },
+  { href: "/admin/productos-tienda", label: "Productos / Inventario", icon: Boxes },
   { href: "/admin/datos", label: "Gestión de datos", icon: Database },
 ];
 

@@ -339,6 +339,23 @@ model Gasto {
   @@map("gastos")
 }
 
+// Catálogo de la tienda (POS). Se llena a mano o por importación.
+// El precio se maneja CON IGV. Código único para autocompletar en ventas.
+model ProductoTienda {
+  id          String   @id @default(cuid())
+  codigo      String   @unique
+  descripcion String
+  precio      Decimal  @db.Decimal(10, 2)
+  costo       Decimal? @db.Decimal(10, 2)
+  stock       Int      @default(0)
+  stockMinimo Int      @default(0)
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("productos_tienda")
+}
+
 model SolicitudRepuesto {
   id          String                  @id @default(cuid())
   numero      String                  @unique

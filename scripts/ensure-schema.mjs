@@ -36,6 +36,18 @@ const STATEMENTS = [
      "descripcion" TEXT,
      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
    );`,
+  `CREATE TABLE IF NOT EXISTS "productos_tienda" (
+     "id" TEXT PRIMARY KEY,
+     "codigo" TEXT NOT NULL UNIQUE,
+     "descripcion" TEXT NOT NULL,
+     "precio" DECIMAL(10,2) NOT NULL,
+     "costo" DECIMAL(10,2),
+     "stock" INTEGER NOT NULL DEFAULT 0,
+     "stockMinimo" INTEGER NOT NULL DEFAULT 0,
+     "activo" BOOLEAN NOT NULL DEFAULT true,
+     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+   );`,
 ];
 
 async function main() {
