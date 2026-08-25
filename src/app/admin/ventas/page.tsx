@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Trash2, Store, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, Store, AlertTriangle, Copy, Check } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface Linea { descripcion: string; codigo: string; cantidad: number; precioUnit: number; costoUnit: number }
@@ -9,6 +9,8 @@ interface Venta {
   id: string;
   numero: string;
   cliente: string | null;
+  docCliente: string | null;
+  modalidad: string;
   fecha: string;
   total: number;
   costoTotal: number;
@@ -26,11 +28,14 @@ export default function VentasPage() {
   const [denied, setDenied] = useState(false);
 
   const [cliente, setCliente] = useState("");
+  const [docCliente, setDocCliente] = useState("");
+  const [modalidad, setModalidad] = useState<"CONTADO" | "CREDITO">("CONTADO");
   const [fecha, setFecha] = useState(hoy());
   const [notas, setNotas] = useState("");
   const [items, setItems] = useState<Linea[]>([nuevaLinea()]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [copiado, setCopiado] = useState<string>("");
 
   const load = useCallback(async () => {
     const r = await fetch("/api/admin/ventas");
@@ -60,10 +65,10 @@ export default function VentasPage() {
       const r = await fetch("/api/admin/ventas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cliente: cliente || null, fecha, items, notas: notas || null }),
+        body: JSON.stringify({ cliente: cliente || null, docCliente: docCliente || null, modalidad, fecha, items, notas: notas || null }),
       });
       if (r.ok) {
-        setCliente(""); setNotas(""); setItems([nuevaLinea()]); setFecha(hoy());
+        setCliente(""); setDocCliente(""); setModalidad("CONTADO"); setNotas(""); setItems([nuevaLinea()]); setFecha(hoy());
         load();
       } else {
         const d = await r.json().catch(() => ({}));
@@ -79,6 +84,34 @@ export default function VentasPage() {
     if (!confirm("¿Eliminar esta venta?")) return;
     await fetch(`/api/admin/ventas/${id}`, { method: "DELETE" });
     setVentas(prev => prev.filter(v => v.id !== id));
+  };
+
+  // Texto simple para enviarle al contador por WhatsApp
+  const textoVenta = (v: Venta): string => {
+    const L = [];
+    L.push(`🧾 ${v.numero} · ${formatDate(v.fecha)} · ${v.modalidad === "CREDITO" ? "CRÉDITO" : "CONTADO"}`);
+    L.push(`Cliente: ${v.cliente || "Mostrador"}${v.docCliente ? ` · DNI/RUC: ${v.docCliente}` : ""}`);
+    for (const it of v.items || []) {
+      L.push(`• ${it.descripcion}${it.codigo ? ` (${it.codigo})` : ""} x${it.cantidad} — ${formatCurrency(it.precioUnit)} c/u`);
+    }
+    L.push(`TOTAL: ${formatCurrency(v.total)} (inc. IGV)`);
+    return L.join("\n");
+  };
+
+  const copiar = async (texto: string, id: string) => {
+    try { await navigator.clipboard.writeText(texto); setCopiado(id); setTimeout(() => setCopiado(""), 2000); }
+    catch { alert("No se pudo copiar. Selecciona y copia manualmente:\n\n" + texto); }
+  };
+
+  const copiarDia = () => {
+    const h = hoy();
+    const delDia = ventas.filter(v => v.fecha.slice(0, 10) === h);
+    if (delDia.length === 0) { alert("No hay ventas registradas hoy."); return; }
+    const totalDia = delDia.reduce((s, v) => s + Number(v.total), 0);
+    const texto = `📋 VENTAS DEL DÍA — PEKIN GLOBAL PARTS\n${formatDate(h)} · ${delDia.length} venta(s)\n\n`
+      + delDia.map(textoVenta).join("\n\n——————————\n")
+      + `\n\n══════════\nTOTAL DEL DÍA: ${formatCurrency(totalDia)}`;
+    copiar(texto, "dia");
   };
 
   if (denied) {
@@ -105,6 +138,19 @@ export default function VentasPage() {
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Cliente (opcional)</label>
             <input value={cliente} onChange={e => setCliente(e.target.value)} placeholder="Nombre o referencia"
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">DNI / RUC (opcional)</label>
+            <input value={docCliente} onChange={e => setDocCliente(e.target.value)} placeholder="Para la boleta/factura del contador"
+              inputMode="numeric" className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Modalidad de pago</label>
+            <select value={modalidad} onChange={e => setModalidad(e.target.value as "CONTADO" | "CREDITO")}
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">
+              <option value="CONTADO">Contado</option>
+              <option value="CREDITO">Crédito</option>
+            </select>
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Fecha</label>
@@ -190,8 +236,12 @@ export default function VentasPage() {
 
       {/* Listado */}
       <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-100">
+        <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-2">
           <h2 className="font-bold text-slate-900 text-sm">Últimas ventas registradas</h2>
+          <button onClick={copiarDia}
+            className="flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:bg-blue-50 border border-blue-200 rounded-lg px-3 py-1.5 transition-colors">
+            {copiado === "dia" ? <><Check className="h-3.5 w-3.5 text-emerald-600" /> ¡Copiado!</> : <><Copy className="h-3.5 w-3.5" /> Copiar ventas de hoy (contador)</>}
+          </button>
         </div>
         {loading ? (
           <div className="p-8 text-center text-slate-400 text-sm">Cargando…</div>
@@ -202,16 +252,23 @@ export default function VentasPage() {
             {ventas.map(v => (
               <div key={v.id} className="flex items-center gap-3 px-5 py-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-900 truncate">
-                    {v.cliente || "Cliente de mostrador"} <span className="text-slate-400 font-normal">· {v.items?.length || 0} ítem(s)</span>
+                  <p className="text-sm font-semibold text-slate-900 truncate flex items-center gap-2">
+                    {v.cliente || "Cliente de mostrador"}
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${v.modalidad === "CREDITO" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}>
+                      {v.modalidad === "CREDITO" ? "CRÉDITO" : "CONTADO"}
+                    </span>
                   </p>
-                  <p className="text-xs text-slate-400">{v.numero} · {formatDate(v.fecha)}</p>
+                  <p className="text-xs text-slate-400">{v.numero} · {formatDate(v.fecha)} · {v.items?.length || 0} ítem(s){v.docCliente ? ` · ${v.docCliente}` : ""}</p>
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-sm font-bold text-slate-900">{formatCurrency(v.total)}</p>
                   <p className="text-xs text-emerald-600">Ganó {formatCurrency(v.ganancia)}</p>
                 </div>
-                <button onClick={() => eliminar(v.id)} className="text-slate-300 hover:text-red-500 shrink-0"><Trash2 className="h-4 w-4" /></button>
+                <button onClick={() => copiar(textoVenta(v), v.id)} title="Copiar para el contador"
+                  className="text-slate-400 hover:text-blue-600 shrink-0 p-1">
+                  {copiado === v.id ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                </button>
+                <button onClick={() => eliminar(v.id)} className="text-slate-300 hover:text-red-500 shrink-0 p-1"><Trash2 className="h-4 w-4" /></button>
               </div>
             ))}
           </div>
