@@ -36,6 +36,8 @@ const STATEMENTS = [
      "descripcion" TEXT,
      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
    );`,
+  `ALTER TABLE "ventas_mostrador" ADD COLUMN IF NOT EXISTS "docCliente" TEXT;`,
+  `ALTER TABLE "ventas_mostrador" ADD COLUMN IF NOT EXISTS "modalidad" TEXT NOT NULL DEFAULT 'CONTADO';`,
   `CREATE TABLE IF NOT EXISTS "productos_tienda" (
      "id" TEXT PRIMARY KEY,
      "codigo" TEXT NOT NULL UNIQUE,

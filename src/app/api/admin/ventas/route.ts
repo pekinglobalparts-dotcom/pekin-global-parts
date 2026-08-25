@@ -15,6 +15,8 @@ const itemSchema = z.object({
 
 const createSchema = z.object({
   cliente: z.string().max(200).optional().nullable(),
+  docCliente: z.string().max(20).optional().nullable(),
+  modalidad: z.enum(["CONTADO", "CREDITO"]).optional(),
   fecha: z.string().optional(),
   items: z.array(itemSchema).min(1),
   notas: z.string().max(1000).optional().nullable(),
@@ -46,7 +48,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Datos inválidos", details: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { cliente, fecha, items, notas } = parsed.data;
+  const { cliente, docCliente, modalidad, fecha, items, notas } = parsed.data;
 
   const total = items.reduce((s, i) => s + i.precioUnit * i.cantidad, 0);
   const costoTotal = items.reduce((s, i) => s + i.costoUnit * i.cantidad, 0);
@@ -56,6 +58,8 @@ export async function POST(req: NextRequest) {
     data: {
       numero: generateNumero("VM", Date.now().toString()),
       cliente: cliente || null,
+      docCliente: docCliente || null,
+      modalidad: modalidad || "CONTADO",
       fecha: fecha ? new Date(fecha) : new Date(),
       total,
       costoTotal,

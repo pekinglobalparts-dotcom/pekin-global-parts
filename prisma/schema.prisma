@@ -316,6 +316,8 @@ model VentaMostrador {
   id         String   @id @default(cuid())
   numero     String   @unique
   cliente    String?
+  docCliente String?
+  modalidad  String   @default("CONTADO")
   fecha      DateTime @default(now())
   total      Decimal  @db.Decimal(12, 2)
   costoTotal Decimal  @default(0) @db.Decimal(12, 2)
