@@ -26,6 +26,11 @@
 - **Vender por UNIDAD**, no forzar caja: las flotas compran 4–6, no 10. Ese fue el error de la promo anterior.
 - Escalones: **por unidad** / **caja x10** (mejor precio por pieza) / **más cajas** (2+, negociable, lo escribe Oscar).
 
+## Reglas críticas de precios (NO romper)
+- **Las cotizaciones de proveedores/competencia vienen con IGV INCLUIDO.** Nunca multiplicar el P.U. por 1.18 asumiendo que está sin IGV.
+- **Verificar SIEMPRE antes de usar cifras:** cuadrar `Σ (P.U. × cantidad) = Total Venta`. Si cuadra con el Total (no con el Valor Venta), los P.U. están **con IGV**. El "Valor Venta" es solo el desglose sin IGV; el "Total Venta" es lo real con IGV.
+- Un error de IGV en un precio a cliente es **fatal**. Ante la duda, recalcular y confirmar con Oscar.
+
 ## Producto trabajado: Palier Toyota Hilux 1GD/2GD (marca BOTELLI)
 - **Punta de palier EXTERNA** — `FD2331-K` — S/ 115 c/u · caja x10 S/ 109 c/u (S/ 1,090)
 - **Copa / palier INTERNO** — `FD2334-K` — S/ 145 c/u · caja x10 S/ 139 c/u (S/ 1,390)
