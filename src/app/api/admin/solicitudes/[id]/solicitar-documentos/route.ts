@@ -22,12 +22,15 @@ export async function POST(
   }
 
   const token = solicitud.tokenDocumentos ?? randomBytes(32).toString("hex");
+  // El enlace de subida caduca a los 7 días (se renueva cada vez que se solicita).
+  const expira = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   await prisma.solicitud.update({
     where: { id },
     data: {
       status: "EN_REVISION",
       tokenDocumentos: token,
+      tokenDocumentosExpira: expira,
       revisadoPor: session.user.id,
       revisadoAt: new Date(),
     },

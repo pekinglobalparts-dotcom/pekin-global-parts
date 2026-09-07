@@ -30,6 +30,9 @@ export async function GET(
   if (!solicitud) {
     return NextResponse.json({ error: "Enlace inválido o expirado" }, { status: 404 });
   }
+  if (solicitud.tokenDocumentosExpira && solicitud.tokenDocumentosExpira < new Date()) {
+    return NextResponse.json({ error: "Este enlace ha expirado. Solicita uno nuevo." }, { status: 410 });
+  }
 
   return NextResponse.json({
     razonSocial: solicitud.razonSocial,
@@ -52,6 +55,9 @@ export async function POST(
 
   if (!solicitud || solicitud.status === "APROBADA" || solicitud.status === "RECHAZADA") {
     return NextResponse.json({ error: "Solicitud no válida" }, { status: 400 });
+  }
+  if (solicitud.tokenDocumentosExpira && solicitud.tokenDocumentosExpira < new Date()) {
+    return NextResponse.json({ error: "Este enlace ha expirado. Solicita uno nuevo." }, { status: 410 });
   }
 
   const body = await req.json();

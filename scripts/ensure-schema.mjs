@@ -50,6 +50,15 @@ const STATEMENTS = [
      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
    );`,
+  // Limitador de peticiones persistente (anti fuerza bruta / anti spam).
+  `CREATE TABLE IF NOT EXISTS "rate_limits" (
+     "key" TEXT PRIMARY KEY,
+     "count" INTEGER NOT NULL DEFAULT 0,
+     "reset_at" TIMESTAMP(3) NOT NULL
+   );`,
+  `CREATE INDEX IF NOT EXISTS "rate_limits_reset_at_idx" ON "rate_limits" ("reset_at");`,
+  // Expiración del enlace de subida de documentos.
+  `ALTER TABLE "solicitudes" ADD COLUMN IF NOT EXISTS "tokenDocumentosExpira" TIMESTAMP(3);`,
 ];
 
 async function main() {

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import path from "path";
+import { rateLimitDb, getRateLimitIdentifier } from "@/lib/rate-limit";
+
+// Anti-abuso: la IA cuesta por consulta. Limitamos por IP.
+const ASESOR_MAX_POR_IP = 20;
+const ASESOR_VENTANA_MS = 5 * 60_000; // 20 mensajes cada 5 minutos
+const MAX_LEN_MENSAJE = 1000;
 
 // Groq: IA gratuita (modelos Llama), sin tarjeta. https://console.groq.com
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
@@ -65,6 +71,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ reply: "El asistente inteligente aún no está configurado. Escríbenos por WhatsApp y te atendemos al instante. 🙌" }, { status: 200 });
   }
 
+  // Límite por IP para evitar abuso del costo de la IA.
+  const ip = getRateLimitIdentifier(req);
+  const rl = await rateLimitDb(`asesor:${ip}`, ASESOR_MAX_POR_IP, ASESOR_VENTANA_MS);
+  if (!rl.success) {
+    return NextResponse.json(
+      { reply: "Estás yendo un poco rápido 😅. Dame un momentito o, si prefieres, escríbenos por WhatsApp y te atendemos al instante. 🙌" },
+      { status: 429 }
+    );
+  }
+
   let body: { messages?: ChatMsg[]; mode?: string };
   try {
     body = await req.json();
@@ -72,7 +88,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 
-  const history = (body.messages || []).slice(-12);
+  // Recortamos y limitamos el tamaño de cada mensaje (anti abuso de tokens).
+  const history = (body.messages || [])
+    .slice(-12)
+    .filter((m): m is ChatMsg => !!m && typeof m.text === "string")
+    .map(m => ({ role: m.role === "model" ? "model" : "user", text: m.text.slice(0, MAX_LEN_MENSAJE) } as ChatMsg));
   const mode = body.mode === "soporte" ? "soporte" : "ventas";
   const lastUser = [...history].reverse().find(m => m.role === "user")?.text || "";
 
