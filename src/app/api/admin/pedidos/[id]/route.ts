@@ -82,8 +82,15 @@ export async function PATCH(
     // Auto-create factura if not exists
     const facturaExistente = await prisma.factura.findUnique({ where: { pedidoId: id } });
     if (!facturaExistente) {
-      const vencimiento = new Date();
-      vencimiento.setDate(vencimiento.getDate() + 30);
+      // Los días de cobro se cuentan desde la FECHA del pedido (editable),
+      // no desde hoy, y con el plazo de crédito real del socio.
+      const socioPlazo = await prisma.socio.findUnique({
+        where: { id: pedido.socioId },
+        select: { plazoCredito: true },
+      });
+      const plazoDias = socioPlazo?.plazoCredito != null ? Number(socioPlazo.plazoCredito) : 30;
+      const vencimiento = new Date(pedido.createdAt);
+      vencimiento.setDate(vencimiento.getDate() + plazoDias);
 
       const factura = await prisma.factura.create({
         data: {
