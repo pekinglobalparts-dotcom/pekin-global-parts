@@ -43,5 +43,6 @@ export async function GET(req: NextRequest) {
   ]);
 
   const sociosWithExtra = (socios as unknown as Array<typeof socios[0] & { tipoPago?: string; plazoCredito?: number }>);
-  return NextResponse.json({ socios: sociosWithExtra, total, page, limit });
+  const esSuperAdmin = session.user.adminRole === "SUPER_ADMIN";
+  return NextResponse.json({ socios: sociosWithExtra, total, page, limit, esSuperAdmin });
 }
