@@ -755,8 +755,17 @@ function Footer({ onOpenReclamacion }: { onOpenReclamacion: () => void }) {
               <a href={waLink("Hola, quiero más información")} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors">
                 <span className="text-green-400">{WA_ICON}</span> +51 953 096 242
               </a>
-              <a href="mailto:pekinglobalparts@gmail.com" className="flex items-center gap-2 hover:text-white transition-colors">
-                <span>📧</span> pekinglobalparts@gmail.com
+              <a href="mailto:ventas@pekinglobalparts.com" className="flex items-center gap-2 hover:text-white transition-colors">
+                <span>📧</span> ventas@pekinglobalparts.com
+              </a>
+              <a href="mailto:atencionalcliente@pekinglobalparts.com" className="flex items-center gap-2 hover:text-white transition-colors">
+                <span>📧</span> atencionalcliente@pekinglobalparts.com
+              </a>
+              <a href="mailto:cobranzas@pekinglobalparts.com" className="flex items-center gap-2 hover:text-white transition-colors">
+                <span>📧</span> cobranzas@pekinglobalparts.com
+              </a>
+              <a href="mailto:administracion@pekinglobalparts.com" className="flex items-center gap-2 hover:text-white transition-colors">
+                <span>📧</span> administracion@pekinglobalparts.com
               </a>
               <p className="flex items-center gap-2"><span>📍</span> El Agustino, Lima, Perú</p>
             </div>

@@ -138,11 +138,15 @@ export async function sendRecordatorioPago(
     <p style="color:#94a3b8;font-size:12px;margin:16px 0 0;">Si ya efectuó el pago, por favor haga caso omiso a este mensaje. ¡Gracias por su preferencia!</p>
   `;
 
+  // Copia oculta a la bandeja del negocio, para que quede registro del envío.
+  const bcc = process.env.EMAIL_COBRANZA_BCC || "administracion@pekinglobalparts.com";
+
   const resend = getResend();
   const { data: result, error } = await resend.emails.send({
     from: FROM_COBRANZAS,
     to: [to],
     cc: cc.length ? cc : undefined,
+    bcc: bcc ? [bcc] : undefined,
     replyTo: "cobranzas@pekinglobalparts.com",
     subject: `${data.vencida ? "Factura vencida" : "Recordatorio de pago"} — ${data.numeroFactura} · Pekín Global Parts`,
     html: layout(titulo, body),

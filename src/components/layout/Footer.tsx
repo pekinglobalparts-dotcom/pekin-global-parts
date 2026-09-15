@@ -71,14 +71,14 @@ export function Footer() {
                 <Phone className="h-4 w-4 text-red-400 shrink-0" />
                 <span>+51 953 096 242</span>
               </li>
-              <li className="flex items-center gap-3">
-                <Mail className="h-4 w-4 text-red-400 shrink-0" />
-                <a
-                  href="mailto:pekinglobalparts@gmail.com"
-                  className="hover:text-white transition-colors"
-                >
-                  pekinglobalparts@gmail.com
-                </a>
+              <li className="flex items-start gap-3">
+                <Mail className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
+                <div className="space-y-1">
+                  <a href="mailto:ventas@pekinglobalparts.com" className="block hover:text-white transition-colors">ventas@pekinglobalparts.com</a>
+                  <a href="mailto:atencionalcliente@pekinglobalparts.com" className="block hover:text-white transition-colors">atencionalcliente@pekinglobalparts.com</a>
+                  <a href="mailto:cobranzas@pekinglobalparts.com" className="block hover:text-white transition-colors">cobranzas@pekinglobalparts.com</a>
+                  <a href="mailto:administracion@pekinglobalparts.com" className="block hover:text-white transition-colors">administracion@pekinglobalparts.com</a>
+                </div>
               </li>
             </ul>
 
