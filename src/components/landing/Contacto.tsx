@@ -22,7 +22,7 @@ export function Contacto() {
             {[
               { icon: MapPin, title: "Dirección", lines: ["Jr. Cerro Azul 2147, El Agustino, Lima"] },
               { icon: Phone, title: "Teléfono / WhatsApp", lines: ["+51 953 096 242"] },
-              { icon: Mail, title: "Correo", lines: ["pekinglobalparts@gmail.com"] },
+              { icon: Mail, title: "Correos", lines: ["ventas@pekinglobalparts.com", "atencionalcliente@pekinglobalparts.com", "cobranzas@pekinglobalparts.com", "administracion@pekinglobalparts.com"] },
               { icon: Clock, title: "Horario de atención", lines: ["Lunes a Viernes: 8:00 am - 6:00 pm", "Sábado: 9:00 am - 1:00 pm"] },
             ].map((item) => (
               <div key={item.title} className="flex gap-4">
