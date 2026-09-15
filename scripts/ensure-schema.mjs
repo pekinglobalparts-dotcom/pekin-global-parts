@@ -50,6 +50,10 @@ const STATEMENTS = [
      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
    );`,
+  // Correos adicionales (CC) para recordatorios de cobranza por socio.
+  `ALTER TABLE "socios" ADD COLUMN IF NOT EXISTS "correosCobranza" TEXT;`,
+  // Marca de tiempo del último recordatorio de pago enviado.
+  `ALTER TABLE "facturas" ADD COLUMN IF NOT EXISTS "ultimoRecordatorio" TIMESTAMP(3);`,
 ];
 
 async function main() {
