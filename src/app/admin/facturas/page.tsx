@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Receipt, ChevronDown, ChevronUp, CheckCircle, Clock, X, Download } from "lucide-react";
+import { Receipt, ChevronDown, ChevronUp, CheckCircle, Clock, X, Download, Send } from "lucide-react";
 import { UploadDropzone } from "@uploadthing/react";
 import type { OurFileRouter } from "@/lib/uploadthing";
 import { formatDate, formatCurrency } from "@/lib/utils";
@@ -19,6 +19,7 @@ interface Factura {
   subtotal: number;
   igv: number;
   fechaVencimiento: string | null;
+  ultimoRecordatorio?: string | null;
   createdAt: string;
   socio: { razonSocial: string; ruc: string; emailCorporativo: string };
   pedido: { numero: string } | null;
@@ -40,6 +41,8 @@ export default function AdminFacturasPage() {
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [numeroRealInput, setNumeroRealInput] = useState<Record<string, string>>({});
   const [uploadError, setUploadError] = useState<Record<string, string>>({});
+  const [sendingRec, setSendingRec] = useState<string | null>(null);
+  const [recMsg, setRecMsg] = useState<Record<string, string>>({});
 
   const fetch_ = useCallback(async () => {
     setLoading(true);
@@ -87,6 +90,34 @@ export default function AdminFacturasPage() {
     if (!numeroReal) return;
     await fetch(`/api/admin/facturas/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ numeroReal }) });
     setFacturas(prev => prev.map(f => f.id === id ? { ...f, numeroReal } : f));
+  };
+
+  // Envía el recordatorio de pago desde cobranzas@ (con CC a los correos del socio).
+  const enviarRecordatorio = async (id: string) => {
+    // Anti-hostigamiento: si ya se envió uno hace menos de 3 días, confirmar.
+    const f = facturas.find(x => x.id === id);
+    if (f?.ultimoRecordatorio) {
+      const dias = Math.floor((Date.now() - new Date(f.ultimoRecordatorio).getTime()) / 86400000);
+      if (dias < 3 && !confirm(`Ya enviaste un recordatorio hace ${dias === 0 ? "menos de un día" : `${dias} día${dias === 1 ? "" : "s"}`}. Para no hostigar al cliente, ¿enviar otro de todas formas?`)) {
+        return;
+      }
+    }
+    setSendingRec(id);
+    setRecMsg(prev => ({ ...prev, [id]: "" }));
+    try {
+      const res = await fetch(`/api/admin/facturas/${id}/recordatorio`, { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        const ccTxt = data.cc?.length ? ` (con copia a ${data.cc.length})` : "";
+        setRecMsg(prev => ({ ...prev, [id]: `Enviado a ${data.enviadoA}${ccTxt} ✓` }));
+        setFacturas(prev => prev.map(f => f.id === id ? { ...f, ultimoRecordatorio: data.ultimoRecordatorio } : f));
+      } else {
+        setRecMsg(prev => ({ ...prev, [id]: `Error: ${data.error || "no se pudo enviar"}` }));
+      }
+    } catch {
+      setRecMsg(prev => ({ ...prev, [id]: "Error de conexión" }));
+    }
+    setSendingRec(null);
   };
 
   const totalFacturas = facturas.reduce((sum, f) => sum + Number(f.total), 0);
@@ -250,14 +281,37 @@ export default function AdminFacturasPage() {
                         </div>
 
                         {factura.status !== "PAGADA" && factura.status !== "ANULADA" && (
-                          <div className="flex gap-2">
-                            <Button size="sm" loading={updating === factura.id} onClick={() => markPagada(factura.id)} className="flex-1">
-                              <CheckCircle className="h-3.5 w-3.5" /> Confirmar pago
-                            </Button>
-                            <Button size="sm" variant="ghost" loading={updating === factura.id} onClick={() => markAnulada(factura.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                              <X className="h-3.5 w-3.5" /> Anular
-                            </Button>
-                          </div>
+                          <>
+                            {/* Recordatorio de pago (desde cobranzas@) */}
+                            <div className="bg-white rounded-xl p-4">
+                              <p className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Recordatorio de pago</p>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Button size="sm" variant="outline" loading={sendingRec === factura.id}
+                                  onClick={() => enviarRecordatorio(factura.id)}
+                                  className="text-amber-700 border-amber-200 hover:bg-amber-50">
+                                  <Send className="h-3.5 w-3.5" /> Enviar recordatorio
+                                </Button>
+                                {recMsg[factura.id] && (
+                                  <span className={`text-xs font-semibold ${recMsg[factura.id].startsWith("Error") ? "text-red-600" : "text-green-600"}`}>
+                                    {recMsg[factura.id]}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-slate-400 mt-2">
+                                Se envía desde <b>cobranzas@pekinglobalparts.com</b> a {factura.socio.emailCorporativo}, con copia a los correos de cobranza del socio (configúralos en Socios).
+                                {factura.ultimoRecordatorio && ` · Último envío: ${formatDate(factura.ultimoRecordatorio)}`}
+                              </p>
+                            </div>
+
+                            <div className="flex gap-2">
+                              <Button size="sm" loading={updating === factura.id} onClick={() => markPagada(factura.id)} className="flex-1">
+                                <CheckCircle className="h-3.5 w-3.5" /> Confirmar pago
+                              </Button>
+                              <Button size="sm" variant="ghost" loading={updating === factura.id} onClick={() => markAnulada(factura.id)} className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                                <X className="h-3.5 w-3.5" /> Anular
+                              </Button>
+                            </div>
+                          </>
                         )}
                       </div>
                     </motion.div>
