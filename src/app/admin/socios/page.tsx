@@ -19,6 +19,7 @@ interface Socio {
   creditoUtilizado: number;
   tipoPago: string;
   plazoCredito: number;
+  correosCobranza?: string | null;
   createdAt: string;
   ultimoAcceso?: string | null;
   passwordCambiado?: boolean;
@@ -60,6 +61,11 @@ export default function AdminSociosPage() {
   const [nuevoPlazo, setNuevoPlazo] = useState("30");
   const [saving, setSaving] = useState(false);
   const [esSuperAdmin, setEsSuperAdmin] = useState(false);
+
+  // --- Correos de cobranza (CC) ---
+  const [correosInput, setCorreosInput] = useState("");
+  const [savingCorreos, setSavingCorreos] = useState(false);
+  const [correosOk, setCorreosOk] = useState(false);
 
   // --- Restablecer contraseña ---
   const [resetting, setResetting] = useState(false);
@@ -136,6 +142,22 @@ export default function AdminSociosPage() {
     setSocios(prev => prev.filter(s => s.id !== id));
     setSelected(null);
     setSaving(false);
+  };
+
+  // Guarda los correos adicionales (CC) para los recordatorios de cobranza.
+  const saveCorreos = async () => {
+    if (!selected) return;
+    setSavingCorreos(true);
+    setCorreosOk(false);
+    await fetch(`/api/admin/socios/${selected.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ correosCobranza: correosInput.trim() }),
+    });
+    setSocios(prev => prev.map(s => s.id === selected.id ? { ...s, correosCobranza: correosInput.trim() } : s));
+    setSelected(s => s ? { ...s, correosCobranza: correosInput.trim() } : null);
+    setSavingCorreos(false);
+    setCorreosOk(true);
   };
 
   // Genera una nueva contraseña temporal para el socio (se muestra una sola vez).
@@ -282,7 +304,7 @@ Por seguridad, le recomendamos *cambiar su contraseña* al ingresar (en la secci
                     </td>
                     <td className="px-5 py-4 text-right">
                       <button
-                        onClick={() => { setSelected(socio); setNuevaLinea(String(socio.lineaCredito)); setEditingCredito(false); }}
+                        onClick={() => { setSelected(socio); setNuevaLinea(String(socio.lineaCredito)); setEditingCredito(false); setCorreosInput(socio.correosCobranza || ""); setCorreosOk(false); }}
                         className="text-xs font-medium text-blue-900 hover:text-blue-700"
                       >
                         Ver detalle
@@ -345,6 +367,27 @@ Por seguridad, le recomendamos *cambiar su contraseña* al ingresar (en la secci
                       </div>
                     ))}
                   </div>
+                </div>
+
+                {/* Correos para recordatorios de cobranza (CC) */}
+                <div>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Correos para recordatorios (CC)</p>
+                  <input
+                    type="text"
+                    value={correosInput}
+                    onChange={e => { setCorreosInput(e.target.value); setCorreosOk(false); }}
+                    placeholder="finanzas@cliente.com, contacto2@cliente.com"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+                  />
+                  <div className="flex items-center gap-2 mt-2">
+                    <Button size="sm" variant="outline" loading={savingCorreos} onClick={saveCorreos}>
+                      Guardar correos
+                    </Button>
+                    {correosOk && <span className="text-xs text-green-600 font-semibold">Guardado ✓</span>}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-2">
+                    Cuando envíes un recordatorio de pago, además del correo del socio ({selected.emailCorporativo}) se enviará copia a estas direcciones. Sepáralas con comas.
+                  </p>
                 </div>
 
                 {/* Credit / Contado */}

@@ -10,6 +10,7 @@ const updateSchema = z.object({
   plazoCredito: z.coerce.number().int().min(0).optional(),
   direccion: z.string().optional(),
   ciudad: z.string().optional(),
+  correosCobranza: z.string().max(500).optional(),
 });
 
 export async function GET(
