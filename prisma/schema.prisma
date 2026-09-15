@@ -122,6 +122,7 @@ model Solicitud {
   revisadoPor        String?
   revisadoAt         DateTime?
   tokenDocumentos    String?         @unique
+  tokenDocumentosExpira DateTime?
   documentosAt       DateTime?
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
@@ -430,6 +431,17 @@ model Notificacion {
   socio     Socio?           @relation(fields: [socioId], references: [id])
 
   @@map("notificaciones")
+}
+
+// Limitador de peticiones persistente (anti fuerza bruta / anti spam).
+// Se opera con SQL crudo desde src/lib/rate-limit.ts.
+model RateLimit {
+  key     String   @id
+  count   Int      @default(0)
+  resetAt DateTime @map("reset_at")
+
+  @@index([resetAt])
+  @@map("rate_limits")
 }
 
 model AuditLog {
