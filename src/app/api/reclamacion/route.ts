@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getResend } from "@/lib/email";
+import { rateLimitDb, getRateLimitIdentifier } from "@/lib/rate-limit";
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "pekinglobalparts@gmail.com";
 
@@ -11,6 +12,16 @@ function esc(v: unknown): string {
 }
 
 export async function POST(req: NextRequest) {
+  // Anti-spam: máximo 5 reclamaciones cada 10 minutos por IP.
+  const ip = getRateLimitIdentifier(req);
+  const rl = await rateLimitDb(`reclamacion:${ip}`, 5, 10 * 60_000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Demasiados envíos. Espera unos minutos e inténtalo de nuevo." },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json().catch(() => null);
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "Solicitud inválida" }, { status: 400 });
