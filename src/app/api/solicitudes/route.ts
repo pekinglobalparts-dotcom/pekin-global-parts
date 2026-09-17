@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { solicitudSchema } from "@/lib/validations";
 import { sendSolicitudRecibida } from "@/lib/email";
-import { rateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
+import { rateLimitDb, getRateLimitIdentifier } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
     const id = getRateLimitIdentifier(req);
-    const rl = rateLimit(`solicitud:${id}`, 3, 60_000);
+    const rl = await rateLimitDb(`solicitud:${id}`, 3, 60_000);
     if (!rl.success) {
       return NextResponse.json(
         { error: "Demasiadas solicitudes. Espere un momento." },
