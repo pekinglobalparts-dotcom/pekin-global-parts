@@ -23,6 +23,12 @@ export default function AdministradoresPage() {
   const [saving, setSaving] = useState(false);
   const [resetPasswordId, setResetPasswordId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  // Cambio de la propia contraseña
+  const [showMiPassword, setShowMiPassword] = useState(false);
+  const [miActual, setMiActual] = useState("");
+  const [miNueva, setMiNueva] = useState("");
+  const [miError, setMiError] = useState("");
+  const [miOk, setMiOk] = useState(false);
 
   const [form, setForm] = useState({
     nombre: "", apellido: "", email: "", password: "", role: "ADMIN" as "SUPER_ADMIN" | "ADMIN",
@@ -96,6 +102,30 @@ export default function AdministradoresPage() {
     setResetPasswordId(null);
     setNewPassword("");
     setSaving(false);
+  };
+
+  const handleMiPassword = async () => {
+    setMiError("");
+    if (!miActual || miNueva.length < 8) {
+      setMiError("Completa tu contraseña actual y una nueva de al menos 8 caracteres.");
+      return;
+    }
+    setSaving(true);
+    const res = await fetch("/api/admin/cuenta/password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ actual: miActual, nueva: miNueva }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setSaving(false);
+    if (res.ok) {
+      setMiOk(true);
+      setMiActual("");
+      setMiNueva("");
+      setTimeout(() => { setShowMiPassword(false); setMiOk(false); }, 1800);
+    } else {
+      setMiError(data.error || "No se pudo cambiar la contraseña.");
+    }
   };
 
   const handleDelete = async (id: string, nombre: string) => {
@@ -218,6 +248,16 @@ export default function AdministradoresPage() {
                     </button>
                   </div>
                 )}
+
+                {/* Cambiar la propia contraseña */}
+                {admin.id === currentId && (
+                  <button
+                    onClick={() => { setShowMiPassword(true); setMiActual(""); setMiNueva(""); setMiError(""); setMiOk(false); }}
+                    className="flex items-center gap-1.5 shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
+                  >
+                    <Key className="h-3.5 w-3.5" /> Cambiar mi contraseña
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -294,6 +334,53 @@ export default function AdministradoresPage() {
                 <Check className="h-4 w-4" /> Guardar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cambiar mi propia contraseña */}
+      {showMiPassword && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-slate-900">Cambiar mi contraseña</h3>
+              <button onClick={() => setShowMiPassword(false)}><X className="h-4 w-4 text-slate-400" /></button>
+            </div>
+            {miOk ? (
+              <div className="flex flex-col items-center text-center py-4">
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-3">
+                  <Check className="h-6 w-6 text-green-600" />
+                </div>
+                <p className="text-sm font-semibold text-slate-900">Contraseña actualizada</p>
+                <p className="text-xs text-slate-500 mt-1">Usa la nueva la próxima vez que inicies sesión.</p>
+              </div>
+            ) : (
+              <>
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Contraseña actual</label>
+                <input
+                  type="password"
+                  value={miActual}
+                  onChange={e => setMiActual(e.target.value)}
+                  placeholder="Tu contraseña actual"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm mb-3"
+                />
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Nueva contraseña</label>
+                <input
+                  type="password"
+                  value={miNueva}
+                  onChange={e => setMiNueva(e.target.value)}
+                  placeholder="Mínimo 8 caracteres"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm mb-2"
+                />
+                {miError && <p className="text-xs text-red-600 mb-2">{miError}</p>}
+                <div className="flex gap-2 mt-2">
+                  <button onClick={() => setShowMiPassword(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600">Cancelar</button>
+                  <button onClick={handleMiPassword} disabled={saving || !miActual || miNueva.length < 8} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-900 text-white text-sm font-bold disabled:opacity-50">
+                    <Check className="h-4 w-4" /> Guardar
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
