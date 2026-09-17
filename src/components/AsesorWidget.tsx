@@ -132,13 +132,15 @@ export function AsesorWidget() {
     <>
       {!open && (
         <button onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-5 z-40 flex items-center gap-2 bg-[#0f1f3d] hover:bg-[#16294f] text-white pl-4 pr-5 py-3 rounded-full shadow-2xl transition-all hover:-translate-y-0.5"
-          aria-label="Abrir asesor">
-          <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#e8121a]">
-            <Headset className="h-5 w-5" />
-            <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-400 border-2 border-[#0f1f3d] animate-pulse" />
+          className="group fixed bottom-6 right-5 z-40 flex items-center bg-[#0f1f3d] hover:bg-[#16294f] text-white rounded-full shadow-2xl transition-all hover:-translate-y-0.5 h-14 w-14 hover:w-auto hover:pr-5 overflow-hidden"
+          aria-label="Abrir asesor en línea">
+          <span className="relative flex h-14 w-14 shrink-0 items-center justify-center">
+            <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#e8121a]">
+              <Headset className="h-5 w-5" />
+              <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-400 border-2 border-[#0f1f3d] animate-pulse" />
+            </span>
           </span>
-          <span className="text-left leading-tight">
+          <span className="max-w-0 group-hover:max-w-[180px] transition-all duration-300 whitespace-nowrap overflow-hidden text-left leading-tight">
             <span className="block text-sm font-black">Asesor en línea</span>
             <span className="block text-[10px] text-blue-200">Cotiza en 1 minuto</span>
           </span>
