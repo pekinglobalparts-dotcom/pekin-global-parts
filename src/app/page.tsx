@@ -736,55 +736,79 @@ function Footer({ onOpenReclamacion }: { onOpenReclamacion: () => void }) {
       </div>
 
       {/* Links y redes */}
-      <div className="py-10">
+      <div className="pt-10 pb-28 md:pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-start justify-between gap-10 mb-8 pb-8 border-b border-white/10">
-            <LogoWhite compact />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-8 pb-8 border-b border-white/10">
 
-            {/* Nav links */}
-            <div className="flex gap-6 text-sm text-slate-400 flex-wrap">
-              <a href="#marcas" className="hover:text-white transition-colors">Marcas</a>
-              <a href="#nosotros" className="hover:text-white transition-colors">Nosotros</a>
-              <a href="#servicios" className="hover:text-white transition-colors">Servicios</a>
-              <a href="#afiliacion" className="hover:text-white transition-colors">Ser socio</a>
-              <a href="https://socios.pekinglobalparts.com/login" className="hover:text-white transition-colors">Portal Socios</a>
+            {/* Marca + redes */}
+            <div className="col-span-2 lg:col-span-1 space-y-4">
+              <LogoWhite compact />
+              <p className="text-slate-400 text-sm max-w-xs">Tu aliado en repuestos y autopartes para todo tipo de vehículo.</p>
+              <div className="flex items-center gap-3">
+                <a href="https://facebook.com/pekinglobalparts" target="_blank" rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#1877f2] flex items-center justify-center transition-colors" aria-label="Facebook">
+                  {FB_ICON}
+                </a>
+                <a href="https://instagram.com/pekinglobalparts" target="_blank" rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-gradient-to-br hover:from-purple-500 hover:to-pink-500 flex items-center justify-center transition-colors" aria-label="Instagram">
+                  {IG_ICON}
+                </a>
+                <a href={waLink("Hola, quiero más información sobre Pekín Global Parts")} target="_blank" rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-green-500 flex items-center justify-center transition-colors" aria-label="WhatsApp">
+                  {WA_ICON}
+                </a>
+              </div>
+            </div>
+
+            {/* Navegación */}
+            <div>
+              <h4 className="text-white font-semibold text-sm mb-3">Navegación</h4>
+              <div className="flex flex-col gap-2 text-sm text-slate-400">
+                <a href="#marcas" className="hover:text-white transition-colors">Marcas</a>
+                <a href="#nosotros" className="hover:text-white transition-colors">Nosotros</a>
+                <a href="#servicios" className="hover:text-white transition-colors">Servicios</a>
+                <a href="#afiliacion" className="hover:text-white transition-colors">Ser socio</a>
+                <a href="https://socios.pekinglobalparts.com/login" className="hover:text-white transition-colors">Portal Socios</a>
+              </div>
             </div>
 
             {/* Contacto */}
-            <div className="text-sm text-slate-400 space-y-1.5">
-              <a href={waLink("Hola, quiero más información")} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors">
-                <span className="text-green-400">{WA_ICON}</span> +51 953 096 242
-              </a>
-              <a href="mailto:pekinglobalparts@gmail.com" className="flex items-center gap-2 hover:text-white transition-colors">
-                <span>📧</span> pekinglobalparts@gmail.com
-              </a>
-              <p className="flex items-center gap-2"><span>📍</span> El Agustino, Lima, Perú</p>
+            <div>
+              <h4 className="text-white font-semibold text-sm mb-3">Contacto</h4>
+              <div className="space-y-2 text-sm text-slate-400">
+                <a href={waLink("Hola, quiero más información")} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <span className="text-green-400">{WA_ICON}</span> +51 953 096 242
+                </a>
+                <p className="flex items-start gap-2"><span>📍</span> El Agustino, Lima, Perú</p>
+              </div>
             </div>
 
-            {/* Redes sociales */}
-            <div className="flex items-center gap-3">
-              <a href="https://facebook.com/pekinglobalparts" target="_blank" rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#1877f2] flex items-center justify-center transition-colors" aria-label="Facebook">
-                {FB_ICON}
-              </a>
-              <a href="https://instagram.com/pekinglobalparts" target="_blank" rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-gradient-to-br hover:from-purple-500 hover:to-pink-500 flex items-center justify-center transition-colors" aria-label="Instagram">
-                {IG_ICON}
-              </a>
-              <a href={waLink("Hola, quiero más información sobre Pekín Global Parts")} target="_blank" rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-green-500 flex items-center justify-center transition-colors" aria-label="WhatsApp">
-                {WA_ICON}
-              </a>
+            {/* Correos */}
+            <div>
+              <h4 className="text-white font-semibold text-sm mb-3">Correos</h4>
+              <ul className="space-y-2.5 text-sm">
+                {[
+                  { label: "Ventas", email: "ventas@pekinglobalparts.com" },
+                  { label: "Atención al cliente", email: "atencionalcliente@pekinglobalparts.com" },
+                  { label: "Cobranzas", email: "cobranzas@pekinglobalparts.com" },
+                  { label: "Administración", email: "administracion@pekinglobalparts.com" },
+                ].map((c) => (
+                  <li key={c.email}>
+                    <span className="block text-slate-500 text-xs">{c.label}</span>
+                    <a href={`mailto:${c.email}`} className="block text-slate-300 hover:text-white transition-colors break-all">{c.email}</a>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 
-          {/* Bottom row */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-            <p>© {new Date().getFullYear()} Pekín Global Parts SAC · RUC: 20612880396 · Lima, Perú</p>
-            <div className="flex items-center gap-4">
+          {/* Bottom row — centrado y con espacio para no chocar con los botones flotantes */}
+          <div className="flex flex-col items-center gap-3 text-xs text-slate-500 text-center">
+            <div className="flex items-center gap-4 flex-wrap justify-center">
               <button onClick={onOpenReclamacion} className="hover:text-slate-300 transition-colors">📋 Libro de Reclamaciones</button>
               <a href="https://g.page/r/CXNskH5S5I5BECE/review" target="_blank" rel="noopener noreferrer" className="hover:text-slate-300 transition-colors">⭐ Reseñas en Google</a>
             </div>
+            <p>© {new Date().getFullYear()} Pekín Global Parts SAC · RUC: 20612880396 · Lima, Perú</p>
           </div>
         </div>
       </div>

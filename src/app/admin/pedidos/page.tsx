@@ -77,6 +77,11 @@ export default function AdminPedidosPage() {
   const [savingCostos, setSavingCostos] = useState<string | null>(null);
   const [costosOk, setCostosOk] = useState<string | null>(null);
 
+  // --- Editar fecha del pedido (solo Super Admin) ---
+  const [fechaInput, setFechaInput] = useState<Record<string, string>>({});
+  const [savingFecha, setSavingFecha] = useState<string | null>(null);
+  const [fechaOk, setFechaOk] = useState<string | null>(null);
+
   // --- Modal "Crear pedido manual" ---
   const [modalOpen, setModalOpen] = useState(false);
   const [socios, setSocios] = useState<SocioOpcion[]>([]);
@@ -167,6 +172,34 @@ export default function AdminPedidosPage() {
       setCostosOk(pedido.id);
     }
     setSavingCostos(null);
+  };
+
+  // Convierte una fecha ISO a "YYYY-MM-DD" para el <input type="date">.
+  const toDateInput = (iso: string) => {
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
+  };
+
+  // Guarda la nueva fecha del pedido (desde aquí se cuentan los días de cobro).
+  const saveFecha = async (id: string) => {
+    const fecha = fechaInput[id];
+    if (!fecha) return;
+    setSavingFecha(id);
+    setFechaOk(null);
+    const res = await fetch(`/api/admin/pedidos/${id}/fecha`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fecha }),
+    });
+    if (res.ok) {
+      const data = await res.json().catch(() => null);
+      const nuevaFecha = data?.pedido?.createdAt as string | undefined;
+      if (nuevaFecha) {
+        setPedidos(prev => prev.map(p => p.id === id ? { ...p, createdAt: nuevaFecha } : p));
+      }
+      setFechaOk(id);
+    }
+    setSavingFecha(null);
   };
 
   // --- Lógica del modal ---
@@ -328,6 +361,29 @@ export default function AdminPedidosPage() {
                           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
                             {pedido.socio.razonSocial} · {pedido.socio.emailCorporativo}
                           </p>
+
+                          {/* Editar fecha del pedido — solo Super Admin. Desde esta fecha se cuentan los días de cobro. */}
+                          {esSuperAdmin && (
+                            <div className="bg-white rounded-lg px-4 py-3">
+                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                                Fecha del pedido <span className="text-slate-400 normal-case font-normal">· desde aquí se cuentan los días de cobro</span>
+                              </p>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <input
+                                  type="date"
+                                  value={fechaInput[pedido.id] ?? toDateInput(pedido.createdAt)}
+                                  onChange={e => { setFechaInput(prev => ({ ...prev, [pedido.id]: e.target.value })); setFechaOk(null); }}
+                                  className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+                                />
+                                <Button size="sm" variant="outline" loading={savingFecha === pedido.id} onClick={() => saveFecha(pedido.id)}>
+                                  Guardar fecha
+                                </Button>
+                                {fechaOk === pedido.id && <span className="text-xs text-emerald-600 font-semibold">Actualizada ✓</span>}
+                              </div>
+                              <p className="text-[11px] text-slate-400 mt-2">Si cargaste el pedido días después de la entrega/O.C., corrige aquí la fecha real para que el cobro no se alargue.</p>
+                            </div>
+                          )}
+
                           {pedido.items.map(item => (
                             <div key={item.id} className="flex items-center gap-3 bg-white rounded-lg p-3">
                               <Package className="h-4 w-4 text-slate-400 shrink-0" />

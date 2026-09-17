@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
       select: {
         id: true, razonSocial: true, ruc: true, emailCorporativo: true,
         telefono: true, sector: true, status: true,
-        lineaCredito: true, creditoUtilizado: true,
+        lineaCredito: true, creditoUtilizado: true, correosCobranza: true,
         createdAt: true, ultimoAcceso: true, passwordCambiado: true,
         _count: { select: { pedidos: true, cotizaciones: true } },
       },
@@ -43,5 +43,6 @@ export async function GET(req: NextRequest) {
   ]);
 
   const sociosWithExtra = (socios as unknown as Array<typeof socios[0] & { tipoPago?: string; plazoCredito?: number }>);
-  return NextResponse.json({ socios: sociosWithExtra, total, page, limit });
+  const esSuperAdmin = session.user.adminRole === "SUPER_ADMIN";
+  return NextResponse.json({ socios: sociosWithExtra, total, page, limit, esSuperAdmin });
 }

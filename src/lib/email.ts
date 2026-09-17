@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 
 const FROM = process.env.EMAIL_FROM || "Pekin Global Parts <noreply@pekinglobalparts.com>";
+const FROM_COBRANZAS = process.env.EMAIL_FROM_COBRANZAS || "Cobranzas Pekin Global Parts <cobranzas@pekinglobalparts.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
 
@@ -70,6 +71,91 @@ function layout(title: string, body: string) {
   </td></tr>
 </table>
 </body></html>`;
+}
+
+/* ─────────────────────── RECORDATORIO DE PAGO ─────────────────────── */
+
+interface RecordatorioData {
+  razonSocial: string;
+  numeroFactura: string;   // el N° a mostrar (real si existe, si no el interno)
+  monto: number;
+  fechaVencimiento: string; // ya formateada (dd/mm/aaaa)
+  vencida: boolean;
+  diasVencida?: number;     // días desde el vencimiento (si ya venció)
+  diasParaVencer?: number;  // días que faltan para vencer (si aún no vence)
+}
+
+// Envía un recordatorio de pago DESDE cobranzas@pekinglobalparts.com.
+// `cc` son correos adicionales (p. ej. el área de finanzas del cliente).
+export async function sendRecordatorioPago(
+  to: string,
+  data: RecordatorioData,
+  cc: string[] = []
+) {
+  const money = (n: number) => `S/ ${Number(n).toFixed(2)}`;
+
+  // Tres momentos: preventivo (aún no vence), vence hoy, y vencida.
+  const venceHoy = !data.vencida && (data.diasParaVencer ?? 1) === 0;
+  let titulo: string;
+  let estadoTxt: string;
+  let intro: string;
+  if (data.vencida) {
+    titulo = "Factura con pago vencido";
+    estadoTxt = `<span style="color:#b91c1c;font-weight:700;">VENCIDA${data.diasVencida ? ` (hace ${data.diasVencida} día${data.diasVencida === 1 ? "" : "s"})` : ""}</span>`;
+    intro = `les saluda el área de <strong>Cobranzas</strong> de Pekín Global Parts. Le recordamos que la siguiente factura se encuentra <strong>vencida</strong> y pendiente de pago:`;
+  } else if (venceHoy) {
+    titulo = "Su factura vence hoy";
+    estadoTxt = `<span style="color:#b45309;font-weight:700;">Vence hoy</span>`;
+    intro = `les saluda el área de <strong>Cobranzas</strong> de Pekín Global Parts. Le recordamos cordialmente que la siguiente factura <strong>vence hoy</strong>:`;
+  } else {
+    titulo = "Recordatorio de pago";
+    const faltan = data.diasParaVencer;
+    estadoTxt = `<span style="color:#b45309;font-weight:700;">Próxima a vencer${faltan ? ` (en ${faltan} día${faltan === 1 ? "" : "s"})` : ""}</span>`;
+    intro = `les saluda el área de <strong>Cobranzas</strong> de Pekín Global Parts. Le recordamos amablemente que se aproxima el vencimiento de la siguiente factura:`;
+  }
+
+  const body = `
+    <h2 style="color:#0f1f3d;font-size:20px;margin:0 0 8px;">${titulo}</h2>
+    <p style="color:#475569;font-size:14px;margin:0 0 20px;">Estimados señores de <strong>${data.razonSocial}</strong>, ${intro}</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin:0 0 20px;">
+      <tr><td style="padding:14px 18px;border-bottom:1px solid #e2e8f0;"><span style="color:#64748b;font-size:13px;">Factura</span><br><strong style="color:#0f1f3d;font-size:15px;">${data.numeroFactura}</strong></td></tr>
+      <tr><td style="padding:14px 18px;border-bottom:1px solid #e2e8f0;"><span style="color:#64748b;font-size:13px;">Monto</span><br><strong style="color:#0f1f3d;font-size:18px;">${money(data.monto)}</strong></td></tr>
+      <tr><td style="padding:14px 18px;"><span style="color:#64748b;font-size:13px;">Vencimiento</span><br>${data.fechaVencimiento} · ${estadoTxt}</td></tr>
+    </table>
+
+    <p style="color:#475569;font-size:14px;margin:0 0 8px;">Agradeceremos regularizar el pago a la siguiente cuenta:</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f1f3d;border-radius:10px;margin:0 0 20px;">
+      <tr><td style="padding:16px 18px;color:#e2e8f0;font-size:13px;line-height:1.7;">
+        <strong style="color:white;">BCP – Cuenta Corriente Soles</strong><br>
+        N° 191-6917997-055<br>
+        CCI: 002-191006917-99705-558<br>
+        A nombre de <strong style="color:white;">Pekín Global Parts S.A.C.</strong>
+      </td></tr>
+    </table>
+
+    <p style="color:#475569;font-size:14px;margin:0 0 6px;">Una vez realizado el pago, le agradeceremos responder a este correo con el comprobante.</p>
+    <p style="color:#94a3b8;font-size:12px;margin:16px 0 0;">Si ya efectuó el pago, por favor haga caso omiso a este mensaje. ¡Gracias por su preferencia!</p>
+  `;
+
+  // Copia oculta a la bandeja del negocio, para que quede registro del envío.
+  const bcc = process.env.EMAIL_COBRANZA_BCC || "administracion@pekinglobalparts.com";
+
+  const resend = getResend();
+  const { data: result, error } = await resend.emails.send({
+    from: FROM_COBRANZAS,
+    to: [to],
+    cc: cc.length ? cc : undefined,
+    bcc: bcc ? [bcc] : undefined,
+    replyTo: "cobranzas@pekinglobalparts.com",
+    subject: `${data.vencida ? "Factura vencida" : "Recordatorio de pago"} — ${data.numeroFactura} · Pekín Global Parts`,
+    html: layout(titulo, body),
+  });
+  if (error) {
+    console.error("[email recordatorio]", error);
+    throw new Error(error.message);
+  }
+  return result;
 }
 
 function badge(text: string, color: string, bg: string) {

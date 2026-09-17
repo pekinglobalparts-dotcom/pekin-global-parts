@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Search, X, CreditCard, Mail, Phone, Building2, Edit2, Check, Trash2, Settings } from "lucide-react";
+import { Users, Search, X, CreditCard, Mail, Phone, Building2, Edit2, Check, Trash2, Settings, KeyRound, Copy } from "lucide-react";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ interface Socio {
   creditoUtilizado: number;
   tipoPago: string;
   plazoCredito: number;
+  correosCobranza?: string | null;
   createdAt: string;
   ultimoAcceso?: string | null;
   passwordCambiado?: boolean;
@@ -59,6 +60,17 @@ export default function AdminSociosPage() {
   const [nuevoTipoPago, setNuevoTipoPago] = useState<"CREDITO" | "CONTADO">("CREDITO");
   const [nuevoPlazo, setNuevoPlazo] = useState("30");
   const [saving, setSaving] = useState(false);
+  const [esSuperAdmin, setEsSuperAdmin] = useState(false);
+
+  // --- Correos de cobranza (CC) ---
+  const [correosInput, setCorreosInput] = useState("");
+  const [savingCorreos, setSavingCorreos] = useState(false);
+  const [correosOk, setCorreosOk] = useState(false);
+
+  // --- Restablecer contraseña ---
+  const [resetting, setResetting] = useState(false);
+  const [nuevaCredencial, setNuevaCredencial] = useState<{ usuario: string; ruc: string; password: string } | null>(null);
+  const [copiado, setCopiado] = useState(false);
 
   const fetch_ = useCallback(async () => {
     setLoading(true);
@@ -69,6 +81,7 @@ export default function AdminSociosPage() {
     const res = await fetch(`/api/admin/socios?${params}`);
     const data = await res.json();
     setSocios(data.socios || []);
+    setEsSuperAdmin(!!data.esSuperAdmin);
     setLoading(false);
   }, [filter, search]);
 
@@ -129,6 +142,61 @@ export default function AdminSociosPage() {
     setSocios(prev => prev.filter(s => s.id !== id));
     setSelected(null);
     setSaving(false);
+  };
+
+  // Guarda los correos adicionales (CC) para los recordatorios de cobranza.
+  const saveCorreos = async () => {
+    if (!selected) return;
+    setSavingCorreos(true);
+    setCorreosOk(false);
+    await fetch(`/api/admin/socios/${selected.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ correosCobranza: correosInput.trim() }),
+    });
+    setSocios(prev => prev.map(s => s.id === selected.id ? { ...s, correosCobranza: correosInput.trim() } : s));
+    setSelected(s => s ? { ...s, correosCobranza: correosInput.trim() } : null);
+    setSavingCorreos(false);
+    setCorreosOk(true);
+  };
+
+  // Genera una nueva contraseña temporal para el socio (se muestra una sola vez).
+  const resetPassword = async (id: string) => {
+    if (!confirm("Se generará una NUEVA contraseña para este socio. La anterior dejará de funcionar. ¿Continuar?")) return;
+    setResetting(true);
+    setNuevaCredencial(null);
+    setCopiado(false);
+    const res = await fetch(`/api/admin/socios/${id}/reset-password`, { method: "POST" });
+    if (res.ok) {
+      const data = await res.json();
+      setNuevaCredencial({ usuario: data.usuario, ruc: data.ruc, password: data.password });
+      // La clave está sin cambiar tras el reset
+      setSocios(prev => prev.map(s => s.id === id ? { ...s, passwordCambiado: false } : s));
+      if (selected?.id === id) setSelected(s => s ? { ...s, passwordCambiado: false } : null);
+    } else {
+      alert("No se pudo restablecer la contraseña. Verifica que seas Super Admin.");
+    }
+    setResetting(false);
+  };
+
+  // Mensaje listo para enviar por WhatsApp con las credenciales.
+  const mensajeWhatsApp = (cred: { usuario: string; password: string }, razonSocial: string) => {
+    const url = typeof window !== "undefined" ? `${window.location.origin}/login?role=socio` : "";
+    return `¡Hola! 👋 Le escribimos de *Pekín Global Parts*.
+
+Le compartimos sus credenciales para ingresar al *Portal de Socios* de ${razonSocial}, donde podrá:
+• 📦 Hacer seguimiento a sus pedidos en tiempo real
+• 🧾 Descargar sus facturas
+• 💳 Ver su línea de crédito y cuánto tiene disponible
+• 📅 Revisar las fechas de vencimiento de sus facturas
+
+*Ingrese aquí:* ${url}
+👤 *Usuario:* ${cred.usuario}
+🔑 *Contraseña:* ${cred.password}
+
+Por seguridad, le recomendamos *cambiar su contraseña* al ingresar (en la sección Perfil).
+
+¡Quedamos atentos a su pedido! 🚚`;
   };
 
   const creditoDisponible = (s: Socio) =>
@@ -236,7 +304,7 @@ export default function AdminSociosPage() {
                     </td>
                     <td className="px-5 py-4 text-right">
                       <button
-                        onClick={() => { setSelected(socio); setNuevaLinea(String(socio.lineaCredito)); setEditingCredito(false); }}
+                        onClick={() => { setSelected(socio); setNuevaLinea(String(socio.lineaCredito)); setEditingCredito(false); setCorreosInput(socio.correosCobranza || ""); setCorreosOk(false); }}
                         className="text-xs font-medium text-blue-900 hover:text-blue-700"
                       >
                         Ver detalle
@@ -299,6 +367,27 @@ export default function AdminSociosPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+
+                {/* Correos para recordatorios de cobranza (CC) */}
+                <div>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Correos para recordatorios (CC)</p>
+                  <input
+                    type="text"
+                    value={correosInput}
+                    onChange={e => { setCorreosInput(e.target.value); setCorreosOk(false); }}
+                    placeholder="finanzas@cliente.com, contacto2@cliente.com"
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
+                  />
+                  <div className="flex items-center gap-2 mt-2">
+                    <Button size="sm" variant="outline" loading={savingCorreos} onClick={saveCorreos}>
+                      Guardar correos
+                    </Button>
+                    {correosOk && <span className="text-xs text-green-600 font-semibold">Guardado ✓</span>}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-2">
+                    Cuando envíes un recordatorio de pago, además del correo del socio ({selected.emailCorporativo}) se enviará copia a estas direcciones. Sepáralas con comas.
+                  </p>
                 </div>
 
                 {/* Credit / Contado */}
@@ -441,6 +530,24 @@ export default function AdminSociosPage() {
                   </div>
                 </div>
 
+                {/* Acceso / contraseña — solo Super Admin */}
+                {esSuperAdmin && (
+                  <div className="pt-2 border-t border-slate-100">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Acceso al portal</p>
+                    <button
+                      onClick={() => resetPassword(selected.id)}
+                      disabled={resetting}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors disabled:opacity-50"
+                    >
+                      <KeyRound className="h-3.5 w-3.5" />
+                      {resetting ? "Generando..." : "Restablecer contraseña"}
+                    </button>
+                    <p className="text-[11px] text-slate-400 mt-2">
+                      Las contraseñas están encriptadas y no se pueden ver. Genera una nueva para entregársela al socio; él la cambia al ingresar.
+                    </p>
+                  </div>
+                )}
+
                 {/* Delete */}
                 <div className="pt-2 border-t border-slate-100">
                   <button
@@ -526,6 +633,64 @@ export default function AdminSociosPage() {
                 {saving ? "Guardando..." : "Guardar cambio"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: credenciales nuevas (se muestran una sola vez) */}
+      {nuevaCredencial && selected && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[70] p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-black text-slate-900 text-lg flex items-center gap-2">
+                <KeyRound className="h-5 w-5 text-blue-700" /> Nuevas credenciales
+              </h3>
+              <button onClick={() => setNuevaCredencial(null)} className="text-slate-400 hover:text-slate-600"><X className="h-5 w-5" /></button>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4">
+              <p className="text-xs text-amber-800">
+                ⚠️ <b>Cópialas ahora.</b> Por seguridad, esta contraseña <b>no se volverá a mostrar</b>. Si la pierdes, tendrás que generar otra.
+              </p>
+            </div>
+
+            <div className="space-y-3 mb-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1">Usuario (correo)</label>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 bg-slate-100 rounded-lg px-3 py-2 text-sm text-slate-800 break-all">{nuevaCredencial.usuario}</code>
+                  <button onClick={() => navigator.clipboard?.writeText(nuevaCredencial.usuario)} className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200" title="Copiar usuario"><Copy className="h-4 w-4 text-slate-500" /></button>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">También puede ingresar con su RUC: {nuevaCredencial.ruc}</p>
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1">Contraseña temporal</label>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 bg-slate-100 rounded-lg px-3 py-2 text-sm font-bold text-slate-900 break-all">{nuevaCredencial.password}</code>
+                  <button onClick={() => navigator.clipboard?.writeText(nuevaCredencial.password)} className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200" title="Copiar contraseña"><Copy className="h-4 w-4 text-slate-500" /></button>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-100 pt-4">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">Mensaje listo para WhatsApp</p>
+              <textarea
+                readOnly
+                value={mensajeWhatsApp(nuevaCredencial, selected.razonSocial)}
+                rows={10}
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-700 bg-slate-50 resize-none"
+              />
+              <button
+                onClick={() => { navigator.clipboard?.writeText(mensajeWhatsApp(nuevaCredencial, selected.razonSocial)); setCopiado(true); setTimeout(() => setCopiado(false), 2000); }}
+                className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-bold transition-colors"
+              >
+                <Copy className="h-4 w-4" /> {copiado ? "¡Copiado! Pégalo en WhatsApp" : "Copiar mensaje para WhatsApp"}
+              </button>
+            </div>
+
+            <button onClick={() => setNuevaCredencial(null)} className="w-full mt-3 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+              Cerrar
+            </button>
           </div>
         </div>
       )}

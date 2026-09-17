@@ -59,6 +59,10 @@ const STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS "rate_limits_reset_at_idx" ON "rate_limits" ("reset_at");`,
   // Expiración del enlace de subida de documentos.
   `ALTER TABLE "solicitudes" ADD COLUMN IF NOT EXISTS "tokenDocumentosExpira" TIMESTAMP(3);`,
+  // Correos adicionales (CC) para recordatorios de cobranza por socio.
+  `ALTER TABLE "socios" ADD COLUMN IF NOT EXISTS "correosCobranza" TEXT;`,
+  // Marca de tiempo del último recordatorio de pago enviado.
+  `ALTER TABLE "facturas" ADD COLUMN IF NOT EXISTS "ultimoRecordatorio" TIMESTAMP(3);`,
 ];
 
 async function main() {
