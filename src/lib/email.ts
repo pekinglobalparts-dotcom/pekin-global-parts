@@ -26,7 +26,7 @@ async function sendEmail(to: string | string[], subject: string, html: string) {
 
 /* ──────────────────────────── LAYOUT ──────────────────────────── */
 
-function layout(title: string, body: string) {
+function layout(title: string, body: string, contactEmail: string = "atencionalcliente@pekinglobalparts.com") {
   return `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head>
@@ -62,7 +62,7 @@ function layout(title: string, body: string) {
         <p style="color:#93c5fd;font-size:12px;margin:0 0 8px;">
           <a href="https://wa.me/${WHATSAPP}" style="color:#4ade80;text-decoration:none;">WhatsApp: +${WHATSAPP}</a>
           &nbsp;·&nbsp;
-          <a href="mailto:pekinglobalparts@gmail.com" style="color:#93c5fd;text-decoration:none;">pekinglobalparts@gmail.com</a>
+          <a href="mailto:${contactEmail}" style="color:#93c5fd;text-decoration:none;">${contactEmail}</a>
         </p>
         <p style="color:#475569;font-size:11px;margin:0;">Pekin Global Parts S.A.C. · Lima, Perú</p>
       </td></tr>
@@ -149,7 +149,7 @@ export async function sendRecordatorioPago(
     bcc: bcc ? [bcc] : undefined,
     replyTo: "cobranzas@pekinglobalparts.com",
     subject: `${data.vencida ? "Factura vencida" : "Recordatorio de pago"} — ${data.numeroFactura} · Pekín Global Parts`,
-    html: layout(titulo, body),
+    html: layout(titulo, body, "cobranzas@pekinglobalparts.com"),
   });
   if (error) {
     console.error("[email recordatorio]", error);
