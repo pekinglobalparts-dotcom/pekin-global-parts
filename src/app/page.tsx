@@ -406,9 +406,18 @@ function Nosotros() {
             <p className="text-blue-200 leading-relaxed mb-6">
               Pekín Global Parts SAC es una empresa peruana importadora de repuestos automotrices con presencia en Lima. Trabajamos directamente con fabricantes para garantizar calidad y precios competitivos.
             </p>
-            <p className="text-blue-200 leading-relaxed mb-8">
+            <p className="text-blue-200 leading-relaxed mb-6">
               Atendemos tanto a clientes particulares como a empresas con flotas corporativas, rentings, aseguradoras y talleres especializados, con un servicio personalizado y respuesta en 24 horas.
             </p>
+            <div className="flex items-start gap-3 bg-emerald-500/10 border border-emerald-400/30 rounded-xl p-4 mb-8">
+              <span className="text-2xl leading-none">🏛️</span>
+              <div>
+                <div className="text-emerald-300 font-bold text-sm">Proveedor del Estado</div>
+                <div className="text-blue-100 text-xs leading-relaxed mt-0.5">
+                  Inscritos y hábiles en el <strong>Registro Nacional de Proveedores (RNP)</strong> de la OECE, aptos para contratar con el Estado peruano. RUC 20612880396.
+                </div>
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               {[
                 { icon: "🎯", title: "Misión", desc: "Proveer repuestos de calidad con importación directa al mejor precio." },
@@ -744,6 +753,9 @@ function Footer({ onOpenReclamacion }: { onOpenReclamacion: () => void }) {
             <div className="col-span-2 lg:col-span-1 space-y-4">
               <LogoWhite compact />
               <p className="text-slate-400 text-sm max-w-xs">Tu aliado en repuestos y autopartes para todo tipo de vehículo.</p>
+              <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-400/30 rounded-lg px-3 py-1.5 text-emerald-300 text-xs font-semibold">
+                🏛️ Proveedor del Estado · Inscrito en el RNP
+              </div>
               <div className="flex items-center gap-3">
                 <a href="https://facebook.com/pekinglobalparts" target="_blank" rel="noopener noreferrer"
                   className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#1877f2] flex items-center justify-center transition-colors" aria-label="Facebook">
