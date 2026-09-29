@@ -8,6 +8,8 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 interface Operacion { fecha: string; tipo: string; ref: string; venta: number; costo: number; ganancia: number; sinCosto: boolean }
 
 interface Finanzas {
+  mesSeleccionado: string;
+  mesesDisponibles: string[];
   mes: { ventas: number; costo: number; ganancia: number; margen: number; gastos: number; utilidadNeta: number; impuestoEstimado: number; pedidosSinCosto: number };
   cobros: { porCobrar: number; cobradoMes: number };
   gastosPorCategoria: Record<string, number>;
@@ -17,25 +19,33 @@ interface Finanzas {
 }
 
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+const MESES_FULL = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 const mesLabel = (m: string) => {
   const [, mm] = m.split("-");
   return MESES[parseInt(mm) - 1] || m;
+};
+const mesLabelFull = (m: string) => {
+  const [yy, mm] = m.split("-");
+  return `${MESES_FULL[parseInt(mm) - 1] || m} ${yy}`;
 };
 
 export default function FinanzasPage() {
   const [data, setData] = useState<Finanzas | null>(null);
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
+  const [mesSel, setMesSel] = useState(""); // "" = mes actual
 
   useEffect(() => {
-    fetch("/api/admin/finanzas")
+    setLoading(true);
+    const url = mesSel ? `/api/admin/finanzas?mes=${mesSel}` : "/api/admin/finanzas";
+    fetch(url)
       .then(r => {
         if (r.status === 401) { setDenied(true); return null; }
         return r.json();
       })
       .then(d => { if (d) setData(d); setLoading(false); })
       .catch(() => setLoading(false));
-  }, []);
+  }, [mesSel]);
 
   if (denied) {
     return (
@@ -47,9 +57,11 @@ export default function FinanzasPage() {
     );
   }
 
-  if (loading || !data) {
+  if (!data) {
     return <div className="p-8 text-center text-slate-400 text-sm">Cargando…</div>;
   }
+
+  const meses = data.mesesDisponibles || [];
 
   const maxSerie = Math.max(1, ...data.serie.map(s => Math.max(s.ventas, s.ganancia)));
 
@@ -61,6 +73,17 @@ export default function FinanzasPage() {
           <p className="text-slate-500 text-sm mt-0.5">Control del negocio · todos los montos con IGV incluido (lo que cobras y lo que pagas)</p>
         </div>
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          <select
+            value={mesSel || data.mesSeleccionado}
+            onChange={e => setMesSel(e.target.value)}
+            className="bg-white border border-slate-200 text-slate-800 text-sm font-semibold px-3 py-2.5 rounded-xl focus:outline-none focus:border-slate-400 cursor-pointer"
+            aria-label="Filtrar por mes"
+          >
+            {meses.map(m => (
+              <option key={m} value={m}>{mesLabelFull(m)}</option>
+            ))}
+          </select>
+          {loading && <span className="text-xs text-slate-400">actualizando…</span>}
           <Link
             href="/admin/gastos"
             className="flex items-center gap-2 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
@@ -112,7 +135,7 @@ export default function FinanzasPage() {
 
       {/* Resultado del mes: ganancia − gastos = utilidad neta */}
       <div className="bg-white border border-slate-200 rounded-2xl p-5">
-        <h2 className="font-bold text-slate-900 text-sm mb-4 flex items-center gap-2"><PiggyBank className="h-4 w-4 text-emerald-600" /> Resultado del mes</h2>
+        <h2 className="font-bold text-slate-900 text-sm mb-4 flex items-center gap-2"><PiggyBank className="h-4 w-4 text-emerald-600" /> Resultado de {mesLabelFull(data.mesSeleccionado)}</h2>
         <div className="flex items-center justify-center gap-3 sm:gap-5 flex-wrap text-center">
           <div>
             <p className="text-[11px] text-slate-400 uppercase font-semibold">Ganancia (repuestos)</p>
@@ -142,7 +165,7 @@ export default function FinanzasPage() {
       {/* Detalle de operaciones del mes */}
       <div className="bg-white border border-slate-200 rounded-2xl p-5">
         <h2 className="font-bold text-slate-900 text-sm flex items-center gap-2 mb-1">
-          <ListChecks className="h-4 w-4 text-[#0f1f3d]" /> Detalle de operaciones del mes
+          <ListChecks className="h-4 w-4 text-[#0f1f3d]" /> Operaciones de {mesLabelFull(data.mesSeleccionado)}
         </h2>
         <p className="text-[11px] text-slate-400 mb-4">Cada venta con su costo y ganancia. El &quot;Costo (compras)&quot; de arriba es la suma del costo de lo vendido aquí — no incluye stock que compraste pero aún no vendes (eso va en Gastos → Compra de stock).</p>
         {data.operaciones.length === 0 ? (
