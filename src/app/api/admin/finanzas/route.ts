@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -11,15 +11,30 @@ type VMItem = { descripcion: string; codigo?: string | null; cantidad: number; p
 const num = (v: unknown) => Number(v ?? 0);
 const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session || session.user.role !== "admin" || session.user.adminRole !== "SUPER_ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const now = new Date();
-  const desde = new Date(now.getFullYear(), now.getMonth() - 5, 1); // ventana de 6 meses
-  const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  // Mes seleccionado (?mes=YYYY-MM). Por defecto, el mes actual.
+  const mesParam = req.nextUrl.searchParams.get("mes");
+  let selY = now.getFullYear();
+  let selM = now.getMonth();
+  if (mesParam && /^\d{4}-\d{2}$/.test(mesParam)) {
+    const [y, m] = mesParam.split("-").map(Number);
+    selY = y;
+    selM = m - 1;
+  }
+  const inicioMes = new Date(selY, selM, 1);
+  const finMes = new Date(selY, selM + 1, 1);
+  const enMes = (d: Date) => d >= inicioMes && d < finMes;
+
+  // Ventana de datos: cubre el gráfico (6 meses) y, si es más antiguo, el mes elegido.
+  const serieStart = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+  const desde = inicioMes < serieStart ? inicioMes : serieStart;
 
   const [pedidos, ventas, facturas, gastos] = await Promise.all([
     prisma.pedido.findMany({
@@ -79,7 +94,7 @@ export async function GET() {
       serie[mk].ventas += venta;
       serie[mk].ganancia += ganancia;
     }
-    if (new Date(p.createdAt) >= inicioMes) {
+    if (enMes(new Date(p.createdAt))) {
       ventasMes += venta;
       costoMes += costo;
       gananciaMes += ganancia;
@@ -90,12 +105,12 @@ export async function GET() {
         ref: (p as unknown as { socio?: { razonSocial?: string } }).socio?.razonSocial || p.numero,
         venta, costo, ganancia, sinCosto: !tieneCosto,
       });
-    }
-    // ranking: reparte venta del pedido entre sus líneas por proporción de subtotal
-    const totalLineas = items.reduce((s, it) => s + num(it.precioUnit) * it.cantidad, 0) || 1;
-    for (const it of items) {
-      const ventaLinea = venta * ((num(it.precioUnit) * it.cantidad) / totalLineas);
-      addRanking(it.descripcion || "Repuesto", it.cantidad, ventaLinea);
+      // ranking: reparte venta del pedido entre sus líneas por proporción de subtotal
+      const totalLineas = items.reduce((s, it) => s + num(it.precioUnit) * it.cantidad, 0) || 1;
+      for (const it of items) {
+        const ventaLinea = venta * ((num(it.precioUnit) * it.cantidad) / totalLineas);
+        addRanking(it.descripcion || "Repuesto", it.cantidad, ventaLinea);
+      }
     }
   }
 
@@ -109,7 +124,7 @@ export async function GET() {
       serie[mk].ventas += venta;
       serie[mk].ganancia += ganancia;
     }
-    if (new Date(v.fecha) >= inicioMes) {
+    if (enMes(new Date(v.fecha))) {
       ventasMes += venta;
       costoMes += costo;
       gananciaMes += ganancia;
@@ -119,10 +134,10 @@ export async function GET() {
         ref: v.cliente || v.numero,
         venta, costo, ganancia, sinCosto: costo <= 0,
       });
-    }
-    const items = (v.items as unknown as VMItem[]) || [];
-    for (const it of items) {
-      addRanking(it.descripcion || "Repuesto", num(it.cantidad), num(it.precioUnit) * num(it.cantidad));
+      const items = (v.items as unknown as VMItem[]) || [];
+      for (const it of items) {
+        addRanking(it.descripcion || "Repuesto", num(it.cantidad), num(it.precioUnit) * num(it.cantidad));
+      }
     }
   }
 
@@ -131,14 +146,14 @@ export async function GET() {
   let cobradoMes = 0;
   for (const f of facturas) {
     if (f.status === "PENDIENTE" || f.status === "VENCIDA") porCobrar += num(f.total);
-    if (f.status === "PAGADA" && f.pagadoAt && new Date(f.pagadoAt) >= inicioMes) cobradoMes += num(f.total);
+    if (f.status === "PAGADA" && f.pagadoAt && enMes(new Date(f.pagadoAt))) cobradoMes += num(f.total);
   }
 
   // --- Gastos del negocio ---
   let gastosMes = 0;
   const gastosPorCategoria: Record<string, number> = {};
   for (const g of gastos) {
-    if (new Date(g.fecha) >= inicioMes) {
+    if (enMes(new Date(g.fecha))) {
       gastosMes += num(g.monto);
       gastosPorCategoria[g.categoria] = (gastosPorCategoria[g.categoria] || 0) + num(g.monto);
     }
@@ -154,7 +169,16 @@ export async function GET() {
 
   operaciones.sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
 
+  // Lista de meses para el filtro (los últimos 12, del más reciente al más antiguo).
+  const mesesDisponibles: string[] = [];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    mesesDisponibles.push(monthKey(d));
+  }
+
   return NextResponse.json({
+    mesSeleccionado: monthKey(inicioMes),
+    mesesDisponibles,
     mes: {
       ventas: ventasMes,
       costo: costoMes,
