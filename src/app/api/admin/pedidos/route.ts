@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
         items: {
           include: { producto: { select: { nombre: true, codigo: true } } },
         },
+        factura: { select: { id: true } },
       },
       orderBy: { createdAt: "desc" },
       skip,

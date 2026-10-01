@@ -124,7 +124,7 @@ export default function CatalogoPage() {
                   {(p.marca || p.modelo) && (
                     <p className="text-xs text-slate-400 mt-0.5">{[p.marca, p.modelo].filter(Boolean).join(" · ")}</p>
                   )}
-                  <p className="text-lg font-black text-[#0f1f3d] mt-2">{soles(p.precioPublico)}</p>
+                  <p className="text-lg font-black text-[#0f1f3d] mt-2">{soles(p.precioPublico)} <span className="text-xs font-semibold text-slate-400">c/u</span></p>
                   <a href={waLink(`Hola, me interesa: ${p.descripcion}${p.codigo ? ` (código ${p.codigo})` : ""} — precio ${soles(p.precioPublico)}`)}
                     target="_blank" rel="noopener noreferrer"
                     className="mt-auto pt-3 text-center bg-green-500 hover:bg-green-600 text-white text-xs font-bold py-2 rounded-full transition-colors">

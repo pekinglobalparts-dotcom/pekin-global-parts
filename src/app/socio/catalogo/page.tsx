@@ -495,7 +495,7 @@ export default function SocioCatalogoPage() {
                     {(p.marca || p.modelo) && (
                       <p className="text-xs text-slate-400 mt-0.5">{[p.marca, p.modelo].filter(Boolean).join(" · ")}</p>
                     )}
-                    <p className="text-[11px] text-emerald-500 mt-2">Tu precio</p>
+                    <p className="text-[11px] text-emerald-500 mt-2">Tu precio (socio/may.)</p>
                     <p className="text-lg font-black text-emerald-700 leading-none">{soles(p.precioSocio)}</p>
                     <button onClick={() => agregarRepuestosAlCarrito([{ modelo: p.modelo || "", anio: "", repuesto: `${p.descripcion}${p.codigo ? ` · código: ${p.codigo}` : ""}` }], p.marca || "Catálogo")}
                       className="mt-auto pt-3 text-center bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold py-2 rounded-xl transition-colors">

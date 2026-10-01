@@ -399,13 +399,13 @@ export default function VentasPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Precio socio</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Precio socio / mayor</label>
                   <input type="number" min={0} step="0.01" value={pubForm.precioSocio}
                     onChange={e => setPubForm(f => ({ ...f, precioSocio: e.target.value }))}
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Precio público</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Precio público (unit.)</label>
                   <input type="number" min={0} step="0.01" value={pubForm.precioPublico}
                     onChange={e => setPubForm(f => ({ ...f, precioPublico: e.target.value }))}
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />

@@ -221,13 +221,13 @@ export default function VitrinaPage() {
               {/* Precios */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Precio socio (facturado) *</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Precio socio / mayorista *</label>
                   <input type="number" min={0} step="0.01" value={form.precioSocio}
                     onChange={e => setForm(f => ({ ...f, precioSocio: e.target.value }))}
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Precio público *</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Precio público (unitario) *</label>
                   <input type="number" min={0} step="0.01" value={form.precioPublico}
                     onChange={e => setForm(f => ({ ...f, precioPublico: e.target.value }))}
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
@@ -299,11 +299,11 @@ export default function VitrinaPage() {
                 </p>
                 <div className="mt-2 flex items-end justify-between">
                   <div>
-                    <p className="text-[11px] text-slate-400">Público</p>
+                    <p className="text-[11px] text-slate-400">Público (unit.)</p>
                     <p className="text-base font-black text-slate-900">{formatCurrency(p.precioPublico)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[11px] text-emerald-500">Socio</p>
+                    <p className="text-[11px] text-emerald-500">Socio / may.</p>
                     <p className="text-sm font-bold text-emerald-700">{formatCurrency(p.precioSocio)}</p>
                   </div>
                 </div>
