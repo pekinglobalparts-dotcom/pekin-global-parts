@@ -63,6 +63,25 @@ const STATEMENTS = [
   `ALTER TABLE "socios" ADD COLUMN IF NOT EXISTS "correosCobranza" TEXT;`,
   // Marca de tiempo del último recordatorio de pago enviado.
   `ALTER TABLE "facturas" ADD COLUMN IF NOT EXISTS "ultimoRecordatorio" TIMESTAMP(3);`,
+  // Vitrina / catálogo público con foto y precio (crece poco a poco).
+  `CREATE TABLE IF NOT EXISTS "productos_vitrina" (
+     "id" TEXT PRIMARY KEY,
+     "codigo" TEXT,
+     "descripcion" TEXT NOT NULL,
+     "marca" TEXT,
+     "modelo" TEXT,
+     "imagenUrl" TEXT,
+     "precioSocio" DECIMAL(10,2) NOT NULL,
+     "precioPublico" DECIMAL(10,2) NOT NULL,
+     "activo" BOOLEAN NOT NULL DEFAULT true,
+     "destacado" BOOLEAN NOT NULL DEFAULT false,
+     "orden" INTEGER NOT NULL DEFAULT 0,
+     "origen" TEXT,
+     "origenId" TEXT,
+     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+   );`,
+  `CREATE INDEX IF NOT EXISTS "productos_vitrina_activo_idx" ON "productos_vitrina" ("activo");`,
 ];
 
 async function main() {

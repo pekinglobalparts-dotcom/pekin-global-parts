@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, ChevronDown, ChevronUp, Truck, Package, Check, Plus, X, Trash2, FileText, Download } from "lucide-react";
+import { ShoppingCart, ChevronDown, ChevronUp, Truck, Package, Check, Plus, X, Trash2, FileText, Download, Tags, Pencil } from "lucide-react";
 import { UploadDropzone } from "@uploadthing/react";
 import type { OurFileRouter } from "@/lib/uploadthing";
 import { formatDate, formatCurrency } from "@/lib/utils";
@@ -32,7 +33,10 @@ interface Pedido {
   createdAt: string;
   socio: { razonSocial: string; ruc: string; emailCorporativo: string };
   items: PedidoItem[];
+  factura?: { id: string } | null;
 }
+
+interface EditLinea { id?: string; descripcion: string; cantidad: number; precioUnit: number; costoUnit: number }
 
 interface SocioOpcion {
   id: string;
@@ -94,6 +98,95 @@ export default function AdminPedidosPage() {
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  // Publicar al catálogo (desde un ítem de pedido)
+  const [pubOpen, setPubOpen] = useState(false);
+  const [pubForm, setPubForm] = useState({ descripcion: "", codigo: "", precioSocio: "", precioPublico: "", imagenUrl: "" });
+  const [pubOrigenId, setPubOrigenId] = useState<string | null>(null);
+  const [pubSaving, setPubSaving] = useState(false);
+  const [pubError, setPubError] = useState("");
+  const [pubOk, setPubOk] = useState(false);
+
+  const conMargen = (socio: number, pct: number) =>
+    socio > 0 ? (Math.round(socio * (1 + pct / 100) * 100) / 100).toFixed(2) : "";
+
+  const abrirPublicar = (pedido: Pedido, item: PedidoItem) => {
+    const desc = item.producto?.nombre ?? item.descripcion ?? "Repuesto";
+    const socio = Number(item.precioUnit);
+    setPubForm({
+      descripcion: desc,
+      codigo: item.producto?.codigo || "",
+      precioSocio: socio ? String(socio) : "",
+      precioPublico: conMargen(socio, 15),
+      imagenUrl: "",
+    });
+    setPubOrigenId(pedido.id);
+    setPubError(""); setPubOk(false); setPubOpen(true);
+  };
+
+  const publicar = async () => {
+    if (!pubForm.descripcion.trim() || !pubForm.precioSocio || !pubForm.precioPublico) {
+      setPubError("Completa la descripción y ambos precios."); return;
+    }
+    setPubSaving(true); setPubError("");
+    try {
+      const r = await fetch("/api/admin/vitrina", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          descripcion: pubForm.descripcion.trim(),
+          codigo: pubForm.codigo.trim() || null,
+          imagenUrl: pubForm.imagenUrl || null,
+          precioSocio: parseFloat(pubForm.precioSocio),
+          precioPublico: parseFloat(pubForm.precioPublico),
+          origen: "pedido",
+          origenId: pubOrigenId,
+        }),
+      });
+      if (r.ok) { setPubOk(true); setTimeout(() => setPubOpen(false), 1200); }
+      else { const d = await r.json().catch(() => ({})); setPubError(d.error || "No se pudo publicar."); }
+    } catch { setPubError("Error de conexión."); }
+    setPubSaving(false);
+  };
+
+  // Editar pedido (solo Super Admin)
+  const [editPedido, setEditPedido] = useState<Pedido | null>(null);
+  const [eItems, setEItems] = useState<EditLinea[]>([]);
+  const [eNotas, setENotas] = useState("");
+  const [eSaving, setESaving] = useState(false);
+  const [eError, setEError] = useState("");
+  const editBloqueado = !!editPedido?.factura; // ya facturado: no se cambian montos
+
+  const abrirEditar = (pedido: Pedido) => {
+    setEditPedido(pedido);
+    setEItems(pedido.items.map(it => ({
+      id: it.id,
+      descripcion: it.producto?.nombre ?? it.descripcion ?? "",
+      cantidad: Number(it.cantidad),
+      precioUnit: Number(it.precioUnit),
+      costoUnit: it.costoUnit != null ? Number(it.costoUnit) : 0,
+    })));
+    setENotas(pedido.notas || "");
+    setEError("");
+  };
+  const eUpdateItem = (i: number, f: keyof EditLinea, v: string | number) =>
+    setEItems(p => p.map((it, idx) => idx === i ? { ...it, [f]: v } : it));
+  const eAddItem = () => setEItems(p => [...p, { descripcion: "", cantidad: 1, precioUnit: 0, costoUnit: 0 }]);
+  const eRemoveItem = (i: number) => setEItems(p => p.filter((_, idx) => idx !== i));
+
+  const guardarEdicion = async () => {
+    if (!editPedido) return;
+    if (!eItems.every(i => i.descripcion.trim() !== "" && i.cantidad >= 1)) { setEError("Revisa las líneas."); return; }
+    setESaving(true); setEError("");
+    try {
+      const r = await fetch(`/api/admin/pedidos/${editPedido.id}/editar`, {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notas: eNotas || null, items: eItems }),
+      });
+      if (r.ok) { setEditPedido(null); fetch_(); }
+      else { const d = await r.json().catch(() => ({})); setEError(d.error || "No se pudo guardar."); }
+    } catch { setEError("Error de conexión."); }
+    setESaving(false);
+  };
 
   const fetch_ = useCallback(async () => {
     setLoading(true);
@@ -384,6 +477,15 @@ export default function AdminPedidosPage() {
                             </div>
                           )}
 
+                          {esSuperAdmin && (
+                            <div className="flex justify-end">
+                              <button onClick={() => abrirEditar(pedido)}
+                                className="flex items-center gap-1.5 text-xs font-bold text-blue-700 hover:bg-blue-50 border border-blue-200 rounded-lg px-3 py-1.5 transition-colors">
+                                <Pencil className="h-3.5 w-3.5" /> Editar pedido
+                              </button>
+                            </div>
+                          )}
+
                           {pedido.items.map(item => (
                             <div key={item.id} className="flex items-center gap-3 bg-white rounded-lg p-3">
                               <Package className="h-4 w-4 text-slate-400 shrink-0" />
@@ -396,6 +498,10 @@ export default function AdminPedidosPage() {
                                 </p>
                               </div>
                               <p className="text-sm font-bold text-slate-700">{formatCurrency(item.subtotal)}</p>
+                              {esSuperAdmin && (
+                                <button onClick={() => abrirPublicar(pedido, item)} title="Publicar al catálogo web"
+                                  className="text-slate-400 hover:text-[#0f1f3d] shrink-0 p-1"><Tags className="h-4 w-4" /></button>
+                              )}
                             </div>
                           ))}
                           <div className="bg-white rounded-lg px-4 py-3 flex justify-between text-sm">
@@ -764,6 +870,167 @@ export default function AdminPedidosPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Modal: Publicar al catálogo */}
+      {pubOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto" onClick={() => setPubOpen(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-md my-8 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <h2 className="font-black text-slate-900 flex items-center gap-2"><Tags className="h-5 w-5 text-[#0f1f3d]" /> Publicar al catálogo</h2>
+              <button onClick={() => setPubOpen(false)} className="text-slate-400 hover:text-slate-700"><X className="h-5 w-5" /></button>
+            </div>
+            <div className="p-5 space-y-4">
+              <p className="text-xs text-slate-500">El socio lo verá al precio facturado; en la web pública se muestra el precio público (sugerido +15%). Puedes ajustarlo.</p>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Descripción</label>
+                <input value={pubForm.descripcion} onChange={e => setPubForm(f => ({ ...f, descripcion: e.target.value }))}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Código (opcional)</label>
+                <input value={pubForm.codigo} onChange={e => setPubForm(f => ({ ...f, codigo: e.target.value }))}
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Precio socio / mayor</label>
+                  <input type="number" min={0} step="0.01" value={pubForm.precioSocio}
+                    onChange={e => setPubForm(f => ({ ...f, precioSocio: e.target.value }))}
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Precio público (unit.)</label>
+                  <input type="number" min={0} step="0.01" value={pubForm.precioPublico}
+                    onChange={e => setPubForm(f => ({ ...f, precioPublico: e.target.value }))}
+                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+                </div>
+              </div>
+              {Number(pubForm.precioSocio) > 0 && (
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-slate-400">Sugerir:</span>
+                  <button onClick={() => setPubForm(f => ({ ...f, precioPublico: conMargen(Number(f.precioSocio), 15) }))}
+                    className="font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1 hover:bg-blue-100">+15%</button>
+                  <button onClick={() => setPubForm(f => ({ ...f, precioPublico: conMargen(Number(f.precioSocio), 20) }))}
+                    className="font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1 hover:bg-blue-100">+20%</button>
+                </div>
+              )}
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Foto (opcional)</label>
+                {pubForm.imagenUrl ? (
+                  <div className="flex items-center gap-3">
+                    <Image src={pubForm.imagenUrl} alt="" width={64} height={64} className="h-16 w-16 rounded-lg object-cover border border-slate-200" />
+                    <button onClick={() => setPubForm(f => ({ ...f, imagenUrl: "" }))} className="text-xs font-semibold text-red-600 hover:underline">Quitar foto</button>
+                  </div>
+                ) : (
+                  <UploadDropzone<OurFileRouter, "productoImagen">
+                    endpoint="productoImagen"
+                    onClientUploadComplete={(files) => {
+                      const url = files?.[0]?.ufsUrl ?? files?.[0]?.url;
+                      if (url) setPubForm(f => ({ ...f, imagenUrl: url }));
+                    }}
+                    onUploadError={(err) => setPubError(err?.message || "No se pudo subir la imagen.")}
+                    appearance={{
+                      container: "border-2 border-dashed border-slate-200 rounded-xl p-3 cursor-pointer hover:border-[#0f1f3d] transition-colors ut-uploading:opacity-70",
+                      uploadIcon: "hidden",
+                      label: "text-xs text-slate-500",
+                      allowedContent: "text-[11px] text-slate-400",
+                      button: "bg-[#0f1f3d] text-white text-xs font-bold px-3 py-1.5 rounded-lg ut-ready:bg-[#0f1f3d] after:bg-blue-400",
+                    }}
+                    content={{ label: "Arrastra una foto o haz clic", button: ({ isUploading }) => (isUploading ? "Subiendo…" : "Subir foto") }}
+                  />
+                )}
+              </div>
+              {pubError && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{pubError}</p>}
+              {pubOk ? (
+                <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2 flex items-center gap-2"><Check className="h-4 w-4" /> ¡Publicado en el catálogo!</p>
+              ) : (
+                <div className="flex gap-2 pt-1">
+                  <button onClick={() => setPubOpen(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50">Cancelar</button>
+                  <button onClick={publicar} disabled={pubSaving}
+                    className="flex-1 py-2.5 rounded-xl bg-[#0f1f3d] hover:bg-[#16294f] text-white text-sm font-bold disabled:opacity-40">
+                    {pubSaving ? "Publicando…" : "Publicar"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Editar pedido */}
+      {editPedido && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto" onClick={() => setEditPedido(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-2xl my-8 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <h2 className="font-black text-slate-900 flex items-center gap-2"><Pencil className="h-5 w-5 text-[#0f1f3d]" /> Editar pedido · {editPedido.numero}</h2>
+              <button onClick={() => setEditPedido(null)} className="text-slate-400 hover:text-slate-700"><X className="h-5 w-5" /></button>
+            </div>
+            <div className="p-5 space-y-4">
+              {editBloqueado && (
+                <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  Este pedido ya tiene <b>factura emitida</b>. Puedes corregir las <b>descripciones</b>, pero no las cantidades ni los precios (cambiaría la factura y el crédito del socio).
+                </p>
+              )}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Productos</label>
+                  {!editBloqueado && (
+                    <button onClick={eAddItem} className="flex items-center gap-1 text-xs text-blue-700 font-semibold hover:underline"><Plus className="h-3.5 w-3.5" /> Agregar línea</button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {eItems.map((it, i) => (
+                    <div key={i} className="grid grid-cols-12 gap-2 items-end border border-slate-100 rounded-xl p-2">
+                      <div className="col-span-12 sm:col-span-6">
+                        <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Descripción</label>
+                        <input value={it.descripcion} onChange={e => eUpdateItem(i, "descripcion", e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+                      </div>
+                      <div className="col-span-4 sm:col-span-2">
+                        <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Cant.</label>
+                        <input type="number" min={1} value={it.cantidad} disabled={editBloqueado}
+                          onChange={e => eUpdateItem(i, "cantidad", parseInt(e.target.value) || 1)}
+                          className="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm text-center disabled:bg-slate-100 disabled:text-slate-400" />
+                      </div>
+                      <div className="col-span-4 sm:col-span-2">
+                        <label className="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Precio (c/IGV)</label>
+                        <input type="number" min={0} step="0.01" value={it.precioUnit} disabled={editBloqueado}
+                          onChange={e => eUpdateItem(i, "precioUnit", parseFloat(e.target.value) || 0)}
+                          className="w-full border border-slate-300 rounded-lg px-2 py-2 text-sm disabled:bg-slate-100 disabled:text-slate-400" />
+                      </div>
+                      <div className="col-span-3 sm:col-span-1">
+                        <label className="block text-[10px] font-semibold text-emerald-600 uppercase mb-0.5">Costo</label>
+                        <input type="number" min={0} step="0.01" value={it.costoUnit} disabled={editBloqueado}
+                          onChange={e => eUpdateItem(i, "costoUnit", parseFloat(e.target.value) || 0)}
+                          className="w-full border border-emerald-200 bg-emerald-50/40 rounded-lg px-2 py-2 text-sm disabled:opacity-50" />
+                      </div>
+                      <div className="col-span-1 flex justify-center pb-2">
+                        {!editBloqueado && eItems.length > 1 && <button onClick={() => eRemoveItem(i)} className="text-slate-300 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {!editBloqueado && (
+                  <p className="text-right text-sm text-slate-500 mt-2">
+                    Total (c/IGV): <b className="text-slate-900">{formatCurrency(eItems.reduce((s, i) => s + i.precioUnit * i.cantidad, 0))}</b>
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Notas</label>
+                <input value={eNotas} onChange={e => setENotas(e.target.value)} className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm" />
+              </div>
+              {eError && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{eError}</p>}
+              <div className="flex gap-2 pt-1">
+                <button onClick={() => setEditPedido(null)} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50">Cancelar</button>
+                <button onClick={guardarEdicion} disabled={eSaving}
+                  className="flex-1 py-2.5 rounded-xl bg-[#0f1f3d] hover:bg-[#16294f] text-white text-sm font-bold disabled:opacity-40">
+                  {eSaving ? "Guardando…" : "Guardar cambios"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
