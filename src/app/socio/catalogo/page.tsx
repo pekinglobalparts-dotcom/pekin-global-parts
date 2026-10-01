@@ -2,11 +2,24 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import {
   Search, X, MessageCircle, ShoppingCart,
-  Check, Plus, Trash2, Send, Car, Cog,
+  Check, Plus, Trash2, Send, Car, Cog, Tags, ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+interface VitrinaProducto {
+  id: string;
+  codigo: string | null;
+  descripcion: string;
+  marca: string | null;
+  modelo: string | null;
+  imagenUrl: string | null;
+  precioSocio: number;
+  destacado: boolean;
+}
+const soles = (n: number) => `S/ ${Number(n).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "51953096242";
 
@@ -277,11 +290,15 @@ function CartDrawer({
 }
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
-type Tab = "marcas" | "catalogo";
+type Tab = "productos" | "marcas" | "catalogo";
 const PAGE_SIZE = 40;
 
 export default function SocioCatalogoPage() {
-  const [activeTab, setActiveTab] = useState<Tab>("marcas");
+  const [activeTab, setActiveTab] = useState<Tab>("productos");
+
+  // Vitrina (productos con foto y precio de socio)
+  const [vitrina, setVitrina] = useState<VitrinaProducto[] | null>(null);
+  const [vitrinaSearch, setVitrinaSearch] = useState("");
 
   // Catálogo de códigos
   const [catalog, setCatalog] = useState<CatalogData | null>(null);
@@ -302,7 +319,21 @@ export default function SocioCatalogoPage() {
 
   useEffect(() => {
     fetch("/catalogo-data.json").then(r => r.json()).then(setCatalog).catch(() => {});
+    fetch("/api/socio/vitrina")
+      .then(r => r.json())
+      .then(d => setVitrina((d.productos || []).map((p: VitrinaProducto) => ({ ...p, precioSocio: Number(p.precioSocio) }))))
+      .catch(() => setVitrina([]));
   }, []);
+
+  const vitrinaWords = vitrinaSearch.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const vitrinaResults = useMemo(() => {
+    if (!vitrina) return [];
+    if (vitrinaWords.length === 0) return vitrina;
+    return vitrina.filter(p => {
+      const h = `${p.descripcion} ${p.marca ?? ""} ${p.modelo ?? ""} ${p.codigo ?? ""}`.toLowerCase();
+      return vitrinaWords.every(w => h.includes(w));
+    });
+  }, [vitrina, vitrinaWords]);
 
   useEffect(() => { setLimit(PAGE_SIZE); }, [search, marca, parte]);
 
@@ -406,7 +437,12 @@ export default function SocioCatalogoPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 w-fit">
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6 w-fit flex-wrap">
+        <button onClick={() => setActiveTab("productos")}
+          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "productos" ? "bg-white text-[#1a1f6e] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
+          <Tags className="h-4 w-4" />
+          Productos
+        </button>
         <button onClick={() => setActiveTab("marcas")}
           className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === "marcas" ? "bg-white text-[#1a1f6e] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}>
           <Car className="h-4 w-4" />
@@ -418,6 +454,60 @@ export default function SocioCatalogoPage() {
           Catálogo por código
         </button>
       </div>
+
+      {/* Tab: Productos (vitrina con precio de socio) */}
+      {activeTab === "productos" && (
+        <div>
+          <div className="relative mb-5 max-w-xl">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input type="text" placeholder="Buscar producto, marca o código..." value={vitrinaSearch}
+              onChange={e => setVitrinaSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-900" />
+          </div>
+          {!vitrina ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {[1,2,3,4].map(i => <div key={i} className="aspect-[3/4] bg-white rounded-2xl border border-slate-200 animate-pulse" />)}
+            </div>
+          ) : vitrina.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
+              <ImageIcon className="h-10 w-10 text-slate-200 mx-auto mb-3" />
+              <p className="text-slate-500 font-semibold mb-1">Aún no hay productos publicados</p>
+              <p className="text-slate-400 text-sm">Iremos sumando productos con foto y precio poco a poco.</p>
+            </div>
+          ) : vitrinaResults.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
+              <Search className="h-10 w-10 text-slate-200 mx-auto mb-3" />
+              <p className="text-slate-500 font-semibold">Sin resultados para tu búsqueda</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {vitrinaResults.map(p => (
+                <div key={p.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
+                  <div className="relative aspect-square bg-slate-100 flex items-center justify-center">
+                    {p.imagenUrl ? (
+                      <Image src={p.imagenUrl} alt={p.descripcion} fill className="object-cover" sizes="(max-width:640px) 50vw, 25vw" />
+                    ) : (
+                      <ImageIcon className="h-10 w-10 text-slate-300" />
+                    )}
+                  </div>
+                  <div className="p-3 flex-1 flex flex-col">
+                    <p className="text-sm font-bold text-slate-900 leading-tight line-clamp-2">{p.descripcion}</p>
+                    {(p.marca || p.modelo) && (
+                      <p className="text-xs text-slate-400 mt-0.5">{[p.marca, p.modelo].filter(Boolean).join(" · ")}</p>
+                    )}
+                    <p className="text-[11px] text-emerald-500 mt-2">Tu precio</p>
+                    <p className="text-lg font-black text-emerald-700 leading-none">{soles(p.precioSocio)}</p>
+                    <button onClick={() => agregarRepuestosAlCarrito([{ modelo: p.modelo || "", anio: "", repuesto: `${p.descripcion}${p.codigo ? ` · código: ${p.codigo}` : ""}` }], p.marca || "Catálogo")}
+                      className="mt-auto pt-3 text-center bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold py-2 rounded-xl transition-colors">
+                      Agregar a cotización
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Tab: Marcas */}
       {activeTab === "marcas" && (

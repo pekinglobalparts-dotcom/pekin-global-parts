@@ -3,70 +3,43 @@
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, ArrowLeft } from "lucide-react";
+import { Search, ArrowLeft, ImageIcon } from "lucide-react";
 
 const WHATSAPP = "51953096242";
 const waLink = (msg: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
+const soles = (n: number) => `S/ ${Number(n).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-type CatalogData = {
-  motores: [string, string, string, string][]; // parte, marca, modelo, codigo
+type Producto = {
+  id: string;
+  codigo: string | null;
+  descripcion: string;
+  marca: string | null;
+  modelo: string | null;
+  imagenUrl: string | null;
+  precioPublico: number;
+  destacado: boolean;
 };
 
-const PAGE_SIZE = 50;
-
 export default function CatalogoPage() {
-  const [data, setData] = useState<CatalogData | null>(null);
+  const [productos, setProductos] = useState<Producto[] | null>(null);
   const [search, setSearch] = useState("");
-  const [marca, setMarca] = useState("TODAS");
-  const [parte, setParte] = useState("TODAS");
-  const [limit, setLimit] = useState(PAGE_SIZE);
 
   useEffect(() => {
-    fetch("/catalogo-data.json")
+    fetch("/api/vitrina")
       .then(r => r.json())
-      .then(setData)
-      .catch(() => {});
+      .then(d => setProductos((d.productos || []).map((p: Producto) => ({ ...p, precioPublico: Number(p.precioPublico) }))))
+      .catch(() => setProductos([]));
   }, []);
 
-  useEffect(() => { setLimit(PAGE_SIZE); }, [search, marca, parte]);
-
-  const marcas = useMemo(() => {
-    if (!data) return [];
-    return ["TODAS", ...Array.from(new Set(data.motores.map(e => e[1]))).sort()];
-  }, [data]);
-
-  const partes = useMemo(() => {
-    if (!data) return [];
-    const src = marca === "TODAS" ? data.motores : data.motores.filter(e => e[1] === marca);
-    return ["TODAS", ...Array.from(new Set(src.map(e => e[0]))).sort()];
-  }, [data, marca]);
-
   const words = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
-
-  // Agrupar códigos alternativos: una tarjeta por parte+marca+modelo
-  const grouped = useMemo(() => {
-    if (!data) return [];
-    const map = new Map<string, { p: string; m: string; mo: string; codes: string[] }>();
-    for (const [p, m, mo, c] of data.motores) {
-      const key = `${p}|${m}|${mo}`;
-      const g = map.get(key);
-      if (g) { if (!g.codes.includes(c)) g.codes.push(c); }
-      else map.set(key, { p, m, mo, codes: [c] });
-    }
-    return Array.from(map.values());
-  }, [data]);
-
   const results = useMemo(() => {
-    return grouped.filter(g => {
-      if (marca !== "TODAS" && g.m !== marca) return false;
-      if (parte !== "TODAS" && g.p !== parte) return false;
-      if (words.length === 0) return true;
-      const haystack = `${g.p} ${g.m} ${g.mo} ${g.codes.join(" ")}`.toLowerCase();
+    if (!productos) return [];
+    if (words.length === 0) return productos;
+    return productos.filter(p => {
+      const haystack = `${p.descripcion} ${p.marca ?? ""} ${p.modelo ?? ""} ${p.codigo ?? ""}`.toLowerCase();
       return words.every(w => haystack.includes(w));
     });
-  }, [grouped, words, marca, parte]);
-
-  const visible = results.slice(0, limit);
+  }, [productos, words]);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -87,46 +60,45 @@ export default function CatalogoPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6">
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Catálogo de partes de motor</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Catálogo de repuestos</h1>
         <p className="text-slate-500 text-sm mt-1 mb-6">
-          Busca por código, marca, modelo o tipo de parte. ¿No encuentras lo que buscas?{" "}
-          <a href={waLink("Hola, busco un repuesto que no encuentro en el catálogo")} target="_blank" rel="noopener noreferrer" className="text-green-600 font-semibold hover:underline">
+          Productos disponibles con precio y foto. ¿No encuentras lo que buscas?{" "}
+          <a href={waLink("Hola, busco un repuesto que no veo en el catálogo")} target="_blank" rel="noopener noreferrer" className="text-green-600 font-semibold hover:underline">
             Escríbenos y lo cotizamos
           </a>.
         </p>
 
-        {/* Search + filters */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-5">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar código, modelo o motor..."
-              className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]"
-            />
-          </div>
-          <select value={marca} onChange={e => { setMarca(e.target.value); setParte("TODAS"); }}
-            className="border border-slate-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]">
-            {marcas.map(m => <option key={m} value={m}>{m === "TODAS" ? "Todas las marcas" : m}</option>)}
-          </select>
-          <select value={parte} onChange={e => setParte(e.target.value)}
-            className="border border-slate-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0f1f3d] max-w-full sm:max-w-[240px]">
-            {partes.map(p => <option key={p} value={p}>{p === "TODAS" ? "Todas las partes" : p}</option>)}
-          </select>
+        {/* Search */}
+        <div className="relative mb-5 max-w-xl">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar repuesto, marca, modelo o código..."
+            className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0f1f3d]"
+          />
         </div>
 
-        {/* Results count */}
-        {data && (
-          <p className="text-xs text-slate-400 mb-3">{results.length.toLocaleString()} resultado{results.length !== 1 ? "s" : ""}</p>
+        {productos && productos.length > 0 && (
+          <p className="text-xs text-slate-400 mb-3">{results.length.toLocaleString()} producto{results.length !== 1 ? "s" : ""}</p>
         )}
 
         {/* Results */}
-        {!data ? (
-          <div className="space-y-2">
-            {[1,2,3,4,5].map(i => <div key={i} className="h-16 bg-white rounded-xl border border-slate-200 animate-pulse" />)}
+        {!productos ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => <div key={i} className="aspect-[3/4] bg-white rounded-2xl border border-slate-200 animate-pulse" />)}
           </div>
-        ) : visible.length === 0 ? (
+        ) : productos.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
+            <ImageIcon className="h-10 w-10 text-slate-200 mx-auto mb-3" />
+            <p className="text-slate-500 font-semibold mb-1">Estamos armando nuestro catálogo</p>
+            <p className="text-slate-400 text-sm mb-4">Dinos qué repuesto necesitas y te cotizamos al instante.</p>
+            <a href={waLink("Hola, quiero cotizar un repuesto")} target="_blank" rel="noopener noreferrer"
+              className="inline-block bg-green-500 hover:bg-green-600 text-white text-sm font-bold px-6 py-2.5 rounded-full transition-colors">
+              Cotizar por WhatsApp
+            </a>
+          </div>
+        ) : results.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
             <Search className="h-10 w-10 text-slate-200 mx-auto mb-3" />
             <p className="text-slate-500 font-semibold mb-1">Sin resultados para tu búsqueda</p>
@@ -137,36 +109,31 @@ export default function CatalogoPage() {
             </a>
           </div>
         ) : (
-          <>
-            <div className="space-y-2">
-              {visible.map((g, i) => (
-                <div key={i} className="bg-white rounded-xl border border-slate-200 p-3.5 sm:p-4 flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-slate-900 leading-tight">{g.p}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{g.m} · {g.mo}</p>
-                    <div className="flex flex-wrap gap-1.5 mt-1.5">
-                      {g.codes.map(c => (
-                        <span key={c} className="text-xs font-mono font-bold text-[#0f1f3d] bg-slate-100 px-2 py-0.5 rounded">{c}</span>
-                      ))}
-                      {g.codes.length > 1 && (
-                        <span className="text-[10px] text-slate-400 self-center">({g.codes.length} alternativas)</span>
-                      )}
-                    </div>
-                  </div>
-                  <a href={waLink(`Hola, quiero cotizar: ${g.p} para ${g.m} ${g.mo} — código(s): ${g.codes.join(", ")}`)} target="_blank" rel="noopener noreferrer"
-                    className="shrink-0 bg-green-500 hover:bg-green-600 text-white text-xs font-bold px-3.5 py-2 rounded-full transition-colors">
-                    Cotizar
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {results.map(p => (
+              <div key={p.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
+                <div className="relative aspect-square bg-slate-100 flex items-center justify-center">
+                  {p.imagenUrl ? (
+                    <Image src={p.imagenUrl} alt={p.descripcion} fill className="object-cover" sizes="(max-width:640px) 50vw, 25vw" />
+                  ) : (
+                    <ImageIcon className="h-10 w-10 text-slate-300" />
+                  )}
+                </div>
+                <div className="p-3 flex-1 flex flex-col">
+                  <p className="text-sm font-bold text-slate-900 leading-tight line-clamp-2">{p.descripcion}</p>
+                  {(p.marca || p.modelo) && (
+                    <p className="text-xs text-slate-400 mt-0.5">{[p.marca, p.modelo].filter(Boolean).join(" · ")}</p>
+                  )}
+                  <p className="text-lg font-black text-[#0f1f3d] mt-2">{soles(p.precioPublico)}</p>
+                  <a href={waLink(`Hola, me interesa: ${p.descripcion}${p.codigo ? ` (código ${p.codigo})` : ""} — precio ${soles(p.precioPublico)}`)}
+                    target="_blank" rel="noopener noreferrer"
+                    className="mt-auto pt-3 text-center bg-green-500 hover:bg-green-600 text-white text-xs font-bold py-2 rounded-full transition-colors">
+                    Pedir por WhatsApp
                   </a>
                 </div>
-              ))}
-            </div>
-            {results.length > limit && (
-              <button onClick={() => setLimit(l => l + PAGE_SIZE)}
-                className="w-full mt-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:border-slate-300 transition-colors">
-                Ver más ({(results.length - limit).toLocaleString()} restantes)
-              </button>
-            )}
-          </>
+              </div>
+            ))}
+          </div>
         )}
 
         {/* Footer note */}

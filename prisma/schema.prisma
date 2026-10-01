@@ -236,6 +236,30 @@ model Producto {
   @@map("productos")
 }
 
+// Vitrina / catálogo público con foto y precio. Crece poco a poco a partir de
+// las operaciones (ventas de mostrador / pedidos manuales) que el Super Admin
+// decide publicar. Doble precio: el de socio (lo que se factura) y el público
+// (sugerido +15% sobre el de socio, editable). Solo Super Admin lo gestiona.
+model ProductoVitrina {
+  id            String   @id @default(cuid())
+  codigo        String?
+  descripcion   String
+  marca         String?
+  modelo        String?
+  imagenUrl     String?
+  precioSocio   Decimal  @db.Decimal(10, 2)
+  precioPublico Decimal  @db.Decimal(10, 2)
+  activo        Boolean  @default(true)
+  destacado     Boolean  @default(false)
+  orden         Int      @default(0)
+  origen        String?
+  origenId      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("productos_vitrina")
+}
+
 model Cotizacion {
   id          String           @id @default(cuid())
   numero      String           @unique
