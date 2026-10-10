@@ -45,6 +45,7 @@ export default function VentasPage() {
 
   // Publicar al catálogo
   const [pubVenta, setPubVenta] = useState<Venta | null>(null);
+  const [pubItemIdx, setPubItemIdx] = useState<number | null>(null);
   const [pubForm, setPubForm] = useState({ descripcion: "", codigo: "", precioSocio: "", precioPublico: "", imagenUrl: "" });
   const [pubSaving, setPubSaving] = useState(false);
   const [pubError, setPubError] = useState("");
@@ -110,21 +111,38 @@ export default function VentasPage() {
     setVentas(prev => prev.filter(v => v.id !== id));
   };
 
-  // ── Publicar al catálogo ──
-  const abrirPublicar = (v: Venta) => {
-    const its = v.items || [];
-    const desc = its.length === 1 ? its[0].descripcion : (its[0]?.descripcion || v.cliente || "Repuesto");
-    const socio = its.length === 1 ? Number(its[0].precioUnit) : Number(v.total);
-    setPubVenta(v);
+  // ── Publicar al catálogo (cada producto por separado) ──
+  const llenarPubForm = (it: Linea) => {
+    const socio = Number(it.precioUnit);
     setPubForm({
-      descripcion: desc,
-      codigo: its[0]?.codigo || "",
+      descripcion: it.descripcion,
+      codigo: it.codigo || "",
       precioSocio: socio ? String(socio) : "",
       precioPublico: conMargen(socio, 15),
       imagenUrl: "",
     });
     setPubError(""); setPubOk(false);
   };
+
+  const abrirPublicar = (v: Venta) => {
+    const its = v.items || [];
+    setPubVenta(v);
+    setPubError(""); setPubOk(false);
+    if (its.length <= 1) {
+      setPubItemIdx(0);
+      if (its[0]) llenarPubForm(its[0]);
+    } else {
+      setPubItemIdx(null); // mostrar selector de producto
+    }
+  };
+
+  const seleccionarPubItem = (idx: number) => {
+    setPubItemIdx(idx);
+    const it = pubVenta?.items?.[idx];
+    if (it) llenarPubForm(it);
+  };
+
+  const cerrarPublicar = () => { setPubVenta(null); setPubItemIdx(null); };
 
   const publicar = async () => {
     if (!pubForm.descripcion.trim() || !pubForm.precioSocio || !pubForm.precioPublico) {
@@ -144,7 +162,14 @@ export default function VentasPage() {
           origenId: pubVenta?.id || null,
         }),
       });
-      if (r.ok) { setPubOk(true); setTimeout(() => setPubVenta(null), 1200); }
+      if (r.ok) {
+        setPubOk(true);
+        const varios = (pubVenta?.items?.length || 0) > 1;
+        setTimeout(() => {
+          if (varios) { setPubOk(false); setPubItemIdx(null); } // volver al selector para publicar otro
+          else cerrarPublicar();
+        }, 1200);
+      }
       else { const d = await r.json().catch(() => ({})); setPubError(d.error || "No se pudo publicar."); }
     } catch { setPubError("Error de conexión."); }
     setPubSaving(false);
@@ -379,13 +404,32 @@ export default function VentasPage() {
 
       {/* Modal: Publicar al catálogo */}
       {pubVenta && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto" onClick={() => setPubVenta(null)}>
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto" onClick={cerrarPublicar}>
           <div className="bg-white rounded-2xl w-full max-w-md my-8 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
               <h2 className="font-black text-slate-900 flex items-center gap-2"><Tags className="h-5 w-5 text-[#0f1f3d]" /> Publicar al catálogo</h2>
-              <button onClick={() => setPubVenta(null)} className="text-slate-400 hover:text-slate-700"><X className="h-5 w-5" /></button>
+              <button onClick={cerrarPublicar} className="text-slate-400 hover:text-slate-700"><X className="h-5 w-5" /></button>
             </div>
             <div className="p-5 space-y-4">
+              {pubItemIdx === null ? (
+                <>
+                  <p className="text-xs text-slate-500">Esta venta tiene varios productos. Elige cuál publicar — <b>cada uno se publica por separado</b>, con su propia foto y precio.</p>
+                  <div className="space-y-2">
+                    {(pubVenta.items || []).map((it, i) => (
+                      <button key={i} onClick={() => seleccionarPubItem(i)}
+                        className="w-full text-left border border-slate-200 rounded-xl px-3 py-2.5 hover:border-[#0f1f3d] hover:bg-slate-50 transition-colors flex items-center justify-between gap-3">
+                        <span className="text-sm font-semibold text-slate-800">{it.descripcion}{it.codigo ? ` · ${it.codigo}` : ""}</span>
+                        <span className="text-sm font-bold text-slate-900 shrink-0">{formatCurrency(Number(it.precioUnit))} c/u</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+              <>
+              {(pubVenta.items?.length || 0) > 1 && (
+                <button onClick={() => { setPubItemIdx(null); setPubError(""); setPubOk(false); }}
+                  className="text-xs font-semibold text-blue-700 hover:underline">← Elegir otro producto</button>
+              )}
               <p className="text-xs text-slate-500">El socio lo verá al precio facturado; en la web pública se muestra el precio público (sugerido +15%). Puedes ajustarlo.</p>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">Descripción</label>
@@ -451,12 +495,14 @@ export default function VentasPage() {
                 <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2 flex items-center gap-2"><Check className="h-4 w-4" /> ¡Publicado en el catálogo!</p>
               ) : (
                 <div className="flex gap-2 pt-1">
-                  <button onClick={() => setPubVenta(null)} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50">Cancelar</button>
+                  <button onClick={cerrarPublicar} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50">Cancelar</button>
                   <button onClick={publicar} disabled={pubSaving}
                     className="flex-1 py-2.5 rounded-xl bg-[#0f1f3d] hover:bg-[#16294f] text-white text-sm font-bold disabled:opacity-40">
                     {pubSaving ? "Publicando…" : "Publicar"}
                   </button>
                 </div>
+              )}
+              </>
               )}
             </div>
           </div>
