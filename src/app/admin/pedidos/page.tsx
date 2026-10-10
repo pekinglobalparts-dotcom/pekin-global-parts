@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingCart, ChevronDown, ChevronUp, Truck, Package, Check, Plus, X, Trash2, FileText, Download, Tags, Pencil } from "lucide-react";
 import { UploadDropzone } from "@uploadthing/react";
 import type { OurFileRouter } from "@/lib/uploadthing";
+import { marcarAguaFiles } from "@/lib/watermark";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -924,6 +925,7 @@ export default function AdminPedidosPage() {
                 ) : (
                   <UploadDropzone<OurFileRouter, "productoImagen">
                     endpoint="productoImagen"
+                    onBeforeUploadBegin={marcarAguaFiles}
                     onClientUploadComplete={(files) => {
                       const url = files?.[0]?.ufsUrl ?? files?.[0]?.url;
                       if (url) setPubForm(f => ({ ...f, imagenUrl: url }));
