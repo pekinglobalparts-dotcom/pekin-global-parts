@@ -36,7 +36,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (d.codigo !== undefined) data.codigo = d.codigo || null;
   if (d.marca !== undefined) data.marca = d.marca || null;
   if (d.modelo !== undefined) data.modelo = d.modelo || null;
-  if (d.imagenUrl !== undefined) data.imagenUrl = d.imagenUrl || null;
+  if (d.imagenUrl !== undefined) {
+    data.imagenUrl = d.imagenUrl || null;
+    // Una foto cargada por el admin ya viene con marca de agua (se sella al subir).
+    data.fotoSellada = !!d.imagenUrl;
+  }
   if (d.precioSocio !== undefined) data.precioSocio = d.precioSocio;
   if (d.precioPublico !== undefined) data.precioPublico = d.precioPublico;
   if (d.activo !== undefined) data.activo = d.activo;
