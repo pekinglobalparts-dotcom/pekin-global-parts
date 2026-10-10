@@ -18,6 +18,7 @@ type Producto = {
   imagenUrl: string | null;
   precioPublico: number;
   destacado: boolean;
+  enStock: boolean;
 };
 
 export default function CatalogoPage() {
@@ -120,6 +121,9 @@ export default function CatalogoPage() {
                   ) : (
                     <ImageIcon className="h-10 w-10 text-slate-300" />
                   )}
+                  {!p.enStock && (
+                    <span className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">SIN STOCK</span>
+                  )}
                 </div>
                 <div className="p-3 flex-1 flex flex-col">
                   <p className="text-sm font-bold text-slate-900 leading-tight line-clamp-2">{p.descripcion}</p>
@@ -127,11 +131,19 @@ export default function CatalogoPage() {
                     <p className="text-xs text-slate-400 mt-0.5">{[p.marca, p.modelo].filter(Boolean).join(" · ")}</p>
                   )}
                   <p className="text-lg font-black text-[#0f1f3d] mt-2">{soles(p.precioPublico)} <span className="text-xs font-semibold text-slate-400">c/u</span></p>
-                  <a href={waLink(`Hola, me interesa: ${p.descripcion}${p.codigo ? ` (código ${p.codigo})` : ""} — precio ${soles(p.precioPublico)}`)}
-                    target="_blank" rel="noopener noreferrer"
-                    className="mt-auto pt-3 text-center bg-green-500 hover:bg-green-600 text-white text-xs font-bold py-2 rounded-full transition-colors">
-                    Pedir por WhatsApp
-                  </a>
+                  {p.enStock ? (
+                    <a href={waLink(`Hola, me interesa: ${p.descripcion}${p.codigo ? ` (código ${p.codigo})` : ""} — precio ${soles(p.precioPublico)}`)}
+                      target="_blank" rel="noopener noreferrer"
+                      className="mt-auto pt-3 text-center bg-green-500 hover:bg-green-600 text-white text-xs font-bold py-2 rounded-full transition-colors">
+                      Pedir por WhatsApp
+                    </a>
+                  ) : (
+                    <a href={waLink(`Hola, ¿tienen disponibilidad de: ${p.descripcion}${p.codigo ? ` (código ${p.codigo})` : ""}?`)}
+                      target="_blank" rel="noopener noreferrer"
+                      className="mt-auto pt-3 text-center bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold py-2 rounded-full transition-colors">
+                      Consultar disponibilidad
+                    </a>
+                  )}
                 </div>
               </div>
             ))}
