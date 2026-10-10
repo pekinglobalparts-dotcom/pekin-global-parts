@@ -56,6 +56,10 @@ export default function VitrinaPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // Re-sellar fotos existentes (las subidas antes de la marca de agua)
+  const [resellando, setResellando] = useState(false);
+  const [resellMsg, setResellMsg] = useState("");
+
   const load = useCallback(async () => {
     const r = await fetch("/api/admin/vitrina");
     if (r.status === 401) { setDenied(true); setLoading(false); return; }
@@ -67,6 +71,26 @@ export default function VitrinaPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const resellarFotos = async () => {
+    if (!confirm("¿Agregar la marca de agua a las fotos del catálogo que aún no la tienen?")) return;
+    setResellando(true); setResellMsg("");
+    try {
+      let totalSelladas = 0, restantes = 0, vueltas = 0;
+      do {
+        const r = await fetch("/api/admin/vitrina/resellar", { method: "POST" });
+        if (!r.ok) { const d = await r.json().catch(() => ({})); setResellMsg(d.error || "No se pudo re-sellar."); break; }
+        const d = await r.json();
+        totalSelladas += d.selladas || 0;
+        restantes = d.restantes || 0;
+        vueltas++;
+        setResellMsg(`Sellando… ${totalSelladas} listas${restantes ? `, faltan ${restantes}` : ""}`);
+      } while (restantes > 0 && vueltas < 50);
+      setResellMsg(totalSelladas > 0 ? `✅ Listo: ${totalSelladas} foto(s) sellada(s).` : "No había fotos pendientes.");
+      load();
+    } catch { setResellMsg("Error de conexión."); }
+    setResellando(false);
+  };
 
   const abrirNuevo = () => {
     setForm(emptyForm); setEditId(null); setError(""); setShowForm(true);
@@ -148,11 +172,20 @@ export default function VitrinaPage() {
             Se agregan poco a poco y se pueden actualizar cuando cambie el precio del proveedor.
           </p>
         </div>
-        <button onClick={abrirNuevo}
-          className="flex items-center gap-2 bg-[#0f1f3d] hover:bg-[#16294f] text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors shrink-0">
-          <Plus className="h-4 w-4" /> Agregar producto
-        </button>
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          <button onClick={resellarFotos} disabled={resellando}
+            className="flex items-center gap-2 border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-bold px-3.5 py-2.5 rounded-xl transition-colors disabled:opacity-50">
+            <ImageIcon className="h-4 w-4" /> {resellando ? "Sellando…" : "Re-sellar fotos"}
+          </button>
+          <button onClick={abrirNuevo}
+            className="flex items-center gap-2 bg-[#0f1f3d] hover:bg-[#16294f] text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors">
+            <Plus className="h-4 w-4" /> Agregar producto
+          </button>
+        </div>
       </div>
+      {resellMsg && (
+        <p className="text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">{resellMsg}</p>
+      )}
 
       {/* Formulario (modal) */}
       {showForm && (
