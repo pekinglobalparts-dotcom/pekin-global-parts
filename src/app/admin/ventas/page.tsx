@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { UploadDropzone } from "@uploadthing/react";
 import type { OurFileRouter } from "@/lib/uploadthing";
+import { marcarAguaFiles } from "@/lib/watermark";
 import { Plus, Trash2, Store, AlertTriangle, Copy, Check, Pencil, Tags, X } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
@@ -474,6 +475,7 @@ export default function VentasPage() {
                 ) : (
                   <UploadDropzone<OurFileRouter, "productoImagen">
                     endpoint="productoImagen"
+                    onBeforeUploadBegin={marcarAguaFiles}
                     onClientUploadComplete={(files) => {
                       const url = files?.[0]?.ufsUrl ?? files?.[0]?.url;
                       if (url) setPubForm(f => ({ ...f, imagenUrl: url }));
