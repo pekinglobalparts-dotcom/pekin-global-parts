@@ -299,6 +299,7 @@ export default function SocioCatalogoPage() {
   // Vitrina (productos con foto y precio de socio)
   const [vitrina, setVitrina] = useState<VitrinaProducto[] | null>(null);
   const [vitrinaSearch, setVitrinaSearch] = useState("");
+  const [lightbox, setLightbox] = useState<string | null>(null);
 
   // Catálogo de códigos
   const [catalog, setCatalog] = useState<CatalogData | null>(null);
@@ -483,7 +484,8 @@ export default function SocioCatalogoPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {vitrinaResults.map(p => (
                 <div key={p.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
-                  <div className="relative aspect-square bg-slate-100 flex items-center justify-center">
+                  <div className={`relative aspect-square bg-slate-100 flex items-center justify-center ${p.imagenUrl ? "cursor-zoom-in" : ""}`}
+                    onClick={() => p.imagenUrl && setLightbox(p.imagenUrl)}>
                     {p.imagenUrl ? (
                       <Image src={p.imagenUrl} alt={p.descripcion} fill className="object-cover" sizes="(max-width:640px) 50vw, 25vw" />
                     ) : (
@@ -627,6 +629,19 @@ export default function SocioCatalogoPage() {
           />
         )}
       </AnimatePresence>
+
+      {/* Lightbox: ver la imagen en grande */}
+      {lightbox && (
+        <div onClick={() => setLightbox(null)}
+          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 cursor-zoom-out">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lightbox} alt="Producto" className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+          <button onClick={() => setLightbox(null)}
+            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-full p-2">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
