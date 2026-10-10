@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { SELLO_VERSION } from "@/lib/sello-version";
 
 // Gestión del catálogo / vitrina — solo Super Admin.
 const createSchema = z.object({
@@ -14,6 +15,7 @@ const createSchema = z.object({
   precioPublico: z.coerce.number().min(0),
   activo: z.boolean().optional(),
   destacado: z.boolean().optional(),
+  enStock: z.boolean().optional(),
   origen: z.string().max(50).optional().nullable(),
   origenId: z.string().max(100).optional().nullable(),
 });
@@ -55,10 +57,13 @@ export async function POST(req: NextRequest) {
       precioPublico: d.precioPublico,
       activo: d.activo ?? true,
       destacado: d.destacado ?? false,
+      enStock: d.enStock ?? true,
       origen: d.origen || null,
       origenId: d.origenId || null,
-      // Las fotos nuevas ya llegan con marca de agua (se sella al subir).
+      // Las fotos nuevas ya llegan con marca de agua (se sella al subir),
+      // así el re-sellado del servidor no las vuelve a tocar.
       fotoSellada: !!d.imagenUrl,
+      selloVersion: d.imagenUrl ? SELLO_VERSION : 0,
     },
   });
 

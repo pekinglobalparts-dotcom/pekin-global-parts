@@ -5,7 +5,7 @@ import Image from "next/image";
 import { UploadDropzone } from "@uploadthing/react";
 import type { OurFileRouter } from "@/lib/uploadthing";
 import { marcarAguaFiles } from "@/lib/watermark";
-import { Store, AlertTriangle, Trash2, Pencil, Plus, X, Eye, EyeOff, Star, ImageIcon } from "lucide-react";
+import { Store, AlertTriangle, Trash2, Pencil, Plus, X, Eye, EyeOff, Star, ImageIcon, PackageCheck, PackageX } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 interface Producto {
@@ -19,6 +19,7 @@ interface Producto {
   precioPublico: number;
   activo: boolean;
   destacado: boolean;
+  enStock: boolean;
   orden: number;
   origen: string | null;
 }
@@ -76,17 +77,19 @@ export default function VitrinaPage() {
     if (!confirm("¿Agregar la marca de agua a las fotos del catálogo que aún no la tienen?")) return;
     setResellando(true); setResellMsg("");
     try {
-      let totalSelladas = 0, restantes = 0, vueltas = 0;
+      let totalSelladas = 0, restantes = 0, vueltas = 0, atascado = false;
       do {
         const r = await fetch("/api/admin/vitrina/resellar", { method: "POST" });
         if (!r.ok) { const d = await r.json().catch(() => ({})); setResellMsg(d.error || "No se pudo re-sellar."); break; }
         const d = await r.json();
         totalSelladas += d.selladas || 0;
         restantes = d.restantes || 0;
+        atascado = !!d.atascado;
         vueltas++;
         setResellMsg(`Sellando… ${totalSelladas} listas${restantes ? `, faltan ${restantes}` : ""}`);
-      } while (restantes > 0 && vueltas < 50);
-      setResellMsg(totalSelladas > 0 ? `✅ Listo: ${totalSelladas} foto(s) sellada(s).` : "No había fotos pendientes.");
+      } while (restantes > 0 && !atascado && vueltas < 50);
+      if (atascado) setResellMsg(`Se sellaron ${totalSelladas}, pero ${restantes} no se pudieron procesar. Intenta de nuevo en un momento.`);
+      else setResellMsg(totalSelladas > 0 ? `✅ Listo: ${totalSelladas} foto(s) sellada(s).` : "No había fotos pendientes.");
       load();
     } catch { setResellMsg("Error de conexión."); }
     setResellando(false);
@@ -138,7 +141,7 @@ export default function VitrinaPage() {
     setSaving(false);
   };
 
-  const toggle = async (p: Producto, campo: "activo" | "destacado") => {
+  const toggle = async (p: Producto, campo: "activo" | "destacado" | "enStock") => {
     setProductos(prev => prev.map(x => x.id === p.id ? { ...x, [campo]: !x[campo] } : x));
     await fetch(`/api/admin/vitrina/${p.id}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" },
@@ -326,6 +329,11 @@ export default function VitrinaPage() {
                     <Star className="h-3 w-3" /> Destacado
                   </span>
                 )}
+                {!p.enStock && (
+                  <span className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                    SIN STOCK
+                  </span>
+                )}
               </div>
               <div className="p-3 flex-1 flex flex-col">
                 <p className="text-sm font-bold text-slate-900 leading-tight line-clamp-2">{p.descripcion}</p>
@@ -346,6 +354,10 @@ export default function VitrinaPage() {
                   <button onClick={() => toggle(p, "activo")} title={p.activo ? "Ocultar de la web" : "Mostrar en la web"}
                     className={`flex items-center gap-1 text-xs font-semibold px-2 py-1.5 rounded-lg ${p.activo ? "text-emerald-700 hover:bg-emerald-50" : "text-slate-400 hover:bg-slate-50"}`}>
                     {p.activo ? <><Eye className="h-3.5 w-3.5" /> Visible</> : <><EyeOff className="h-3.5 w-3.5" /> Oculto</>}
+                  </button>
+                  <button onClick={() => toggle(p, "enStock")} title={p.enStock ? "Marcar sin stock" : "Marcar en stock"}
+                    className={`flex items-center gap-1 text-xs font-semibold px-2 py-1.5 rounded-lg ${p.enStock ? "text-emerald-700 hover:bg-emerald-50" : "text-red-600 hover:bg-red-50"}`}>
+                    {p.enStock ? <><PackageCheck className="h-3.5 w-3.5" /> En stock</> : <><PackageX className="h-3.5 w-3.5" /> Sin stock</>}
                   </button>
                   <div className="flex-1" />
                   <button onClick={() => abrirEdicion(p)} className="text-slate-400 hover:text-blue-600 p-1.5" title="Editar"><Pencil className="h-4 w-4" /></button>

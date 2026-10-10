@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { SELLO_VERSION } from "@/lib/sello-version";
 
 // Editar / eliminar un producto del catálogo — solo Super Admin.
 const updateSchema = z.object({
@@ -14,6 +15,7 @@ const updateSchema = z.object({
   precioPublico: z.coerce.number().min(0).optional(),
   activo: z.boolean().optional(),
   destacado: z.boolean().optional(),
+  enStock: z.boolean().optional(),
   orden: z.coerce.number().int().optional(),
 });
 
@@ -38,13 +40,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (d.modelo !== undefined) data.modelo = d.modelo || null;
   if (d.imagenUrl !== undefined) {
     data.imagenUrl = d.imagenUrl || null;
-    // Una foto cargada por el admin ya viene con marca de agua (se sella al subir).
+    // Una foto cargada por el admin ya viene con marca de agua (se sella al subir),
+    // así el re-sellado del servidor no la vuelve a tocar.
     data.fotoSellada = !!d.imagenUrl;
+    data.selloVersion = d.imagenUrl ? SELLO_VERSION : 0;
   }
   if (d.precioSocio !== undefined) data.precioSocio = d.precioSocio;
   if (d.precioPublico !== undefined) data.precioPublico = d.precioPublico;
   if (d.activo !== undefined) data.activo = d.activo;
   if (d.destacado !== undefined) data.destacado = d.destacado;
+  if (d.enStock !== undefined) data.enStock = d.enStock;
   if (d.orden !== undefined) data.orden = d.orden;
 
   const producto = await prisma.productoVitrina.update({ where: { id }, data });
