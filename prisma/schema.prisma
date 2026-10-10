@@ -251,10 +251,12 @@ model ProductoVitrina {
   precioPublico Decimal  @db.Decimal(10, 2)
   activo        Boolean  @default(true)
   destacado     Boolean  @default(false)
+  enStock       Boolean  @default(true)
   orden         Int      @default(0)
   origen        String?
   origenId      String?
   fotoSellada   Boolean  @default(false)
+  selloVersion  Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

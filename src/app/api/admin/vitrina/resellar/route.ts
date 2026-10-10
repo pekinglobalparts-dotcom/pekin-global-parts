@@ -2,14 +2,14 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { UTApi } from "uploadthing/server";
-import { marcarAguaBuffer } from "@/lib/watermark-server";
+import { marcarAguaBuffer, SELLO_VERSION } from "@/lib/watermark-server";
 
-// Re-sella las fotos del catálogo que se subieron antes de la marca de agua.
+// Re-sella las fotos del catálogo que no tienen la versión actual del sello.
 // Solo Super Admin. Procesa por lotes para no exceder el tiempo de ejecución.
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const LOTE = 15;
+const LOTE = 10;
 
 export async function POST() {
   const session = await auth();
@@ -18,7 +18,7 @@ export async function POST() {
   }
 
   const pendientes = await prisma.productoVitrina.findMany({
-    where: { fotoSellada: false, NOT: { imagenUrl: null } },
+    where: { selloVersion: { lt: SELLO_VERSION }, NOT: { imagenUrl: null } },
     select: { id: true, imagenUrl: true },
     take: LOTE,
   });
@@ -40,13 +40,13 @@ export async function POST() {
 
       const file = new File([new Uint8Array(sellada)], `vitrina-${p.id}-pekin.jpg`, { type: "image/jpeg" });
       const up = await utapi.uploadFiles(file);
-      const nuevaUrl = (up?.data as { ufsUrl?: string; url?: string } | null)?.ufsUrl
-        ?? (up?.data as { ufsUrl?: string; url?: string } | null)?.url;
+      const data = up?.data as { ufsUrl?: string; url?: string } | null;
+      const nuevaUrl = data?.ufsUrl ?? data?.url;
       if (!nuevaUrl) throw new Error("subida sin URL");
 
       await prisma.productoVitrina.update({
         where: { id: p.id },
-        data: { imagenUrl: nuevaUrl, fotoSellada: true },
+        data: { imagenUrl: nuevaUrl, fotoSellada: true, selloVersion: SELLO_VERSION },
       });
       selladas++;
     } catch (e) {
@@ -55,8 +55,10 @@ export async function POST() {
   }
 
   const restantes = await prisma.productoVitrina.count({
-    where: { fotoSellada: false, NOT: { imagenUrl: null } },
+    where: { selloVersion: { lt: SELLO_VERSION }, NOT: { imagenUrl: null } },
   });
 
-  return NextResponse.json({ ok: true, selladas, restantes, errores });
+  // Si quedan pendientes pero este lote no selló ninguno, es que todos fallan:
+  // evitamos un bucle infinito en el cliente devolviendo los errores.
+  return NextResponse.json({ ok: true, selladas, restantes, atascado: selladas === 0 && restantes > 0, errores });
 }

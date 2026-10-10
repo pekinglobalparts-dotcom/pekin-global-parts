@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   const productos = await prisma.productoVitrina.findMany({
     where: { activo: true },
-    orderBy: [{ destacado: "desc" }, { orden: "asc" }, { createdAt: "desc" }],
+    orderBy: [{ enStock: "desc" }, { destacado: "desc" }, { orden: "asc" }, { createdAt: "desc" }],
     select: {
       id: true,
       codigo: true,
@@ -16,6 +16,7 @@ export async function GET() {
       imagenUrl: true,
       precioPublico: true,
       destacado: true,
+      enStock: true,
     },
   });
 

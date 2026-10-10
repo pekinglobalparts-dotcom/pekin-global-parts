@@ -18,6 +18,7 @@ interface VitrinaProducto {
   imagenUrl: string | null;
   precioSocio: number;
   destacado: boolean;
+  enStock: boolean;
 }
 const soles = (n: number) => `S/ ${Number(n).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -490,6 +491,9 @@ export default function SocioCatalogoPage() {
                       <Image src={p.imagenUrl} alt={p.descripcion} fill className="object-cover" sizes="(max-width:640px) 50vw, 25vw" />
                     ) : (
                       <ImageIcon className="h-10 w-10 text-slate-300" />
+                    )}
+                    {!p.enStock && (
+                      <span className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full">SIN STOCK</span>
                     )}
                   </div>
                   <div className="p-3 flex-1 flex flex-col">
