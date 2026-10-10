@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, ArrowLeft, ImageIcon } from "lucide-react";
+import { Search, ArrowLeft, ImageIcon, X } from "lucide-react";
 
 const WHATSAPP = "51953096242";
 const waLink = (msg: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
@@ -23,6 +23,7 @@ type Producto = {
 export default function CatalogoPage() {
   const [productos, setProductos] = useState<Producto[] | null>(null);
   const [search, setSearch] = useState("");
+  const [lightbox, setLightbox] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/vitrina")
@@ -112,7 +113,8 @@ export default function CatalogoPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {results.map(p => (
               <div key={p.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
-                <div className="relative aspect-square bg-slate-100 flex items-center justify-center">
+                <div className={`relative aspect-square bg-slate-100 flex items-center justify-center ${p.imagenUrl ? "cursor-zoom-in" : ""}`}
+                  onClick={() => p.imagenUrl && setLightbox(p.imagenUrl)}>
                   {p.imagenUrl ? (
                     <Image src={p.imagenUrl} alt={p.descripcion} fill className="object-cover" sizes="(max-width:640px) 50vw, 25vw" />
                   ) : (
@@ -146,6 +148,19 @@ export default function CatalogoPage() {
           </a>
         </div>
       </main>
+
+      {/* Lightbox: ver la imagen en grande */}
+      {lightbox && (
+        <div onClick={() => setLightbox(null)}
+          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 cursor-zoom-out">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lightbox} alt="Producto" className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+          <button onClick={() => setLightbox(null)}
+            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-full p-2">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
