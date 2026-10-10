@@ -57,6 +57,8 @@ export async function POST(req: NextRequest) {
       destacado: d.destacado ?? false,
       origen: d.origen || null,
       origenId: d.origenId || null,
+      // Las fotos nuevas ya llegan con marca de agua (se sella al subir).
+      fotoSellada: !!d.imagenUrl,
     },
   });
 

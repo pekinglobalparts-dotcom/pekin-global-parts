@@ -82,6 +82,8 @@ const STATEMENTS = [
      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
    );`,
   `CREATE INDEX IF NOT EXISTS "productos_vitrina_activo_idx" ON "productos_vitrina" ("activo");`,
+  // Marca si la foto del producto ya tiene el sello de agua grabado.
+  `ALTER TABLE "productos_vitrina" ADD COLUMN IF NOT EXISTS "fotoSellada" BOOLEAN NOT NULL DEFAULT false;`,
 ];
 
 async function main() {
