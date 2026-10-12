@@ -470,3 +470,22 @@ export async function sendDocumentosRecibidos(
 
   return sendEmail(adminEmail, `Documentos de ${razonSocial} listos para revisión`, html);
 }
+
+/* ─────────────────────── MENSAJE CRM (genérico) ─────────────────────── */
+// Correo genérico que usa el motor del CRM para seguimientos, reactivación y
+// bienvenidas. `parrafos` son líneas de texto; `cta` es un botón opcional.
+export async function sendMensajeCRM(
+  to: string,
+  asunto: string,
+  saludo: string,
+  parrafos: string[],
+  cta?: { label: string; href: string },
+) {
+  const cuerpo = `
+    <h2 style="color:#0f1f3d;font-size:20px;font-weight:900;margin:0 0 12px;">${saludo}</h2>
+    ${parrafos.map(p => `<p style="color:#475569;font-size:15px;line-height:1.7;margin:0 0 14px;">${p}</p>`).join("")}
+    ${cta ? ctaButton(cta.label, cta.href, "#dc2626") : ""}
+    <p style="color:#94a3b8;font-size:12px;margin:22px 0 0;">Quedamos atentos a cualquier consulta. ¡Gracias por su preferencia!</p>
+  `;
+  return sendEmail(to, asunto, layout(asunto, cuerpo));
+}

@@ -299,6 +299,24 @@ model SeguimientoCRM {
   @@map("seguimientos_crm")
 }
 
+// CRM automatizado: guarda el estado de las acciones sugeridas que el motor
+// genera a partir de los datos reales (facturas, cotizaciones, socios…), para
+// no volver a proponer una acción ya enviada / descartada / pospuesta.
+// "clave" es determinista por tipo + referencia (ej. "cobranza:<facturaId>").
+model AccionCRM {
+  id          String    @id @default(cuid())
+  clave       String    @unique
+  tipo        String
+  estado      String    @default("PENDIENTE") // PENDIENTE, ENVIADA, DESCARTADA, POSPUESTA
+  canal       String?   // WHATSAPP, EMAIL
+  snoozeHasta DateTime?
+  nota        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("acciones_crm")
+}
+
 model Cotizacion {
   id          String           @id @default(cuid())
   numero      String           @unique

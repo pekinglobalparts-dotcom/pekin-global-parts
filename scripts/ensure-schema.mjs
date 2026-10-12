@@ -114,6 +114,20 @@ const STATEMENTS = [
      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
    );`,
   `CREATE INDEX IF NOT EXISTS "seguimientos_crm_fecha_idx" ON "seguimientos_crm" ("fecha");`,
+  // CRM automatizado: estado de las acciones sugeridas (enviada / descartada / pospuesta)
+  // para no volver a sugerir lo mismo. "clave" es determinista por tipo + referencia.
+  `CREATE TABLE IF NOT EXISTS "acciones_crm" (
+     "id" TEXT PRIMARY KEY,
+     "clave" TEXT NOT NULL UNIQUE,
+     "tipo" TEXT NOT NULL,
+     "estado" TEXT NOT NULL DEFAULT 'PENDIENTE',
+     "canal" TEXT,
+     "snoozeHasta" TIMESTAMP(3),
+     "nota" TEXT,
+     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+   );`,
+  `CREATE INDEX IF NOT EXISTS "acciones_crm_estado_idx" ON "acciones_crm" ("estado");`,
 ];
 
 async function main() {
