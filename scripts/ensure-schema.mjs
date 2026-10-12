@@ -88,6 +88,32 @@ const STATEMENTS = [
   `ALTER TABLE "productos_vitrina" ADD COLUMN IF NOT EXISTS "selloVersion" INTEGER NOT NULL DEFAULT 0;`,
   // Disponibilidad del producto (en stock / sin stock).
   `ALTER TABLE "productos_vitrina" ADD COLUMN IF NOT EXISTS "enStock" BOOLEAN NOT NULL DEFAULT true;`,
+  // CRM: prospectos (embudo de ventas) y seguimientos.
+  `CREATE TABLE IF NOT EXISTS "prospectos" (
+     "id" TEXT PRIMARY KEY,
+     "nombre" TEXT NOT NULL,
+     "telefono" TEXT,
+     "empresa" TEXT,
+     "origen" TEXT NOT NULL DEFAULT 'WHATSAPP',
+     "interes" TEXT,
+     "etapa" TEXT NOT NULL DEFAULT 'NUEVO',
+     "valorEstimado" DECIMAL(12,2),
+     "notas" TEXT,
+     "socioId" TEXT,
+     "orden" INTEGER NOT NULL DEFAULT 0,
+     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+   );`,
+  `CREATE INDEX IF NOT EXISTS "prospectos_etapa_idx" ON "prospectos" ("etapa");`,
+  `CREATE TABLE IF NOT EXISTS "seguimientos_crm" (
+     "id" TEXT PRIMARY KEY,
+     "prospectoId" TEXT,
+     "titulo" TEXT NOT NULL,
+     "fecha" TIMESTAMP(3) NOT NULL,
+     "hecho" BOOLEAN NOT NULL DEFAULT false,
+     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+   );`,
+  `CREATE INDEX IF NOT EXISTS "seguimientos_crm_fecha_idx" ON "seguimientos_crm" ("fecha");`,
 ];
 
 async function main() {

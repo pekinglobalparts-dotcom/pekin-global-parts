@@ -263,6 +263,42 @@ model ProductoVitrina {
   @@map("productos_vitrina")
 }
 
+// ── CRM ──────────────────────────────────────────────────────────────────────
+// Prospectos (clientes potenciales) y su embudo de ventas.
+model Prospecto {
+  id            String   @id @default(cuid())
+  nombre        String
+  telefono      String?
+  empresa       String?
+  origen        String   @default("WHATSAPP") // WHATSAPP, WEB, REFERIDO, OTRO
+  interes       String?
+  etapa         String   @default("NUEVO")    // NUEVO, CONTACTADO, COTIZADO, NEGOCIACION, GANADO, PERDIDO
+  valorEstimado Decimal? @db.Decimal(12, 2)
+  notas         String?
+  socioId       String?  // si se convierte en cliente/socio
+  orden         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  seguimientos  SeguimientoCRM[]
+
+  @@map("prospectos")
+}
+
+// Tareas de seguimiento (recordatorios): "contactar a X el viernes".
+model SeguimientoCRM {
+  id          String   @id @default(cuid())
+  prospectoId String?
+  titulo      String
+  fecha       DateTime
+  hecho       Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  prospecto   Prospecto? @relation(fields: [prospectoId], references: [id], onDelete: Cascade)
+
+  @@map("seguimientos_crm")
+}
+
 model Cotizacion {
   id          String           @id @default(cuid())
   numero      String           @unique
