@@ -48,6 +48,7 @@ const conMargen = (socio: string, pct: number) => {
 
 export default function VitrinaPage() {
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
 
@@ -318,7 +319,8 @@ export default function VitrinaPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {productos.map(p => (
             <div key={p.id} className={`bg-white border rounded-2xl overflow-hidden flex flex-col ${p.activo ? "border-slate-200" : "border-slate-200 opacity-60"}`}>
-              <div className="relative aspect-square bg-slate-100 flex items-center justify-center">
+              <div className={`relative aspect-square bg-slate-100 flex items-center justify-center ${p.imagenUrl ? "cursor-zoom-in" : ""}`}
+                onClick={() => p.imagenUrl && setLightbox(p.imagenUrl)}>
                 {p.imagenUrl ? (
                   <Image src={p.imagenUrl} alt={p.descripcion} fill className="object-cover" sizes="(max-width:640px) 100vw, 33vw" />
                 ) : (
@@ -366,6 +368,19 @@ export default function VitrinaPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Lightbox: ver la foto en grande */}
+      {lightbox && (
+        <div onClick={() => setLightbox(null)}
+          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 cursor-zoom-out">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lightbox} alt="Producto" className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+          <button onClick={() => setLightbox(null)}
+            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-full p-2">
+            <X className="h-6 w-6" />
+          </button>
         </div>
       )}
     </div>
