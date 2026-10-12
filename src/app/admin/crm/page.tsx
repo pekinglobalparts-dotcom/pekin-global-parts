@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Users, Plus, X, Check, Pencil, Trash2, MessageCircle, Bell, CalendarClock,
-  TrendingUp, AlertTriangle, Mail, Send, Clock, Inbox, Search, Zap,
+  TrendingUp, AlertTriangle, Mail, Clock, Inbox, Search, Zap,
+  Sparkles, Package, BarChart3, DollarSign,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
@@ -33,13 +34,36 @@ interface Cliente {
 
 interface Accion {
   clave: string;
-  tipo: "COBRANZA" | "COTIZACION" | "REACTIVACION" | "BIENVENIDA" | "SOLICITUD";
+  tipo: string;
+  esOportunidad: boolean;
+  montoPotencial: number | null;
   prioridad: number; icono: string; titulo: string; detalle: string;
   cliente: { id: string; nombre: string; telefono: string; email: string };
   canales: ("WHATSAPP" | "EMAIL")[];
   wa: string | null; mensajeWhatsApp: string;
   email: { asunto: string } | null;
 }
+
+interface ProductoAgg { nombre: string; cantidad: number; monto: number; veces: number }
+interface Ficha360 {
+  cliente: Cliente;
+  compras: { id: string; numero: string; fecha: string; total: number; status: string; items: { nombre: string; cantidad: number; subtotal: number }[] }[];
+  topComprados: ProductoAgg[];
+  topCotizados: ProductoAgg[];
+  conversion: { cotizaciones: number; convertidas: number; tasa: number };
+  cotizacionesAbiertas: { numero: string; total: number | null; dias: number; status: string }[];
+  facturas: { pagadas: number; pendientes: number; vencidas: number; porVencer: number; totalPagado: number; totalPorCobrar: number; diasPromedioPago: number | null };
+  ticketPromedio: number | null;
+  frecuenciaDias: number | null;
+  proximaCompra: string | null;
+}
+
+const waBuild = (tel: string | null, texto: string) => {
+  if (!tel) return null;
+  let d = tel.replace(/\D/g, "");
+  if (d.length === 9) d = "51" + d;
+  return `https://wa.me/${d}?text=${encodeURIComponent(texto)}`;
+};
 
 const ETAPAS = ["NUEVO", "CONTACTADO", "COTIZADO", "NEGOCIACION", "GANADO", "PERDIDO"] as const;
 const ETAPA_LABEL: Record<string, string> = {
@@ -100,6 +124,12 @@ export default function CRMPage() {
   const [loadingAcc, setLoadingAcc] = useState(true);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [flash, setFlash] = useState<Record<string, string>>({});
+  const [accFiltro, setAccFiltro] = useState<"TODAS" | "OPORTUNIDAD" | "TAREA">("TODAS");
+  const [iaBusy, setIaBusy] = useState<Record<string, boolean>>({});
+
+  // Ficha 360
+  const [ficha, setFicha] = useState<Ficha360 | null>(null);
+  const [loadingFicha, setLoadingFicha] = useState(false);
 
   // Clientes
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -163,6 +193,28 @@ export default function CRMPage() {
   const enviarEmail = useCallback((a: Accion) => { resolver(a, "ENVIAR", "EMAIL"); }, [resolver]);
   const descartar = useCallback((a: Accion) => { resolver(a, "DESCARTAR"); }, [resolver]);
   const posponer = useCallback((a: Accion) => { resolver(a, "POSPONER", undefined, 3); }, [resolver]);
+  const redactarIA = useCallback(async (a: Accion) => {
+    setIaBusy(b => ({ ...b, [a.clave]: true }));
+    try {
+      const r = await fetch("/api/admin/crm/redactar", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clave: a.clave }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.mensaje) {
+        setAcciones(prev => prev.map(x => x.clave === a.clave ? { ...x, mensajeWhatsApp: d.mensaje, wa: waBuild(x.cliente.telefono, d.mensaje) } : x));
+      }
+    } catch { /* ignore */ }
+    setIaBusy(b => ({ ...b, [a.clave]: false }));
+  }, []);
+  const abrirFicha = useCallback(async (id: string) => {
+    setLoadingFicha(true); setFicha(null);
+    try {
+      const r = await fetch(`/api/admin/crm/clientes/${id}`);
+      const d = await r.json().catch(() => ({}));
+      if (r.ok) setFicha(d.ficha);
+    } catch { /* ignore */ }
+    setLoadingFicha(false);
+  }, []);
 
   // ── Prospecto form ──
   const abrirNuevo = () => { setForm(emptyForm); setEditId(null); setError(""); setShowForm(true); };
@@ -235,6 +287,11 @@ export default function CRMPage() {
     });
   }, [clientes, filtroCli, buscaCli]);
   const totalPorCobrar = useMemo(() => clientes.reduce((s, c) => s + c.montoPorCobrar, 0), [clientes]);
+  const oportunidades = useMemo(() => acciones.filter(a => a.esOportunidad), [acciones]);
+  const potencialTotal = useMemo(() => oportunidades.reduce((s, a) => s + (a.montoPotencial || 0), 0), [oportunidades]);
+  const accionesFiltradas = useMemo(() =>
+    acciones.filter(a => accFiltro === "TODAS" ? true : accFiltro === "OPORTUNIDAD" ? a.esOportunidad : !a.esOportunidad),
+    [acciones, accFiltro]);
 
   if (denied) {
     return (
@@ -279,34 +336,56 @@ export default function CRMPage() {
           <div className="bg-gradient-to-r from-[#0f1f3d] to-[#16294f] rounded-2xl p-5 text-white flex items-center gap-4">
             <div className="h-11 w-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0"><Zap className="h-6 w-6 text-amber-300" /></div>
             <div className="flex-1 min-w-0">
-              <p className="font-black text-lg leading-tight">{acciones.length} acción(es) sugerida(s)</p>
-              <p className="text-blue-200 text-sm">Generadas automáticamente de tus facturas, cotizaciones y clientes. Revisa y aprueba.</p>
+              <p className="font-black text-lg leading-tight">{acciones.length} acción(es) · {oportunidades.length} oportunidad(es)</p>
+              <p className="text-blue-200 text-sm">
+                {potencialTotal > 0 ? <>Potencial en juego: <span className="font-bold text-amber-300">{formatCurrency(potencialTotal)}</span>. </> : null}
+                Generadas de tus datos. Revisa y aprueba.
+              </p>
             </div>
             <button onClick={loadAcciones} className="text-blue-200 hover:text-white text-xs font-bold underline shrink-0">Actualizar</button>
           </div>
 
+          <div className="flex flex-wrap items-center gap-2">
+            {([["TODAS", `Todas (${acciones.length})`], ["OPORTUNIDAD", `💰 Oportunidades (${oportunidades.length})`], ["TAREA", `Tareas (${acciones.length - oportunidades.length})`]] as const).map(([k, l]) => (
+              <button key={k} onClick={() => setAccFiltro(k)}
+                className={`text-xs font-bold px-3 py-1.5 rounded-full border ${accFiltro === k ? "bg-[#0f1f3d] text-white border-[#0f1f3d]" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}>{l}</button>
+            ))}
+          </div>
+
           {loadingAcc ? (
             <div className="p-10 text-center text-slate-400 text-sm">Analizando tus datos…</div>
-          ) : acciones.length === 0 ? (
+          ) : accionesFiltradas.length === 0 ? (
             <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center">
               <Inbox className="h-10 w-10 mx-auto mb-3 text-emerald-400" />
-              <p className="font-bold text-slate-700">¡Todo al día!</p>
-              <p className="text-slate-400 text-sm mt-1">No hay acciones pendientes por ahora. Vuelve más tarde o actualiza.</p>
+              <p className="font-bold text-slate-700">{acciones.length === 0 ? "¡Todo al día!" : "Nada en este filtro"}</p>
+              <p className="text-slate-400 text-sm mt-1">{acciones.length === 0 ? "No hay acciones pendientes por ahora. Vuelve más tarde o actualiza." : "Prueba con otro filtro."}</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {acciones.map(a => {
+              {accionesFiltradas.map(a => {
                 const fl = flash[a.clave];
                 const isBusy = busy[a.clave];
+                const ia = iaBusy[a.clave];
                 return (
-                  <div key={a.clave} className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div key={a.clave} className={`bg-white border rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row gap-4 ${a.esOportunidad ? "border-emerald-200 border-l-4 border-l-emerald-500" : "border-slate-200"}`}>
                     <div className="text-2xl shrink-0">{a.icono}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-slate-900 leading-tight">{a.titulo}</p>
+                      <div className="flex items-start justify-between gap-2 flex-wrap">
+                        <p className="font-bold text-slate-900 leading-tight">{a.titulo}</p>
+                        {a.montoPotencial ? (
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 shrink-0 flex items-center gap-1">
+                            <DollarSign className="h-3 w-3" /> Potencial {formatCurrency(a.montoPotencial)}
+                          </span>
+                        ) : null}
+                      </div>
                       <p className="text-sm text-slate-500 mt-0.5">{a.detalle}</p>
-                      <p className="text-xs text-slate-400 mt-1.5 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 line-clamp-2">“{a.mensajeWhatsApp}”</p>
+                      <p className="text-xs text-slate-500 mt-1.5 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 whitespace-pre-wrap">“{a.mensajeWhatsApp}”</p>
+                      <button onClick={() => redactarIA(a)} disabled={ia || isBusy}
+                        className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 disabled:opacity-40">
+                        <Sparkles className="h-3.5 w-3.5" /> {ia ? "Redactando…" : "Redactar con IA"}
+                      </button>
                     </div>
-                    <div className="flex flex-col gap-1.5 shrink-0 sm:w-44">
+                    <div className="flex flex-col gap-1.5 shrink-0 sm:w-44 sm:justify-center">
                       {fl ? (
                         <span className={`text-sm font-bold text-center py-2 ${fl.includes("✓") || fl === "Descartada" || fl === "Pospuesta" ? "text-emerald-600" : "text-red-600"}`}>{fl}</span>
                       ) : (
@@ -387,7 +466,7 @@ export default function CRMPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-50">
                     {clientesFiltrados.map(c => (
-                      <tr key={c.id} className="hover:bg-slate-50/60">
+                      <tr key={c.id} onClick={() => abrirFicha(c.id)} className="hover:bg-slate-50/60 cursor-pointer">
                         <td className="px-4 py-3">
                           <p className="font-bold text-slate-900 leading-tight">{c.razonSocial}</p>
                           <p className="text-xs text-slate-400">{c.sector}{c.ciudad ? ` · ${c.ciudad}` : ""} · {c.totalPedidos} pedido(s)</p>
@@ -403,7 +482,7 @@ export default function CRMPage() {
                           {c.ultimaCompra ? <>{formatDate(c.ultimaCompra)}<span className="block text-xs text-slate-400">hace {c.diasSinComprar} día(s)</span></> : <span className="text-slate-300">Nunca</span>}
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center gap-1.5 justify-end">
+                          <div className="flex items-center gap-1.5 justify-end" onClick={e => e.stopPropagation()}>
                             {c.wa && (
                               <a href={`https://wa.me/${c.wa}?text=${encodeURIComponent(`Hola ${c.razonSocial}, le saluda Pekín Global Parts 👋`)}`} target="_blank" rel="noopener noreferrer"
                                 className="text-green-600 hover:bg-green-50 rounded-lg p-1.5" title="WhatsApp"><MessageCircle className="h-4 w-4" /></a>
@@ -532,6 +611,131 @@ export default function CRMPage() {
                 );
               })}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ficha 360 */}
+      {(ficha || loadingFicha) && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto" onClick={() => { setFicha(null); setLoadingFicha(false); }}>
+          <div className="bg-white rounded-2xl w-full max-w-3xl my-8 shadow-2xl" onClick={e => e.stopPropagation()}>
+            {loadingFicha || !ficha ? (
+              <div className="p-12 text-center text-slate-400 text-sm">Cargando ficha…</div>
+            ) : (
+              <>
+                <div className="flex items-start justify-between px-5 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl">
+                  <div>
+                    <h2 className="font-black text-slate-900 text-lg leading-tight flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-[#0f1f3d]" /> {ficha.cliente.razonSocial}
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {ficha.cliente.sector}{ficha.cliente.ciudad ? ` · ${ficha.cliente.ciudad}` : ""}
+                      <span className={`ml-2 text-[11px] font-bold px-2 py-0.5 rounded-full ${TEMP_COLOR[ficha.cliente.temperatura]}`}>{TEMP_LABEL[ficha.cliente.temperatura]}</span>
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {ficha.cliente.wa && (
+                      <a href={`https://wa.me/${ficha.cliente.wa}?text=${encodeURIComponent(`Hola ${ficha.cliente.razonSocial}, le saluda Pekín Global Parts 👋`)}`} target="_blank" rel="noopener noreferrer"
+                        className="text-green-600 hover:bg-green-50 rounded-lg p-2" title="WhatsApp"><MessageCircle className="h-5 w-5" /></a>
+                    )}
+                    <button onClick={() => { setFicha(null); setLoadingFicha(false); }} className="text-slate-400 hover:text-slate-700"><X className="h-5 w-5" /></button>
+                  </div>
+                </div>
+
+                <div className="p-5 space-y-5">
+                  {/* KPIs */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3"><p className="text-[11px] text-slate-400">Total facturado</p><p className="text-lg font-black text-slate-900">{formatCurrency(ficha.cliente.totalFacturado)}</p></div>
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3"><p className="text-[11px] text-slate-400">Ticket promedio</p><p className="text-lg font-black text-slate-900">{ficha.ticketPromedio != null ? formatCurrency(ficha.ticketPromedio) : "—"}</p></div>
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3"><p className="text-[11px] text-slate-400">Pedidos</p><p className="text-lg font-black text-slate-900">{ficha.cliente.totalPedidos}</p></div>
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3"><p className="text-[11px] text-slate-400">Por cobrar</p><p className={`text-lg font-black ${ficha.cliente.montoPorCobrar > 0 ? "text-red-600" : "text-slate-300"}`}>{ficha.cliente.montoPorCobrar > 0 ? formatCurrency(ficha.cliente.montoPorCobrar) : "—"}</p></div>
+                  </div>
+
+                  {/* Conversión + ritmo + pago */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="border border-slate-200 rounded-xl p-4">
+                      <p className="text-xs font-bold text-slate-400 uppercase mb-1">Conversión</p>
+                      <p className="text-2xl font-black text-[#0f1f3d]">{ficha.conversion.tasa}%</p>
+                      <p className="text-xs text-slate-500">{ficha.conversion.convertidas} de {ficha.conversion.cotizaciones} cotizaciones → pedido</p>
+                    </div>
+                    <div className="border border-slate-200 rounded-xl p-4">
+                      <p className="text-xs font-bold text-slate-400 uppercase mb-1">Ritmo de compra</p>
+                      <p className="text-2xl font-black text-[#0f1f3d]">{ficha.frecuenciaDias != null ? `~${ficha.frecuenciaDias}d` : "—"}</p>
+                      <p className="text-xs text-slate-500">{ficha.proximaCompra ? `Próxima estimada: ${formatDate(ficha.proximaCompra)}` : "Aún sin patrón"}</p>
+                    </div>
+                    <div className="border border-slate-200 rounded-xl p-4">
+                      <p className="text-xs font-bold text-slate-400 uppercase mb-1">Pago</p>
+                      <p className="text-2xl font-black text-[#0f1f3d]">{ficha.facturas.diasPromedioPago != null ? `${ficha.facturas.diasPromedioPago}d` : "—"}</p>
+                      <p className="text-xs text-slate-500">prom. en pagar · {ficha.facturas.vencidas > 0 ? <span className="text-red-600 font-bold">{ficha.facturas.vencidas} vencida(s)</span> : "al día"}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {/* Top comprados */}
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-1.5"><Package className="h-4 w-4 text-[#0f1f3d]" /> Lo que más compra</h3>
+                      {ficha.topComprados.length === 0 ? <p className="text-xs text-slate-400">Sin compras registradas.</p> : (
+                        <div className="space-y-1.5">
+                          {ficha.topComprados.map((p, i) => (
+                            <div key={i} className="flex items-center justify-between gap-2 text-sm bg-slate-50 border border-slate-100 rounded-lg px-3 py-1.5">
+                              <span className="text-slate-700 truncate">{p.nombre}</span>
+                              <span className="text-slate-400 text-xs shrink-0">{p.cantidad} und · <b className="text-slate-700">{formatCurrency(p.monto)}</b></span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {/* Top cotizados */}
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-1.5"><TrendingUp className="h-4 w-4 text-[#0f1f3d]" /> Lo que más cotiza</h3>
+                      {ficha.topCotizados.length === 0 ? <p className="text-xs text-slate-400">Sin cotizaciones.</p> : (
+                        <div className="space-y-1.5">
+                          {ficha.topCotizados.map((p, i) => (
+                            <div key={i} className="flex items-center justify-between gap-2 text-sm bg-slate-50 border border-slate-100 rounded-lg px-3 py-1.5">
+                              <span className="text-slate-700 truncate">{p.nombre}</span>
+                              <span className="text-slate-400 text-xs shrink-0">{p.veces}x</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Cotizaciones abiertas = plata sobre la mesa */}
+                  {ficha.cotizacionesAbiertas.length > 0 && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                      <h3 className="text-sm font-bold text-amber-800 mb-2 flex items-center gap-1.5"><DollarSign className="h-4 w-4" /> Cotizaciones sin cerrar — oportunidad de recuperar</h3>
+                      <div className="space-y-1.5">
+                        {ficha.cotizacionesAbiertas.slice(0, 5).map((c, i) => (
+                          <div key={i} className="flex items-center justify-between gap-2 text-sm">
+                            <span className="text-slate-700">{c.numero} <span className="text-slate-400 text-xs">· hace {c.dias}d</span></span>
+                            <span className="font-bold text-amber-800">{c.total != null ? formatCurrency(c.total) : "—"}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Últimas compras */}
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-1.5"><CalendarClock className="h-4 w-4 text-[#0f1f3d]" /> Últimas compras</h3>
+                    {ficha.compras.length === 0 ? <p className="text-xs text-slate-400">Sin compras.</p> : (
+                      <div className="space-y-2 max-h-56 overflow-y-auto">
+                        {ficha.compras.slice(0, 10).map(p => (
+                          <div key={p.id} className="border border-slate-100 rounded-lg px-3 py-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-sm font-semibold text-slate-800">{p.numero} <span className="text-xs text-slate-400 font-normal">· {formatDate(p.fecha)}</span></span>
+                              <span className="text-sm font-bold text-slate-900">{formatCurrency(p.total)}</span>
+                            </div>
+                            {p.items.length > 0 && <p className="text-xs text-slate-400 mt-0.5 truncate">{p.items.map(it => `${it.nombre} (${it.cantidad})`).join(", ")}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
