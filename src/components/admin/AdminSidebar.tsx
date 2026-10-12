@@ -9,12 +9,13 @@ import {
   LayoutDashboard, FileText, Users,
   ShoppingCart, Receipt, CreditCard, LogOut,
   ChevronRight, Database, UserCog, Search, Menu, X,
-  TrendingUp, Store, Banknote, Boxes, Tags,
+  TrendingUp, Store, Banknote, Boxes, Tags, Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/admin/crm", label: "CRM / Prospectos", icon: Target },
   { href: "/admin/solicitudes", label: "Solicitudes", icon: FileText },
   { href: "/admin/socios", label: "Socios", icon: Users },
   { href: "/admin/cotizaciones", label: "Cotizaciones", icon: ShoppingCart },
