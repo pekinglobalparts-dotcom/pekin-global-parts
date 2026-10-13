@@ -1,0 +1,23 @@
+{
+  "titulo": "Lista de Precios Exclusiva",
+  "cliente": "TAIR RENTING",
+  "vehiculo": "Toyota Hilux 1GD / 2GD",
+  "anios": "2016 → Actual",
+  "mostrarPrecios": true,
+  "notaPrecio": "Precios por mayor, incluyen IGV",
+  "productos": [
+    {"categoria":"PALIERES","marca":"BOTELLI","repuesto":"Punta de palier externa","codigo":"FD2331-K","modelo":"Hilux 1GD / 2GD","precio":"109"},
+    {"categoria":"PALIERES","marca":"BOTELLI","repuesto":"Copa / palier interno","codigo":"FD2334-K","modelo":"Hilux 1GD / 2GD","precio":"139"},
+    {"categoria":"SUSPENSIÓN Y DIRECCIÓN","marca":"555","repuesto":"Rótula superior","codigo":"SB-3882","modelo":"Hilux 1GD / 2GD","precio":"69"},
+    {"categoria":"SUSPENSIÓN Y DIRECCIÓN","marca":"555","repuesto":"Rótula inferior","codigo":"SB-2852","modelo":"Hilux 1GD / 2GD","precio":"69"},
+    {"categoria":"SUSPENSIÓN Y DIRECCIÓN","marca":"555","repuesto":"Bieleta (barra estabilizadora)","codigo":"SI-3890R","modelo":"Hilux 1GD / 2GD","precio":"78"},
+    {"categoria":"SUSPENSIÓN Y DIRECCIÓN","marca":"555","repuesto":"Terminal de dirección","codigo":"SE-3891","modelo":"Hilux 1GD / 2GD","precio":"72"},
+    {"categoria":"SUSPENSIÓN Y DIRECCIÓN","marca":"555","repuesto":"Rack (extremo de cremallera)","codigo":"SE-3880","modelo":"Hilux 1GD / 2GD","precio":"88"},
+    {"categoria":"RODAJES","marca":"KOYO","repuesto":"Rodaje de rueda","codigo":"KOYO-01","modelo":"Hilux 1GD / 2GD","precio":"178"},
+    {"categoria":"FAROS / ILUMINACIÓN","marca":"DEPO","repuesto":"Faro delantero","codigo":"212-11AKL-LD-EN","modelo":"Hilux 1GD / 2GD","precio":"315"},
+    {"categoria":"FAROS / ILUMINACIÓN","marca":"DEPO","repuesto":"Faro posterior","codigo":"212-19AMR-AE","modelo":"Hilux 1GD / 2GD","precio":"215"},
+    {"categoria":"FAROS / ILUMINACIÓN","marca":"TYM","repuesto":"Espejo eléctrico (5 cables)","codigo":"TYM-5C","modelo":"Hilux 1GD / 2GD","precio":"205"},
+    {"categoria":"CARROCERÍA","marca":"DEPO","repuesto":"Parachoque delantero","codigo":"PCH-DEL-21","modelo":"Hilux 2021+","precio":"185"},
+    {"categoria":"CARROCERÍA","marca":"DEPO","repuesto":"Parachoque posterior","codigo":"PCH-POS","modelo":"Hilux Revo 15-18","precio":"665"}
+  ]
+}
