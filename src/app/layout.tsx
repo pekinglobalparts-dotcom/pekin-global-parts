@@ -64,6 +64,28 @@ export default function RootLayout({
   return (
     <html lang="es" className={inter.variable} style={{ scrollBehavior: "smooth" }}>
       <body className="min-h-screen bg-white font-sans antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "AutoPartsStore",
+              name: "Pekín Global Parts",
+              alternateName: "Pekín S&A",
+              description:
+                "Importadora de autopartes y repuestos de motor en Perú. Pistones, anillos, metales, válvulas y más para múltiples marcas. Envíos a todo el país.",
+              url: "https://www.pekinglobalparts.com",
+              telephone: "+51953096242",
+              areaServed: "PE",
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: "Lima",
+                addressCountry: "PE",
+              },
+              sameAs: ["https://wa.me/51953096242"],
+            }),
+          }}
+        />
         {children}
         <AsesorWidget />
         <Analytics />
