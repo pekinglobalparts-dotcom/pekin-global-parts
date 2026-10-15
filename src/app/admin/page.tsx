@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { marcarFacturasVencidas } from "@/lib/facturas";
 import { formatCurrency } from "@/lib/utils";
 import {
   FileText, Users, ShoppingCart, Receipt,
@@ -9,6 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AdminCharts } from "@/components/admin/AdminCharts";
 
 async function getStats() {
+  // Mantiene el estado de las facturas al día (PENDIENTE → VENCIDA).
+  await marcarFacturasVencidas();
   const [
     totalSocios,
     solicitudesPendientes,
@@ -25,18 +28,20 @@ async function getStats() {
     prisma.pedido.count({
       where: { status: { in: ["PENDIENTE", "CONFIRMADO", "EN_PROCESO"] } },
     }),
-    prisma.factura.count({ where: { status: "PENDIENTE" } }),
+    prisma.factura.count({ where: { status: { in: ["PENDIENTE", "VENCIDA"] } } }),
     prisma.solicitud.findMany({
       orderBy: { createdAt: "desc" },
       take: 6,
     }),
+    // Total facturado = todo lo emitido menos lo anulado (incluye vencidas).
     prisma.factura.aggregate({
       _sum: { total: true },
-      where: { status: { in: ["PENDIENTE", "PAGADA"] } },
+      where: { status: { in: ["PENDIENTE", "PAGADA", "VENCIDA"] } },
     }),
+    // Pendiente de cobro = todo lo no pagado (pendientes + vencidas).
     prisma.factura.aggregate({
       _sum: { total: true },
-      where: { status: "PENDIENTE" },
+      where: { status: { in: ["PENDIENTE", "VENCIDA"] } },
     }),
   ]);
 
