@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { marcarFacturasVencidas } from "@/lib/facturas";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -11,6 +12,8 @@ export async function GET(req: NextRequest) {
   const socioId = session.user.id;
 
   try {
+    // Mantiene el estado de las facturas al día para que el conteo coincida.
+    await marcarFacturasVencidas();
     const [socio, pedidosActivos, facturasPendientes, cotizacionesPendientes, notificaciones] =
       await Promise.all([
         prisma.socio.findUnique({ where: { id: socioId } }),
@@ -20,7 +23,7 @@ export async function GET(req: NextRequest) {
             status: { in: ["PENDIENTE", "CONFIRMADO", "EN_PROCESO", "ENVIADO"] },
           },
         }),
-        prisma.factura.count({ where: { socioId, status: "PENDIENTE" } }),
+        prisma.factura.count({ where: { socioId, status: { in: ["PENDIENTE", "VENCIDA"] } } }),
         prisma.cotizacion.count({ where: { socioId, status: "PENDIENTE" } }),
         prisma.notificacion.findMany({
           where: { socioId, leida: false },
