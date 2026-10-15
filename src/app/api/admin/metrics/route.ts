@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { marcarFacturasVencidas } from "@/lib/facturas";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session || session.user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  // Mantiene el estado de las facturas al día (PENDIENTE → VENCIDA) para que
+  // los montos del dashboard coincidan con la página de Facturas.
+  await marcarFacturasVencidas();
 
   // Socios por sector
   const sociosPorSector = await prisma.socio.groupBy({
@@ -62,15 +67,17 @@ export async function GET(req: NextRequest) {
     })
   );
 
-  // Totales financieros
+  // Totales financieros. Se excluye solo ANULADA; las VENCIDA son facturas
+  // emitidas y aún por cobrar, así que cuentan igual que en la página de Facturas.
   const totalFacturado = await prisma.factura.aggregate({
     _sum: { total: true },
-    where: { status: { in: ["PENDIENTE", "PAGADA"] } },
+    where: { status: { in: ["PENDIENTE", "PAGADA", "VENCIDA"] } },
   });
 
+  // "Pendiente de cobro" = todo lo no pagado (pendientes + vencidas).
   const totalPendienteCobro = await prisma.factura.aggregate({
     _sum: { total: true },
-    where: { status: "PENDIENTE" },
+    where: { status: { in: ["PENDIENTE", "VENCIDA"] } },
   });
 
   return NextResponse.json({
