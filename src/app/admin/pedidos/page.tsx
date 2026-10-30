@@ -76,6 +76,8 @@ export default function AdminPedidosPage() {
   const [uploadingOc, setUploadingOc] = useState<string | null>(null);
   const [ocNumeroInput, setOcNumeroInput] = useState<Record<string, string>>({});
   const [ocError, setOcError] = useState<Record<string, string>>({});
+  const [replacingOc, setReplacingOc] = useState<Record<string, boolean>>({});
+  const [ocMsg, setOcMsg] = useState<Record<string, string>>({});
 
   // --- Costos por línea (para calcular ganancia) ---
   const [costoInput, setCostoInput] = useState<Record<string, string>>({});
@@ -237,7 +239,11 @@ export default function AdminPedidosPage() {
     const num = ocNumeroInput[id];
     if (num === undefined) return;
     const pedido = pedidos.find(p => p.id === id);
-    await saveOc(id, pedido?.ocUrl ?? null, num);
+    const ok = await saveOc(id, pedido?.ocUrl ?? null, num);
+    if (ok) {
+      setOcMsg(prev => ({ ...prev, [id]: "✓ N° guardado" }));
+      setTimeout(() => setOcMsg(prev => ({ ...prev, [id]: "" })), 2500);
+    }
   };
 
   // Guarda el costo de cada línea del pedido (para calcular ganancia)
@@ -575,26 +581,34 @@ export default function AdminPedidosPage() {
                               <FileText className="h-3.5 w-3.5" /> Orden de compra (O.C.) del cliente
                             </p>
 
-                            <div className="flex gap-2 mb-2">
+                            <div className="flex gap-2 mb-1 items-center">
                               <input
                                 type="text"
-                                placeholder={pedido.ocNumero || "N° de O.C. (ej: 0000012791)"}
-                                defaultValue={pedido.ocNumero || ""}
+                                placeholder="N° de O.C. (ej: 0000012791)"
+                                value={ocNumeroInput[pedido.id] ?? pedido.ocNumero ?? ""}
                                 onChange={e => setOcNumeroInput(prev => ({ ...prev, [pedido.id]: e.target.value }))}
                                 className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900"
                               />
                               <Button size="sm" variant="outline" onClick={() => saveOcNumero(pedido.id)}>
-                                Guardar N°
+                                {pedido.ocNumero ? "Actualizar N°" : "Guardar N°"}
                               </Button>
                             </div>
+                            {ocMsg[pedido.id] && <p className="text-xs text-green-600 font-semibold mb-2">{ocMsg[pedido.id]}</p>}
+                            <p className="text-[11px] text-slate-400 mb-2">Puedes editar el N° cuando quieras. Este número aparece en los recordatorios de pago.</p>
 
-                            {pedido.ocUrl ? (
+                            {pedido.ocUrl && !replacingOc[pedido.id] ? (
                               <div className="flex items-center gap-2 flex-wrap">
                                 <a href={pedido.ocUrl} target="_blank" rel="noopener noreferrer">
                                   <Button size="sm" variant="outline" className="text-green-700 border-green-200 hover:bg-green-50">
                                     <Download className="h-3.5 w-3.5" /> Ver / descargar O.C.
                                   </Button>
                                 </a>
+                                <button
+                                  onClick={() => { setOcError(prev => ({ ...prev, [pedido.id]: "" })); setReplacingOc(prev => ({ ...prev, [pedido.id]: true })); }}
+                                  className="text-xs font-semibold text-blue-700 hover:underline"
+                                >
+                                  Reemplazar
+                                </button>
                                 <button
                                   onClick={() => saveOc(pedido.id, null)}
                                   className="text-xs text-slate-400 hover:text-red-500 font-medium"
@@ -605,12 +619,19 @@ export default function AdminPedidosPage() {
                               </div>
                             ) : (
                               <>
+                                {pedido.ocUrl && (
+                                  <p className="text-[11px] text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-1.5 mb-2">
+                                    Sube el nuevo PDF: reemplazará al anterior (no queda duplicado).{" "}
+                                    <button onClick={() => setReplacingOc(prev => ({ ...prev, [pedido.id]: false }))} className="font-semibold underline">Cancelar</button>
+                                  </p>
+                                )}
                                 <UploadDropzone<OurFileRouter, "ordenCompra">
                                   endpoint="ordenCompra"
                                   onUploadBegin={() => { setOcError(prev => ({ ...prev, [pedido.id]: "" })); setUploadingOc(pedido.id); }}
                                   onClientUploadComplete={async (files) => {
                                     const url = files?.[0]?.ufsUrl ?? files?.[0]?.url;
                                     if (url) await saveOc(pedido.id, url, ocNumeroInput[pedido.id]);
+                                    setReplacingOc(prev => ({ ...prev, [pedido.id]: false }));
                                     setUploadingOc(null);
                                   }}
                                   onUploadError={(err) => {
