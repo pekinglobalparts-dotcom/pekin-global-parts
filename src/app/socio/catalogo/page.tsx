@@ -488,7 +488,7 @@ export default function SocioCatalogoPage() {
                   <div className={`relative aspect-square bg-slate-100 flex items-center justify-center ${p.imagenUrl ? "cursor-zoom-in" : ""}`}
                     onClick={() => p.imagenUrl && setLightbox(p.imagenUrl)}>
                     {p.imagenUrl ? (
-                      <Image src={p.imagenUrl} alt={p.descripcion} fill className="object-cover" sizes="(max-width:640px) 50vw, 25vw" />
+                      <Image src={p.imagenUrl} alt={p.descripcion} fill className="object-contain p-3" sizes="(max-width:640px) 50vw, 25vw" />
                     ) : (
                       <ImageIcon className="h-10 w-10 text-slate-300" />
                     )}
